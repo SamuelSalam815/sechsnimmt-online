@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "npm run lint && tsc && vite build",
+    "preview": "vite preview",
+    "lint": "biome check --error-on-warnings",
+    "format": "biome check --write"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.14.0",
@@ -15,6 +17,7 @@
     "react-redux": "^9.3.1"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.7",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^4.6.0",
