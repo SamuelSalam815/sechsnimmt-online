@@ -53,10 +53,10 @@ Each card shows 1 to 7 bullheads.
 
 | Card | Bullheads |
 |------|-----------|
-| Contains the digit 5 (5, 15, 25, ...) | 2 |
+| Multiple of 5 that is not a multiple of 10 (5, 15, 25, ...) | 2 |
 | Multiple of ten (10, 20, 30, ...) | 3 |
 | Doublet (11, 22, 33, ...) | 5 |
-| 55 (doublet that contains the digit 5) | 7 |
+| 55 (doublet that is a multiple of 5) | 7 |
 | All other cards | 1 |
 
 ## Bullhead stack
