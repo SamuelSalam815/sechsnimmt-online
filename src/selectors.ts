@@ -1,6 +1,6 @@
 import type { Card } from './card';
 
-export function selectPenaltyValue(card: Pick<Card, 'faceValue'>): number {
+export function selectPenaltyValue(card: Card): number {
   const { faceValue } = card;
   if (Number.isInteger(faceValue) && faceValue >= 1 && faceValue <= 104) {
     if (faceValue === 55) return 7;
