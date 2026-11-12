@@ -2,6 +2,10 @@
 
 The game flow has three layers. A request moves through the layers in this order.
 
+The layers separate responsibilities, not dependencies.
+A module of one layer may import from another layer, for example when layer 2 builds an action that layer 3 defines.
+Such an import does not move the responsibility.
+
 ## Layer 1: Request generation
 
 This layer generates requests.
