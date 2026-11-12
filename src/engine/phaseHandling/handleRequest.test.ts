@@ -30,16 +30,13 @@ describe('pre-start phase handling', () => {
   });
 });
 
-describe('phase handling of the other phases', () => {
-  test.each([
-    GamePhase.Deal,
-    GamePhase.Choose,
-    GamePhase.Reveal,
-    GamePhase.RowPick,
-    GamePhase.GameOver,
-  ] as const)('throws for the %s phase, which is not implemented', (phase) => {
-    const state: GameState = { phase, state: 'placeholder' };
-    expect(() => handleRequest(state, startGameRequest)).toThrow(
+describe('choose phase handling', () => {
+  test('throws, because it is not implemented', () => {
+    const choose: GameState = {
+      phase: GamePhase.Choose,
+      state: { round: { players: [], rows: [], hands: [] }, stagedCards: [] },
+    };
+    expect(() => handleRequest(choose, startGameRequest)).toThrow(
       'Not implemented',
     );
   });

@@ -1,6 +1,8 @@
+import type { CardId } from './card';
+import type { Round } from './round';
+
 export enum GamePhase {
   PreStart = 'preStart',
-  Deal = 'deal',
   Choose = 'choose',
   Reveal = 'reveal',
   RowPick = 'rowPick',
@@ -8,5 +10,5 @@ export enum GamePhase {
 }
 
 export type GameState =
-  | { phase: GamePhase.PreStart; state?: string }
-  | { phase: Exclude<GamePhase, GamePhase.PreStart>; state: string };
+  | { phase: GamePhase.PreStart }
+  | { phase: GamePhase.Choose; state: { round: Round; stagedCards: CardId[] } };

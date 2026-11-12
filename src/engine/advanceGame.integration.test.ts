@@ -5,7 +5,7 @@ import { RequestType } from '../shared/requests';
 import { advanceGame } from './advanceGame';
 import { gameReducer } from './reducer/gameReducer';
 
-test('the start game request moves the store to the deal phase', () => {
+test('the start game request moves the store to the choose phase', () => {
   const store = configureStore({ reducer: { game: gameReducer } });
   const result = store.dispatch(
     advanceGame({
@@ -14,7 +14,13 @@ test('the start game request moves the store to the deal phase', () => {
     }),
   );
   expect(result).toBe(true);
-  expect(store.getState().game.phase).toBe(GamePhase.Deal);
+  const game = store.getState().game;
+  expect(game.phase).toBe(GamePhase.Choose);
+  if (game.phase === GamePhase.Choose) {
+    expect(game.state.round.hands).toHaveLength(1);
+    expect(game.state.round.rows).toHaveLength(4);
+    expect(game.state.stagedCards).toEqual([]);
+  }
 });
 
 test('a rejected request returns its error and keeps the state', () => {
