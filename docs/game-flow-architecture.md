@@ -21,6 +21,16 @@ The handling gives one of two results:
 - An error, if the request is rejected. The layer returns the error. It does not throw.
 - One or more state changes, if the request is accepted. Each state change is an action.
 
+Each phase handling guards the request type with an allowlist.
+The guard names the request types that the phase accepts, rejects every other type, and names the accepted types in its error.
+It never names the types that it rejects, because `RequestType` grows.
+A denylist lets a new request type fall through the guard, and the phase then treats that request as valid.
+An allowlist rejects a new type until someone handles it on purpose.
+
+The same rule holds for the phases.
+`handleRequest` has one case for each variant of `GameState` and no default case.
+A new variant therefore breaks the build until someone handles that phase.
+
 The phase handling is pure.
 A state change that depends on impure code, for example random numbers, is a thunk.
 The impure code runs when the thunk is dispatched.
