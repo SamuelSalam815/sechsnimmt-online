@@ -23,7 +23,7 @@ test('a rejected request returns its error and keeps the state', () => {
     advanceGame({
       type: RequestType.StageCard,
       playerId: 'a',
-      cardId: 'card',
+      cardId: 0,
     }),
   );
   expect(result).toBe(

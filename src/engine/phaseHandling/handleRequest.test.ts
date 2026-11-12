@@ -22,7 +22,7 @@ describe('pre-start phase handling', () => {
     const stageCardRequest: GameRequest = {
       type: RequestType.StageCard,
       playerId: 'a',
-      cardId: 'card',
+      cardId: 0,
     };
     expect(handleRequest(preStart, stageCardRequest)).toEqual({
       error: 'The pre-start phase accepts only the start game request',

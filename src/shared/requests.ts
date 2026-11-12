@@ -13,7 +13,7 @@ export interface StartGameRequest {
   players: Player[];
 }
 
-// No phase accepts this request yet. The player ID and the card ID are stubs.
+// No phase accepts this request yet. The player ID is a stub.
 export interface StageCardRequest {
   type: RequestType.StageCard;
   playerId: PlayerId;

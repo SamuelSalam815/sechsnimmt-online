@@ -1,5 +1,5 @@
 import { startGame } from '../../shared/actions';
-import { buildDeck, type Card } from '../../shared/card';
+import { buildDeck, buildFaceValues } from '../../shared/card';
 import type { Player } from '../../shared/player';
 import { type GameRequest, RequestType } from '../../shared/requests';
 import type { AppThunk } from '../store';
@@ -16,16 +16,18 @@ export function handlePreStartPhase(request: GameRequest): PhaseHandlingResult {
 // docs/testing-strategy.md.
 function startGameWithShuffledCards(players: Player[]): AppThunk {
   return (dispatch) => {
-    const cards = buildDeck();
-    shuffle(cards);
+    const faceValues = buildFaceValues();
+    shuffle(faceValues);
+    // The cards get their IDs after the shuffle.
+    const cards = buildDeck(faceValues);
     dispatch(startGame({ players, cards }));
   };
 }
 
 // Fisher-Yates shuffle, in place.
-function shuffle(cards: Card[]): void {
-  for (let i = cards.length - 1; i > 0; i--) {
+function shuffle(values: number[]): void {
+  for (let i = values.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [cards[i], cards[j]] = [cards[j], cards[i]];
+    [values[i], values[j]] = [values[j], values[i]];
   }
 }

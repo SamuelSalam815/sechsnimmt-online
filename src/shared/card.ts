@@ -1,9 +1,10 @@
 import type { PlayerId } from './player';
 
-// A stub. Card has no ID field yet.
-export type CardId = string;
+// The position of the card in the deck after the shuffle.
+export type CardId = number;
 
 export interface Card {
+  id: CardId;
   faceValue: number;
   penaltyValue: number;
 }
@@ -21,11 +22,18 @@ export function calculatePenaltyValue(faceValue: number): number {
   throw new Error(`Unrecognized card face value: ${faceValue}`);
 }
 
-// The full deck in ascending order of face value.
-export function buildDeck(): Card[] {
-  return Array.from({ length: DECK_SIZE }, (_, i) => ({
-    faceValue: i + 1,
-    penaltyValue: calculatePenaltyValue(i + 1),
+// The face values of the full deck in ascending order.
+export function buildFaceValues(): number[] {
+  return Array.from({ length: DECK_SIZE }, (_, i) => i + 1);
+}
+
+// Each card gets its position in the list as its ID. Thus the ID does not
+// reveal the face value when the list is shuffled.
+export function buildDeck(faceValues: number[]): Card[] {
+  return faceValues.map((faceValue, position) => ({
+    id: position,
+    faceValue,
+    penaltyValue: calculatePenaltyValue(faceValue),
   }));
 }
 
