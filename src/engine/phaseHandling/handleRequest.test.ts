@@ -30,13 +30,13 @@ describe('pre-start phase handling', () => {
   });
 });
 
-describe('choose phase handling', () => {
+describe('card pick phase handling', () => {
   test('throws, because it is not implemented', () => {
-    const choose: GameState = {
-      phase: GamePhase.Choose,
+    const cardPick: GameState = {
+      phase: GamePhase.CardPick,
       state: { round: { players: [], rows: [], hands: [] }, stagedCards: [] },
     };
-    expect(() => handleRequest(choose, startGameRequest)).toThrow(
+    expect(() => handleRequest(cardPick, startGameRequest)).toThrow(
       'Not implemented',
     );
   });

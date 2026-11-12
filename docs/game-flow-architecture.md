@@ -11,7 +11,7 @@ A request does not change the state.
 ## Layer 2: Phase handling
 
 This layer handles each request in the current game phase.
-Each phase has its own handling, for example the pre-start phase handling and the choose phase handling.
+Each phase has its own handling, for example the pre-start phase handling and the card pick phase handling.
 The handling gives one of two results:
 
 - An error, if the request is rejected. The layer returns the error. It does not throw.

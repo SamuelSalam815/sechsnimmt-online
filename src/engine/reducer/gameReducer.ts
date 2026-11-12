@@ -8,7 +8,7 @@ export const gameReducer = createReducer(initialState, (builder) => {
   builder.addCase(
     startGame,
     (_state, action): GameState => ({
-      phase: GamePhase.Choose,
+      phase: GamePhase.CardPick,
       state: { round: action.payload.round, stagedCards: [] },
     }),
   );
