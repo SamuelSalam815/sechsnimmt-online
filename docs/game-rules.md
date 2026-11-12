@@ -31,12 +31,12 @@ A row holds a maximum of 5 cards, including its first card.
 
 Each card can go to one row only. These rules define that row.
 
-| # | Rule | Effect |
-|---|------|--------|
-| 1 | Ascending order | The card must be higher than the current last card of the row. |
-| 2 | Smallest difference | Of the rows that rule 1 allows, the card goes to the row whose last card is closest to it. |
-| 3 | Full row | If rule 2 puts the card in a row that already has 5 cards, the player takes all 5 cards. The played card becomes the first card of the new row. |
-| 4 | Lowest card | If the card is lower than the last card of every row, the player chooses one row and takes all of its cards. The played card becomes the first card of the new row. |
+| #   | Rule                | Effect                                                                                                                                                              |
+| --- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Ascending order     | The card must be higher than the current last card of the row.                                                                                                      |
+| 2   | Smallest difference | Of the rows that rule 1 allows, the card goes to the row whose last card is closest to it.                                                                          |
+| 3   | Full row            | If rule 2 puts the card in a row that already has 5 cards, the player takes all 5 cards. The played card becomes the first card of the new row.                     |
+| 4   | Lowest card         | If the card is lower than the last card of every row, the player chooses one row and takes all of its cards. The played card becomes the first card of the new row. |
 
 ### Example
 
@@ -51,13 +51,13 @@ Rows end in 12, 37, 43 and 58. The played cards are 14, 15, 44 and 61.
 
 Each card shows 1 to 7 bullheads.
 
-| Card | Bullheads |
-|------|-----------|
-| Multiple of 5 that is not a multiple of 10 (5, 15, 25, ...) | 2 |
-| Multiple of ten (10, 20, 30, ...) | 3 |
-| Doublet (11, 22, 33, ...) | 5 |
-| 55 (doublet that is a multiple of 5) | 7 |
-| All other cards | 1 |
+| Card                                                        | Bullheads |
+| ----------------------------------------------------------- | --------- |
+| Multiple of 5 that is not a multiple of 10 (5, 15, 25, ...) | 2         |
+| Multiple of ten (10, 20, 30, ...)                           | 3         |
+| Doublet (11, 22, 33, ...)                                   | 5         |
+| 55 (doublet that is a multiple of 5)                        | 7         |
+| All other cards                                             | 1         |
 
 ## Bullhead stack
 
