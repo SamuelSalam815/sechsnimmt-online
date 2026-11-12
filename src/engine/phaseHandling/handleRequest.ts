@@ -10,7 +10,7 @@ export function handleRequest(
 ): PhaseHandlingResult {
   switch (state.phase) {
     case GamePhase.PreStart:
-      return handlePreStartPhase(request);
+      return handlePreStartPhase(state.version, request);
     case GamePhase.CardPick:
       return handleCardPickPhase();
   }

@@ -27,6 +27,21 @@ The actions from layer 2 are dispatched to the Redux store.
 The game slice defines the actions and the reducer, which applies each action to the state.
 Rejected requests do not reach the store.
 
+## Game state version
+
+Several requests can be in flight at once, so the game state holds a version.
+The version has two parts: a sequence, which increments by one on every change, and a flag which says whether the change is a major one.
+Each request holds the sequence of the last version that it saw.
+Each action payload holds the version that the action is based on.
+
+The resolution compares a request against the versions that followed the one that the request saw:
+
+- The request is accepted if no major change followed. The request works off stale state, but the state is still valid for it.
+- The request is rejected if a major change followed. The request is no longer valid.
+
+The reducers of layer 3 own the version changes.
+No reducer changes the version yet, and no code resolves the requests yet.
+
 ## Source structure
 
 | Directory                  | Contents                                                                          |

@@ -1,4 +1,5 @@
 import { buildDeck, buildFaceValues } from '../../shared/card';
+import type { GameStateVersion } from '../../shared/gameState';
 import type { Player } from '../../shared/player';
 import { type GameRequest, RequestType } from '../../shared/requests';
 import { buildRound } from '../../shared/round';
@@ -6,22 +7,30 @@ import { startGame } from '../reducer/gameSlice';
 import type { AppThunk } from '../store';
 import type { PhaseHandlingResult } from './phaseHandlingResult';
 
-export function handlePreStartPhase(request: GameRequest): PhaseHandlingResult {
+export function handlePreStartPhase(
+  version: GameStateVersion,
+  request: GameRequest,
+): PhaseHandlingResult {
   if (request.type === RequestType.StartGame) {
-    return { actions: [startGameWithShuffledCards(request.players)] };
+    return {
+      actions: [startGameWithShuffledCards(version, request.players)],
+    };
   }
   return { error: 'The pre-start phase accepts only the start game request' };
 }
 
 // Impure, because the shuffle uses random numbers. It has no unit test. See
 // docs/testing-strategy.md.
-function startGameWithShuffledCards(players: Player[]): AppThunk {
+function startGameWithShuffledCards(
+  version: GameStateVersion,
+  players: Player[],
+): AppThunk {
   return (dispatch) => {
     const faceValues = buildFaceValues();
     shuffle(faceValues);
     // The cards get their IDs after the shuffle.
     const cards = buildDeck(faceValues);
-    dispatch(startGame({ round: buildRound(players, cards) }));
+    dispatch(startGame({ version, round: buildRound(players, cards) }));
   };
 }
 
