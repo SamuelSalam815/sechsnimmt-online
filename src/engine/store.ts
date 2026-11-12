@@ -3,11 +3,11 @@ import {
   type ThunkAction,
   type UnknownAction,
 } from '@reduxjs/toolkit';
-import { gameSlice } from './game';
+import { gameReducer } from './reducer/gameReducer';
 
 export const store = configureStore({
   reducer: {
-    game: gameSlice.reducer,
+    game: gameReducer,
   },
 });
 

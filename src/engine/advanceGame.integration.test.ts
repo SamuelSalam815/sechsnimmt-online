@@ -1,9 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { expect, test } from 'vitest';
-import { advanceGame, GamePhase, gameSlice, RequestType } from './game';
+import { GamePhase } from '../shared/gameState';
+import { RequestType } from '../shared/requests';
+import { advanceGame } from './advanceGame';
+import { gameReducer } from './reducer/gameReducer';
 
 test('the start game request moves the store to the deal phase', () => {
-  const store = configureStore({ reducer: { game: gameSlice.reducer } });
+  const store = configureStore({ reducer: { game: gameReducer } });
   const result = store.dispatch(
     advanceGame({
       type: RequestType.StartGame,
@@ -15,7 +18,7 @@ test('the start game request moves the store to the deal phase', () => {
 });
 
 test('a rejected request returns its error and keeps the state', () => {
-  const store = configureStore({ reducer: { game: gameSlice.reducer } });
+  const store = configureStore({ reducer: { game: gameReducer } });
   const result = store.dispatch(
     advanceGame({
       type: RequestType.StageCard,

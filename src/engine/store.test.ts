@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { GamePhase } from './game';
+import { GamePhase } from '../shared/gameState';
 import { store } from './store';
 
 test('the store starts in the pre-start phase with no state', () => {
