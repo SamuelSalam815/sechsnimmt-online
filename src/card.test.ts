@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { calculatePenaltyValue } from './card';
+import { buildDeck, calculatePenaltyValue } from './card';
 
 describe('calculatePenaltyValue', () => {
   test.each([1, 2, 9, 12, 49, 101, 104])(
@@ -57,5 +57,18 @@ describe('calculatePenaltyValue', () => {
       total += calculatePenaltyValue(faceValue);
     }
     expect(total).toBe(171);
+  });
+});
+
+describe('buildDeck', () => {
+  test('gives the cards 1 to 104 in ascending order', () => {
+    const oneTo104 = Array.from({ length: 104 }, (_, i) => i + 1);
+    expect(buildDeck().map((card) => card.faceValue)).toEqual(oneTo104);
+  });
+
+  test('gives each card its penalty value', () => {
+    for (const card of buildDeck()) {
+      expect(card.penaltyValue).toBe(calculatePenaltyValue(card.faceValue));
+    }
   });
 });
