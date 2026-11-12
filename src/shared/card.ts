@@ -29,8 +29,7 @@ export interface CardContainer {
 }
 
 export type Deck = CardContainer;
-export type PlayZone = CardContainer;
 
 export interface Hand extends CardContainer {
-  owner: PlayerId;
+  playerId: PlayerId;
 }

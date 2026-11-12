@@ -1,10 +1,8 @@
 import { createAction } from '@reduxjs/toolkit';
-import type { Card } from './card';
-import type { Player } from './player';
+import type { Round } from './round';
 
 export interface StartGamePayload {
-  players: Player[];
-  cards: Card[];
+  round: Round;
 }
 
 export const startGame = createAction<StartGamePayload>('game/startGame');

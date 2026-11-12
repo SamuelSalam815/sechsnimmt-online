@@ -6,7 +6,9 @@ import { gameReducer } from './gameReducer';
 test('moves to the deal phase on startGame', () => {
   const next = gameReducer(
     { phase: GamePhase.PreStart },
-    startGame({ players: [{ id: 'a', name: 'Ada' }], cards: [] }),
+    startGame({
+      round: { players: [{ id: 'a', name: 'Ada' }], rows: [], hands: [] },
+    }),
   );
   expect(next.phase).toBe(GamePhase.Deal);
 });

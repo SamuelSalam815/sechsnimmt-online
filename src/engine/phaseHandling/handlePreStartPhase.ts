@@ -2,6 +2,7 @@ import { startGame } from '../../shared/actions';
 import { buildDeck, buildFaceValues } from '../../shared/card';
 import type { Player } from '../../shared/player';
 import { type GameRequest, RequestType } from '../../shared/requests';
+import { buildRound } from '../../shared/round';
 import type { AppThunk } from '../store';
 import type { PhaseHandlingResult } from './phaseHandlingResult';
 
@@ -20,7 +21,7 @@ function startGameWithShuffledCards(players: Player[]): AppThunk {
     shuffle(faceValues);
     // The cards get their IDs after the shuffle.
     const cards = buildDeck(faceValues);
-    dispatch(startGame({ players, cards }));
+    dispatch(startGame({ round: buildRound(players, cards) }));
   };
 }
 
