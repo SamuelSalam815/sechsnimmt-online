@@ -3,10 +3,10 @@ import { expect, test } from 'vitest';
 import { GamePhase } from '../shared/gameState';
 import { RequestType } from '../shared/requests';
 import { advanceGame } from './advanceGame';
-import { gameReducer } from './reducer/gameReducer';
+import { gameSlice } from './reducer/gameSlice';
 
 test('the start game request moves the store to the card pick phase', () => {
-  const store = configureStore({ reducer: { game: gameReducer } });
+  const store = configureStore({ reducer: { game: gameSlice.reducer } });
   const result = store.dispatch(
     advanceGame({
       type: RequestType.StartGame,
@@ -24,7 +24,7 @@ test('the start game request moves the store to the card pick phase', () => {
 });
 
 test('a rejected request returns its error and keeps the state', () => {
-  const store = configureStore({ reducer: { game: gameReducer } });
+  const store = configureStore({ reducer: { game: gameSlice.reducer } });
   const result = store.dispatch(
     advanceGame({
       type: RequestType.StageCard,

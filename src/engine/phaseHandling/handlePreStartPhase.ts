@@ -1,8 +1,8 @@
-import { startGame } from '../../shared/actions';
 import { buildDeck, buildFaceValues } from '../../shared/card';
 import type { Player } from '../../shared/player';
 import { type GameRequest, RequestType } from '../../shared/requests';
 import { buildRound } from '../../shared/round';
+import { startGame } from '../reducer/gameSlice';
 import type { AppThunk } from '../store';
 import type { PhaseHandlingResult } from './phaseHandlingResult';
 

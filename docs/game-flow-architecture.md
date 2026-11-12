@@ -24,15 +24,15 @@ The impure code runs when the thunk is dispatched.
 ## Layer 3: Redux store
 
 The actions from layer 2 are dispatched to the Redux store.
-The reducer applies each action to the state.
+The game slice defines the actions and the reducer, which applies each action to the state.
 Rejected requests do not reach the store.
 
 ## Source structure
 
-| Directory                  | Contents                                                                                      |
-| -------------------------- | --------------------------------------------------------------------------------------------- |
-| `src/shared`               | The models, the requests of layer 1 and the actions. The engine and the client both use them. |
-| `src/engine/phaseHandling` | Layer 2, with one file for each game phase, for example `handlePreStartPhase.ts`.             |
-| `src/engine/reducer`       | The reducer of layer 3.                                                                       |
-| `src/engine`               | The store, and `advanceGame`, which connects the layers.                                      |
-| `src/client`               | The React components and hooks.                                                               |
+| Directory                  | Contents                                                                          |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| `src/shared`               | The models and the requests of layer 1. The engine and the client both use them.  |
+| `src/engine/phaseHandling` | Layer 2, with one file for each game phase, for example `handlePreStartPhase.ts`. |
+| `src/engine/reducer`       | The game slice of layer 3, which defines the actions and the reducer.             |
+| `src/engine`               | The store, and `advanceGame`, which connects the layers.                          |
+| `src/client`               | The React components and hooks.                                                   |
