@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { buildDeck, buildFaceValues } from './card';
+import { assignCardIds, getDeckFaceValues } from './card';
 import type { Player } from './player';
 import { buildRound } from './round';
 
@@ -7,7 +7,7 @@ const ada: Player = { id: 'a', name: 'Ada' };
 const bob: Player = { id: 'b', name: 'Bob' };
 
 describe('buildRound', () => {
-  const cards = buildDeck(buildFaceValues());
+  const cards = assignCardIds(getDeckFaceValues());
   const round = buildRound([ada, bob], cards);
 
   test('keeps the players', () => {
