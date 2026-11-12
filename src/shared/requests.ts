@@ -4,7 +4,8 @@ import type { Player, PlayerId } from './player';
 
 export enum RequestType {
   StartGame = 'startGame',
-  StageCard = 'stageCard',
+  PickCard = 'pickCard',
+  UnpickCard = 'unpickCard',
 }
 
 // The sequence of the last game state version that the requester saw. See
@@ -20,11 +21,21 @@ export interface StartGameRequest extends GameRequestBase {
   players: Player[];
 }
 
-// No phase accepts this request yet. The player ID is a stub.
-export interface StageCardRequest extends GameRequestBase {
-  type: RequestType.StageCard;
+// Asks to move a card from the hand of the player into the staging area.
+export interface PickCardRequest extends GameRequestBase {
+  type: RequestType.PickCard;
   playerId: PlayerId;
   cardId: CardId;
 }
 
-export type GameRequest = StartGameRequest | StageCardRequest;
+// Asks to return a staged card to the hand of the player that owns it.
+export interface UnpickCardRequest extends GameRequestBase {
+  type: RequestType.UnpickCard;
+  playerId: PlayerId;
+  cardId: CardId;
+}
+
+export type GameRequest =
+  | StartGameRequest
+  | PickCardRequest
+  | UnpickCardRequest;

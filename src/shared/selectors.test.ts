@@ -1,5 +1,88 @@
 import { describe, expect, test } from 'vitest';
-import { selectPenaltyValue } from './selectors';
+import type { Card } from './card';
+import {
+  GamePhase,
+  type GameState,
+  INITIAL_GAME_STATE_VERSION,
+  type RoundState,
+} from './gameState';
+import {
+  selectCard,
+  selectHand,
+  selectPenaltyValue,
+  selectRoundState,
+  selectStagedCard,
+  selectStagedCardOfPlayer,
+} from './selectors';
+
+const aceOfAda: Card = { id: 0, faceValue: 1 };
+const aceOfBen: Card = { id: 2, faceValue: 3 };
+const roundState: RoundState = {
+  round: {
+    players: [
+      { id: 'a', name: 'Ada' },
+      { id: 'b', name: 'Ben' },
+    ],
+    rows: [],
+    hands: [
+      { playerId: 'a', cards: [aceOfAda] },
+      { playerId: 'b', cards: [] },
+    ],
+  },
+  stagedCards: [{ playerId: 'b', card: aceOfBen }],
+};
+
+describe('selectRoundState', () => {
+  test('gives nothing for the pre-start phase, which holds no round', () => {
+    const preStart: GameState = {
+      phase: GamePhase.PreStart,
+      version: INITIAL_GAME_STATE_VERSION,
+    };
+    expect(selectRoundState(preStart)).toBeUndefined();
+  });
+
+  test.each([GamePhase.CardPick, GamePhase.Reveal] as const)(
+    'gives the round of the %s phase',
+    (phase) => {
+      const state: GameState = {
+        phase,
+        version: INITIAL_GAME_STATE_VERSION,
+        state: roundState,
+      };
+      expect(selectRoundState(state)).toBe(roundState);
+    },
+  );
+});
+
+describe('selectHand and selectCard', () => {
+  test('give the hand of a player and a card in it', () => {
+    const hand = selectHand(roundState, 'a');
+    expect(hand?.cards).toEqual([aceOfAda]);
+    expect(hand && selectCard(hand, aceOfAda.id)).toBe(aceOfAda);
+  });
+
+  test('give nothing for an unknown player or a card that is elsewhere', () => {
+    expect(selectHand(roundState, 'nobody')).toBeUndefined();
+    expect(selectCard({ cards: [aceOfAda] }, aceOfBen.id)).toBeUndefined();
+  });
+});
+
+describe('selectStagedCardOfPlayer and selectStagedCard', () => {
+  test('give the staged card of its owner', () => {
+    expect(selectStagedCardOfPlayer(roundState, 'b')?.card).toBe(aceOfBen);
+    expect(selectStagedCard(roundState, 'b', aceOfBen.id)?.card).toBe(aceOfBen);
+  });
+
+  test('give nothing for a player that has staged no card', () => {
+    expect(selectStagedCardOfPlayer(roundState, 'a')).toBeUndefined();
+    expect(selectStagedCard(roundState, 'a', aceOfAda.id)).toBeUndefined();
+  });
+
+  // The card of one player must not be reachable through the ID of another.
+  test('give nothing when another player owns the staged card', () => {
+    expect(selectStagedCard(roundState, 'a', aceOfBen.id)).toBeUndefined();
+  });
+});
 
 describe('selectPenaltyValue', () => {
   test.each([1, 2, 9, 12, 49, 101, 104])(

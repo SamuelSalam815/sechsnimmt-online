@@ -27,6 +27,9 @@ The actions from layer 2 are dispatched to the Redux store.
 The game slice defines the actions and the reducer, which applies each action to the state.
 Rejected requests do not reach the store.
 
+Layer 2 decides whether an action fits the current phase, so a reducer does not check the phase.
+A reducer looks up the data of its action with a selector from `src/shared/selectors.ts`, and throws only when it cannot find that data, because layer 2 found the same data before it made the action.
+
 ## Game state version
 
 Several requests can be in flight at once, so the game state holds a version.
@@ -40,7 +43,8 @@ The resolution compares a request against the versions that followed the one tha
 - The request is rejected if a major change followed. The request is no longer valid.
 
 The reducers of layer 3 own the version changes.
-No reducer changes the version yet, and no code resolves the requests yet.
+A card that is picked or unpicked is a minor change. The reveal of the staged cards is a major change.
+The start of the game does not change the version yet, and no code resolves the requests yet.
 
 ## Source structure
 

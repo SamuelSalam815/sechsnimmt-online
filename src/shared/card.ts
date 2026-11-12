@@ -33,3 +33,10 @@ export type Deck = CardContainer;
 export interface Hand extends CardContainer {
   playerId: PlayerId;
 }
+
+// A card in the staging area. The owner is marked, because the staging area
+// holds the cards of all the players.
+export interface StagedCard {
+  playerId: PlayerId;
+  card: Card;
+}

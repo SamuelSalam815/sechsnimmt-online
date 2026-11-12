@@ -24,11 +24,56 @@ test('the start game request moves the store to the card pick phase', () => {
   }
 });
 
+test('a pick card request for every player reaches the reveal phase', () => {
+  const store = configureStore({ reducer: { game: gameSlice.reducer } });
+  store.dispatch(
+    advanceGame({
+      type: RequestType.StartGame,
+      lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
+      players: [
+        { id: 'a', name: 'Ada' },
+        { id: 'b', name: 'Ben' },
+      ],
+    }),
+  );
+  const started = store.getState().game;
+  if (started.phase !== GamePhase.CardPick) {
+    throw new Error(`The game is in the ${started.phase} phase`);
+  }
+
+  for (const hand of started.state.round.hands) {
+    const result = store.dispatch(
+      advanceGame({
+        type: RequestType.PickCard,
+        lastVersionSeen: store.getState().game.version.sequence,
+        playerId: hand.playerId,
+        cardId: hand.cards[0].id,
+      }),
+    );
+    expect(result).toBe(true);
+  }
+
+  const game = store.getState().game;
+  expect(game.phase).toBe(GamePhase.Reveal);
+  if (game.phase === GamePhase.Reveal) {
+    expect(game.state.stagedCards).toEqual([
+      { playerId: 'a', card: started.state.round.hands[0].cards[0] },
+      { playerId: 'b', card: started.state.round.hands[1].cards[0] },
+    ]);
+    expect(game.state.round.hands.map((hand) => hand.cards)).toEqual([
+      started.state.round.hands[0].cards.slice(1),
+      started.state.round.hands[1].cards.slice(1),
+    ]);
+  }
+  // Two picks, each a minor change, then the reveal, which is a major change.
+  expect(game.version).toEqual({ sequence: 3, major: true });
+});
+
 test('a rejected request returns its error and keeps the state', () => {
   const store = configureStore({ reducer: { game: gameSlice.reducer } });
   const result = store.dispatch(
     advanceGame({
-      type: RequestType.StageCard,
+      type: RequestType.PickCard,
       lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
       playerId: 'a',
       cardId: 0,
