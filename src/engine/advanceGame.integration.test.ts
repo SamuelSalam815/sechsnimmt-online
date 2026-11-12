@@ -65,8 +65,9 @@ test('a pick card request for every player reaches the reveal phase', () => {
       started.state.round.hands[1].cards.slice(1),
     ]);
   }
-  // Two picks, each a minor change, then the reveal, which is a major change.
-  expect(game.version).toEqual({ sequence: 3, major: true });
+  // The start of the game, two picks and the reveal. Only the picks are minor
+  // changes.
+  expect(game.version).toEqual({ sequence: 4, major: true });
 });
 
 test('a rejected request returns its error and keeps the state', () => {

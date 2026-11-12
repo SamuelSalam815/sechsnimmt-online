@@ -43,8 +43,8 @@ The resolution compares a request against the versions that followed the one tha
 - The request is rejected if a major change followed. The request is no longer valid.
 
 The reducers of layer 3 own the version changes.
-A card that is picked or unpicked is a minor change. The reveal of the staged cards is a major change.
-The start of the game does not change the version yet, and no code resolves the requests yet.
+The start of the game and the reveal of the staged cards are major changes. A card that is picked or unpicked is a minor change.
+No code resolves the requests yet.
 
 ## Source structure
 

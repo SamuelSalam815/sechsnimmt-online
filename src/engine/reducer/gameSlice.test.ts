@@ -53,9 +53,10 @@ test('moves to the card pick phase with the round and no staged cards on startGa
     { phase: GamePhase.PreStart, version: INITIAL_GAME_STATE_VERSION },
     startGame({ version: INITIAL_GAME_STATE_VERSION, round }),
   );
+  // The start of the game is a major change.
   expect(next).toEqual({
     phase: GamePhase.CardPick,
-    version: INITIAL_GAME_STATE_VERSION,
+    version: { sequence: 1, major: true },
     state: { round, stagedCards: [] },
   });
 });

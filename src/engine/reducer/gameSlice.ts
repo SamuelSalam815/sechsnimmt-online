@@ -40,14 +40,11 @@ export const gameSlice = createSlice({
   name: 'game',
   initialState,
   reducers: {
-    startGame: (
-      _state,
-      action: PayloadAction<StartGamePayload>,
-    ): GameState => ({
+    startGame: (state, action: PayloadAction<StartGamePayload>): GameState => ({
       phase: GamePhase.CardPick,
-      // TODO: startGame does not change the version yet, so the version stays
-      // at the one the action is based on.
-      version: action.payload.version,
+      // The start of the game is a major change: a request that saw an earlier
+      // version worked off a game that holds no cards.
+      version: majorVersionBump(state),
       state: { round: action.payload.round, stagedCards: [] },
     }),
 
@@ -75,7 +72,7 @@ export const gameSlice = createSlice({
       } else {
         roundState.stagedCards.push({ playerId, card });
       }
-      state.version = versionAfter(state, false);
+      state.version = minorVersionBump(state);
     },
 
     // Returns the chosen staged card to the hand of the player that owns it.
@@ -95,7 +92,7 @@ export const gameSlice = createSlice({
       );
       roundState.stagedCards.splice(roundState.stagedCards.indexOf(staged), 1);
       hand.cards.push(staged.card);
-      state.version = versionAfter(state, false);
+      state.version = minorVersionBump(state);
     },
 
     // TODO: A stub. It only moves to the reveal phase. Once the reveal is
@@ -107,7 +104,7 @@ export const gameSlice = createSlice({
       phase: GamePhase.Reveal,
       // The reveal is a major change: a request that saw an earlier version
       // chose its card without knowing the revealed cards.
-      version: versionAfter(state, true),
+      version: majorVersionBump(state),
       state: requireFound(
         selectRoundState(state),
         `round in the ${state.phase} phase`,
@@ -126,8 +123,12 @@ function requireFound<T>(value: T | undefined, description: string): T {
   return value;
 }
 
-function versionAfter(state: GameState, major: boolean): GameStateVersion {
-  return { sequence: state.version.sequence + 1, major };
+function minorVersionBump(state: GameState): GameStateVersion {
+  return { sequence: state.version.sequence + 1, major: false };
+}
+
+function majorVersionBump(state: GameState): GameStateVersion {
+  return { sequence: state.version.sequence + 1, major: true };
 }
 
 export const { startGame, pickCard, unpickCard, revealStagedCards } =
