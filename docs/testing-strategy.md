@@ -24,7 +24,4 @@ Impure code depends on something outside its input, for example random numbers, 
 
 The two kinds run separately.
 Integration tests therefore live in `*.integration.test.ts`, and unit tests in every other `*.test.ts`.
-
-- `npm run test:unit` runs the unit tests only.
-- `npm run test:integration` runs the integration tests only.
-- `npm test` runs all the tests.
+The test scripts in `package.json` select a kind by that name.
