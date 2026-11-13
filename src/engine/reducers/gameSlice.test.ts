@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { assert, describe, expect, test } from 'vitest';
 import type { Card, PickedCard } from '../dataTypes/card';
 import {
   GamePhase,
@@ -39,11 +39,9 @@ function cardPick(pickedCards: PickedCard[] = []): GameState {
 }
 
 function handOf(state: GameState, playerId: string): Card[] {
-  if (state.phase === GamePhase.PreStart) {
-    throw new Error('The state holds no hands');
-  }
+  assert(state.phase !== GamePhase.PreStart);
   const hand = state.state.round.hands.find((h) => h.playerId === playerId);
-  if (!hand) throw new Error(`No hand for the player ${playerId}`);
+  assert(hand);
   return hand.cards;
 }
 

@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { expect, test } from 'vitest';
+import { assert, expect, test } from 'vitest';
 import { advanceGame } from './advanceGame';
 import { GamePhase, INITIAL_GAME_STATE_VERSION } from './dataTypes/gameState';
 import { RequestType } from './requests/requestType';
@@ -16,12 +16,10 @@ test('the start game request moves the store to the card pick phase', () => {
   );
   expect(result).toBe(true);
   const game = store.getState().game;
-  expect(game.phase).toBe(GamePhase.CardPick);
-  if (game.phase === GamePhase.CardPick) {
-    expect(game.state.round.hands).toHaveLength(1);
-    expect(game.state.round.rows).toHaveLength(4);
-    expect(game.state.pickedCards).toEqual([]);
-  }
+  assert(game.phase === GamePhase.CardPick);
+  expect(game.state.round.hands).toHaveLength(1);
+  expect(game.state.round.rows).toHaveLength(4);
+  expect(game.state.pickedCards).toEqual([]);
 });
 
 test('a pick card request for every player reaches the reveal phase', () => {
@@ -37,9 +35,7 @@ test('a pick card request for every player reaches the reveal phase', () => {
     }),
   );
   const started = store.getState().game;
-  if (started.phase !== GamePhase.CardPick) {
-    throw new Error(`The game is in the ${started.phase} phase`);
-  }
+  assert(started.phase === GamePhase.CardPick);
 
   for (const hand of started.state.round.hands) {
     const result = store.dispatch(
@@ -54,17 +50,15 @@ test('a pick card request for every player reaches the reveal phase', () => {
   }
 
   const game = store.getState().game;
-  expect(game.phase).toBe(GamePhase.Reveal);
-  if (game.phase === GamePhase.Reveal) {
-    expect(game.state.pickedCards).toEqual([
-      { playerId: 'a', card: started.state.round.hands[0].cards[0] },
-      { playerId: 'b', card: started.state.round.hands[1].cards[0] },
-    ]);
-    expect(game.state.round.hands.map((hand) => hand.cards)).toEqual([
-      started.state.round.hands[0].cards.slice(1),
-      started.state.round.hands[1].cards.slice(1),
-    ]);
-  }
+  assert(game.phase === GamePhase.Reveal);
+  expect(game.state.pickedCards).toEqual([
+    { playerId: 'a', card: started.state.round.hands[0].cards[0] },
+    { playerId: 'b', card: started.state.round.hands[1].cards[0] },
+  ]);
+  expect(game.state.round.hands.map((hand) => hand.cards)).toEqual([
+    started.state.round.hands[0].cards.slice(1),
+    started.state.round.hands[1].cards.slice(1),
+  ]);
   // The start of the game, two picks and the reveal. Only the picks are minor
   // changes.
   expect(game.version).toEqual({ sequence: 4, major: true });
