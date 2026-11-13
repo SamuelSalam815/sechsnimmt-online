@@ -1,10 +1,11 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { CardId } from '../../shared/card';
+import type { Card, CardId, Hand, StagedCard } from '../../shared/card';
 import {
   GamePhase,
   type GameState,
   type GameStateVersion,
   INITIAL_GAME_STATE_VERSION,
+  type RoundState,
 } from '../../shared/gameState';
 import type { PlayerId } from '../../shared/player';
 import type { Round } from '../../shared/round';
@@ -64,14 +65,7 @@ export const gameSlice = createSlice({
         selectCard(hand, cardId),
         `card ${cardId} in the hand of the player ${playerId}`,
       );
-      hand.cards.splice(hand.cards.indexOf(card), 1);
-      const staged = selectStagedCardOfPlayer(roundState, playerId);
-      if (staged) {
-        hand.cards.push(staged.card);
-        staged.card = card;
-      } else {
-        roundState.stagedCards.push({ playerId, card });
-      }
+      stageCard(roundState, hand, card);
       state.version = minorVersionBump(state);
     },
 
@@ -90,8 +84,7 @@ export const gameSlice = createSlice({
         selectHand(roundState, playerId),
         `hand for the player ${playerId}`,
       );
-      roundState.stagedCards.splice(roundState.stagedCards.indexOf(staged), 1);
-      hand.cards.push(staged.card);
+      UnstageCard(roundState, hand, staged);
       state.version = minorVersionBump(state);
     },
 
@@ -112,6 +105,26 @@ export const gameSlice = createSlice({
     }),
   },
 });
+
+function stageCard(roundState: RoundState, hand: Hand, card: Card): void {
+  hand.cards.splice(hand.cards.indexOf(card), 1);
+  const staged = selectStagedCardOfPlayer(roundState, hand.playerId);
+  if (staged) {
+    hand.cards.push(staged.card);
+    staged.card = card;
+  } else {
+    roundState.stagedCards.push({ playerId: hand.playerId, card });
+  }
+}
+
+function UnstageCard(
+  roundState: RoundState,
+  hand: Hand,
+  staged: StagedCard,
+): void {
+  roundState.stagedCards.splice(roundState.stagedCards.indexOf(staged), 1);
+  hand.cards.push(staged.card);
+}
 
 // Layer 2 decides whether an action fits the phase and locates the same data
 // before it makes the action. A value that is missing here is therefore a bug
