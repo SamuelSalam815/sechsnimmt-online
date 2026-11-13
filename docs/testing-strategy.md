@@ -2,26 +2,28 @@
 
 ## Unit tests
 
-Unit tests are for pure code.
-Pure code gives the same result for the same input and has no side effects.
+A unit test needs a result that repeats.
+It therefore covers pure code only.
+Pure code gives the same result for the same input, with no side effects.
 
 ## Do not test what the compiler rejects
 
-Do not write a test that uses a type cast to make a value that the types do not allow.
-The TypeScript compiler rejects such a value in the code.
-The cast only subverts the compiler, and the test examines a condition that cannot occur.
+The compiler rejects a value that the types do not allow.
+That value therefore never reaches the code.
+A test that casts one into existence only subverts the compiler.
+It examines a condition that cannot occur.
 
 ## Impure code and external dependencies
 
 Impure code depends on something outside its input, for example random numbers, the clock or the network.
 
-- Do not write unit tests for impure code.
+- Do not unit test impure code.
 - Do not mock an external dependency to make a unit test possible.
-- Keep impure code out of pure code. The pre-start phase handling in `src/engine/requestHandling` returns a thunk that represents the dependency on random numbers. The phase handling itself stays pure.
+- Keep impure code out of pure code. A state change that relies on impurity is a thunk. See [the game flow architecture](game-flow-architecture.md).
 - Test impure code as an integration: run it with its real dependencies and examine the result.
 
-Integration tests are in files with the name `*.integration.test.ts`.
-Unit tests are in all other `*.test.ts` files.
+The two kinds run separately.
+Integration tests therefore live in `*.integration.test.ts`, and unit tests in every other `*.test.ts`.
 
 - `npm run test:unit` runs the unit tests only.
 - `npm run test:integration` runs the integration tests only.

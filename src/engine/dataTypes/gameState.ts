@@ -26,6 +26,7 @@ export enum GamePhase {
 // describes it. When the code exists, keep only the reason for the version here
 // and reference that code. Do not describe the implementation.
 export interface GameStateVersion {
+  // Increments by one on every change of the game state.
   sequence: number;
   // True if the change that produced this version is a major change.
   major: boolean;
