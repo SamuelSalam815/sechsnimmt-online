@@ -76,6 +76,6 @@ A folder for code that the engine and the client share therefore has no purpose.
 | `src/engine/dataTypes`       | The models of the game, and the selectors that read them.                         |
 | `src/engine/requests`        | The requests of layer 1, with one file for each request.                          |
 | `src/engine/requestHandling` | Layer 2, with one file for each game phase, for example `handlePreStartPhase.ts`. |
-| `src/engine/reducer`         | Layer 3: the game slice, and the history of the applied actions.                  |
+| `src/engine/reducers`        | Layer 3: the game slice, and the history of the applied actions.                  |
 | `src/engine`                 | The store with its root reducer, and `advanceGame`, which connects the layers.    |
 | `src/client`                 | The React components and hooks.                                                   |

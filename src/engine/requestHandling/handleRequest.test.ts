@@ -6,7 +6,7 @@ import {
   INITIAL_GAME_STATE_VERSION,
 } from '../dataTypes/gameState';
 import type { PlayerId } from '../dataTypes/player';
-import { pickCard, revealPickedCards, unpickCard } from '../reducer/gameSlice';
+import { pickCard, revealPickedCards, unpickCard } from '../reducers/gameSlice';
 import type { GameRequest } from '../requests/gameRequest';
 import { RequestType } from '../requests/requestType';
 import type { StartGameRequest } from '../requests/startGameRequest';

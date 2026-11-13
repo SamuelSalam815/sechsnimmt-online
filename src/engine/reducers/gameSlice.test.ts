@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import type { Card, PickedCard } from '../../shared/card';
+import type { Card, PickedCard } from '../dataTypes/card';
 import {
   GamePhase,
   type GameState,
   INITIAL_GAME_STATE_VERSION,
-} from '../../shared/gameState';
+} from '../dataTypes/gameState';
 import {
   gameSlice,
   pickCard,

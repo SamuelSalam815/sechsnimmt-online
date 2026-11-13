@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { GameStateVersion } from '../../shared/gameState';
+import type { GameStateVersion } from '../dataTypes/gameState';
 import { pickCard } from './gameSlice';
 import { type AppliedAction, appendToHistory } from './history';
 

@@ -1,21 +1,21 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { Card, CardId, Hand, PickedCard } from '../../shared/card';
+import type { Card, CardId, Hand, PickedCard } from '../dataTypes/card';
 import {
   GamePhase,
   type GameState,
   type GameStateVersion,
   INITIAL_GAME_STATE_VERSION,
   type RoundState,
-} from '../../shared/gameState';
-import type { PlayerId } from '../../shared/player';
-import type { Round } from '../../shared/round';
+} from '../dataTypes/gameState';
+import type { PlayerId } from '../dataTypes/player';
+import type { Round } from '../dataTypes/round';
 import {
   selectCard,
   selectHand,
   selectPickedCard,
   selectPickedCardOfPlayer,
   selectRoundState,
-} from '../../shared/selectors';
+} from '../dataTypes/selectors';
 
 export interface StartGamePayload {
   round: Round;

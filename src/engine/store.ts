@@ -4,12 +4,12 @@ import {
   type UnknownAction,
 } from '@reduxjs/toolkit';
 import type { GameState } from './dataTypes/gameState';
-import { gameSlice } from './reducer/gameSlice';
+import { gameSlice } from './reducers/gameSlice';
 import {
   type AppliedAction,
   appendToHistory,
   INITIAL_HISTORY,
-} from './reducer/history';
+} from './reducers/history';
 
 export interface RootState {
   game: GameState;

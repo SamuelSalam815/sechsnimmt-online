@@ -1,7 +1,7 @@
 import { assignCardIds, getDeckFaceValues } from '../dataTypes/card';
 import type { Player } from '../dataTypes/player';
 import { buildRound } from '../dataTypes/round';
-import { startGame } from '../reducer/gameSlice';
+import { startGame } from '../reducers/gameSlice';
 import type { GameRequest } from '../requests/gameRequest';
 import { RequestType } from '../requests/requestType';
 import type { AppThunk } from '../store';

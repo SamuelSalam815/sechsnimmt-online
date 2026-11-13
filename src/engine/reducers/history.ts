@@ -1,5 +1,5 @@
 import type { UnknownAction } from '@reduxjs/toolkit';
-import type { GameStateVersion } from '../../shared/gameState';
+import type { GameStateVersion } from '../dataTypes/gameState';
 import { type GameAction, gameSlice } from './gameSlice';
 
 // An applied action with the version that it acted on, which is the version
