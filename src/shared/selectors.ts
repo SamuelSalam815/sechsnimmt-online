@@ -4,7 +4,7 @@ import {
   type CardId,
   DECK_SIZE,
   type Hand,
-  type StagedCard,
+  type PickedCard,
 } from './card';
 import type { GameState, RoundState } from './gameState';
 import type { PlayerId } from './player';
@@ -28,21 +28,21 @@ export function selectCard(
   return container.cards.find((card) => card.id === cardId);
 }
 
-// A player has at most one card in the staging area.
-export function selectStagedCardOfPlayer(
+// A player has at most one picked card.
+export function selectPickedCardOfPlayer(
   roundState: RoundState,
   playerId: PlayerId,
-): StagedCard | undefined {
-  return roundState.stagedCards.find((staged) => staged.playerId === playerId);
+): PickedCard | undefined {
+  return roundState.pickedCards.find((picked) => picked.playerId === playerId);
 }
 
-export function selectStagedCard(
+export function selectPickedCard(
   roundState: RoundState,
   playerId: PlayerId,
   cardId: CardId,
-): StagedCard | undefined {
-  const staged = selectStagedCardOfPlayer(roundState, playerId);
-  return staged?.card.id === cardId ? staged : undefined;
+): PickedCard | undefined {
+  const picked = selectPickedCardOfPlayer(roundState, playerId);
+  return picked?.card.id === cardId ? picked : undefined;
 }
 
 export function selectPenaltyValue(card: Card): number {

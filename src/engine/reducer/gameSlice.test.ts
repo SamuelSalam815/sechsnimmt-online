@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { Card, StagedCard } from '../../shared/card';
+import type { Card, PickedCard } from '../../shared/card';
 import {
   GamePhase,
   type GameState,
@@ -8,7 +8,7 @@ import {
 import {
   gameSlice,
   pickCard,
-  revealStagedCards,
+  revealPickedCards,
   startGame,
   unpickCard,
 } from './gameSlice';
@@ -21,20 +21,20 @@ const aceOfAda: Card = { id: 0, faceValue: 1 };
 const otherOfAda: Card = { id: 1, faceValue: 2 };
 const aceOfBen: Card = { id: 2, faceValue: 3 };
 
-// A staged card is no longer in the hand of its owner.
-function cardPick(stagedCards: StagedCard[] = []): GameState {
-  const stagedIds = new Set(stagedCards.map((staged) => staged.card.id));
+// A picked card is no longer in the hand of its owner.
+function cardPick(pickedCards: PickedCard[] = []): GameState {
+  const pickedIds = new Set(pickedCards.map((picked) => picked.card.id));
   const hands = [
     { playerId: 'a', cards: [aceOfAda, otherOfAda] },
     { playerId: 'b', cards: [aceOfBen] },
   ].map((hand) => ({
     ...hand,
-    cards: hand.cards.filter((card) => !stagedIds.has(card.id)),
+    cards: hand.cards.filter((card) => !pickedIds.has(card.id)),
   }));
   return {
     phase: GamePhase.CardPick,
     version: INITIAL_GAME_STATE_VERSION,
-    state: { round: { players, rows: [], hands }, stagedCards },
+    state: { round: { players, rows: [], hands }, pickedCards },
   };
 }
 
@@ -47,7 +47,7 @@ function handOf(state: GameState, playerId: string): Card[] {
   return hand.cards;
 }
 
-test('moves to the card pick phase with the round and no staged cards on startGame', () => {
+test('moves to the card pick phase with the round and no picked cards on startGame', () => {
   const round = { players: [{ id: 'a', name: 'Ada' }], rows: [], hands: [] };
   const next = gameSlice.reducer(
     { phase: GamePhase.PreStart, version: INITIAL_GAME_STATE_VERSION },
@@ -57,7 +57,7 @@ test('moves to the card pick phase with the round and no staged cards on startGa
   expect(next).toEqual({
     phase: GamePhase.CardPick,
     version: { sequence: 1, major: true },
-    state: { round, stagedCards: [] },
+    state: { round, pickedCards: [] },
   });
 });
 
@@ -68,35 +68,35 @@ describe('pickCard', () => {
     cardId: aceOfAda.id,
   });
 
-  test('moves the card from the hand of the player into the staging area', () => {
+  test('moves the card from the hand of the player into the picked cards', () => {
     const next = gameSlice.reducer(cardPick(), pickAceOfAda);
     expect(next.phase).toBe(GamePhase.CardPick);
     expect(handOf(next, 'a')).toEqual([otherOfAda]);
     expect(handOf(next, 'b')).toEqual([aceOfBen]);
     expect(next).toMatchObject({
-      state: { stagedCards: [{ playerId: 'a', card: aceOfAda }] },
+      state: { pickedCards: [{ playerId: 'a', card: aceOfAda }] },
     });
   });
 
-  test('swaps the cards if the player has already staged one', () => {
+  test('swaps the cards if the player has already picked one', () => {
     const next = gameSlice.reducer(
       cardPick([{ playerId: 'a', card: otherOfAda }]),
       pickAceOfAda,
     );
     expect(handOf(next, 'a')).toEqual([otherOfAda]);
     expect(next).toMatchObject({
-      state: { stagedCards: [{ playerId: 'a', card: aceOfAda }] },
+      state: { pickedCards: [{ playerId: 'a', card: aceOfAda }] },
     });
   });
 
-  test('keeps the staged card of another player', () => {
+  test('keeps the picked card of another player', () => {
     const next = gameSlice.reducer(
       cardPick([{ playerId: 'b', card: aceOfBen }]),
       pickAceOfAda,
     );
     expect(next).toMatchObject({
       state: {
-        stagedCards: [
+        pickedCards: [
           { playerId: 'b', card: aceOfBen },
           { playerId: 'a', card: aceOfAda },
         ],
@@ -117,7 +117,7 @@ describe('unpickCard', () => {
     cardId: aceOfAda.id,
   });
 
-  test('returns the staged card to the hand of the player', () => {
+  test('returns the picked card to the hand of the player', () => {
     const next = gameSlice.reducer(
       cardPick([
         { playerId: 'a', card: aceOfAda },
@@ -128,7 +128,7 @@ describe('unpickCard', () => {
     // The returned card goes to the end of the hand.
     expect(handOf(next, 'a')).toEqual([otherOfAda, aceOfAda]);
     expect(next).toMatchObject({
-      state: { stagedCards: [{ playerId: 'b', card: aceOfBen }] },
+      state: { pickedCards: [{ playerId: 'b', card: aceOfBen }] },
     });
   });
 
@@ -141,26 +141,26 @@ describe('unpickCard', () => {
   });
 });
 
-describe('revealStagedCards', () => {
-  const stagedCards = [
+describe('revealPickedCards', () => {
+  const pickedCards = [
     { playerId: 'a', card: aceOfAda },
     { playerId: 'b', card: aceOfBen },
   ];
 
-  test('moves to the reveal phase and keeps the round and the staged cards', () => {
+  test('moves to the reveal phase and keeps the round and the picked cards', () => {
     const next = gameSlice.reducer(
-      cardPick(stagedCards),
-      revealStagedCards({ version: INITIAL_GAME_STATE_VERSION }),
+      cardPick(pickedCards),
+      revealPickedCards({ version: INITIAL_GAME_STATE_VERSION }),
     );
     expect(next.phase).toBe(GamePhase.Reveal);
-    expect(next).toMatchObject({ state: { stagedCards } });
+    expect(next).toMatchObject({ state: { pickedCards } });
     expect(handOf(next, 'a')).toEqual([otherOfAda]);
   });
 
   test('makes a major version change', () => {
     const next = gameSlice.reducer(
-      cardPick(stagedCards),
-      revealStagedCards({ version: INITIAL_GAME_STATE_VERSION }),
+      cardPick(pickedCards),
+      revealPickedCards({ version: INITIAL_GAME_STATE_VERSION }),
     );
     expect(next.version).toEqual({ sequence: 1, major: true });
   });
@@ -198,12 +198,12 @@ describe('an action whose data is not in the state', () => {
     ).toThrow('The game state holds no card 2 in the hand of the player a');
   });
 
-  test('throws if the player has not staged the card', () => {
+  test('throws if the player has not picked the card', () => {
     expect(() =>
       gameSlice.reducer(
         cardPick([{ playerId: 'b', card: aceOfBen }]),
         unpickCard({ version, playerId: 'a', cardId: aceOfBen.id }),
       ),
-    ).toThrow('The game state holds no staged card 2 of the player a');
+    ).toThrow('The game state holds no picked card 2 of the player a');
   });
 });

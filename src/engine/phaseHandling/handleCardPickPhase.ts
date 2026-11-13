@@ -4,12 +4,12 @@ import { type GameRequest, RequestType } from '../../shared/requests';
 import {
   selectCard,
   selectHand,
-  selectStagedCard,
+  selectPickedCard,
 } from '../../shared/selectors';
 import {
   type GameAction,
   pickCard,
-  revealStagedCards,
+  revealPickedCards,
   unpickCard,
 } from '../reducer/gameSlice';
 import type { PhaseHandlingResult } from './phaseHandlingResult';
@@ -33,9 +33,9 @@ export function handleCardPickPhase(
     return { error: `The game holds no player with the ID ${playerId}` };
   }
   if (request.type === RequestType.UnpickCard) {
-    if (!selectStagedCard(state, playerId, cardId)) {
+    if (!selectPickedCard(state, playerId, cardId)) {
       return {
-        error: `The player ${playerId} has not staged the card ${cardId}`,
+        error: `The player ${playerId} has not picked the card ${cardId}`,
       };
     }
     return { actions: [unpickCard({ version, playerId, cardId })] };
@@ -47,19 +47,19 @@ export function handleCardPickPhase(
     };
   }
   const actions: GameAction[] = [pickCard({ version, playerId, cardId })];
-  if (wouldStageTheLastCard(state, playerId)) {
-    actions.push(revealStagedCards({ version }));
+  if (wouldPickTheLastCard(state, playerId)) {
+    actions.push(revealPickedCards({ version }));
   }
   return { actions };
 }
 
-// True if the pick of the given player leaves every player with a staged card.
-// A pick by a player that has already staged a card only swaps the two cards,
+// True if the pick of the given player leaves every player with a picked card.
+// A pick by a player that has already picked a card only swaps the two cards,
 // so it changes nothing here.
-function wouldStageTheLastCard(state: RoundState, playerId: PlayerId): boolean {
-  const stagedPlayerIds = new Set(
-    state.stagedCards.map((staged) => staged.playerId),
+function wouldPickTheLastCard(state: RoundState, playerId: PlayerId): boolean {
+  const pickedPlayerIds = new Set(
+    state.pickedCards.map((picked) => picked.playerId),
   );
-  stagedPlayerIds.add(playerId);
-  return state.round.players.every((player) => stagedPlayerIds.has(player.id));
+  pickedPlayerIds.add(playerId);
+  return state.round.players.every((player) => pickedPlayerIds.has(player.id));
 }

@@ -1,4 +1,4 @@
-import type { StagedCard } from './card';
+import type { PickedCard } from './card';
 import type { Round } from './round';
 
 export enum GamePhase {
@@ -36,10 +36,10 @@ export const INITIAL_GAME_STATE_VERSION: GameStateVersion = {
   major: false,
 };
 
-// A round in progress, with the cards that the players have staged so far.
+// A round in progress, with the cards that the players have picked so far.
 export interface RoundState {
   round: Round;
-  stagedCards: StagedCard[];
+  pickedCards: PickedCard[];
 }
 
 export type GameState =

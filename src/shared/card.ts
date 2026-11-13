@@ -31,9 +31,9 @@ export interface Hand extends CardContainer {
   playerId: PlayerId;
 }
 
-// A card in the staging area. The owner is marked, because the staging area
-// holds the cards of all the players.
-export interface StagedCard {
+// A card that a player has picked. The owner is marked, because the picked
+// cards of all the players are held together.
+export interface PickedCard {
   playerId: PlayerId;
   card: Card;
 }

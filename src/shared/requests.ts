@@ -21,14 +21,14 @@ export interface StartGameRequest extends GameRequestBase {
   players: Player[];
 }
 
-// Asks to move a card from the hand of the player into the staging area.
+// Asks to pick a card out of the hand of the player.
 export interface PickCardRequest extends GameRequestBase {
   type: RequestType.PickCard;
   playerId: PlayerId;
   cardId: CardId;
 }
 
-// Asks to return a staged card to the hand of the player that owns it.
+// Asks to return a picked card to the hand of the player that owns it.
 export interface UnpickCardRequest extends GameRequestBase {
   type: RequestType.UnpickCard;
   playerId: PlayerId;

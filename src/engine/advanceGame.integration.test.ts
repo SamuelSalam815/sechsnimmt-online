@@ -20,7 +20,7 @@ test('the start game request moves the store to the card pick phase', () => {
   if (game.phase === GamePhase.CardPick) {
     expect(game.state.round.hands).toHaveLength(1);
     expect(game.state.round.rows).toHaveLength(4);
-    expect(game.state.stagedCards).toEqual([]);
+    expect(game.state.pickedCards).toEqual([]);
   }
 });
 
@@ -56,7 +56,7 @@ test('a pick card request for every player reaches the reveal phase', () => {
   const game = store.getState().game;
   expect(game.phase).toBe(GamePhase.Reveal);
   if (game.phase === GamePhase.Reveal) {
-    expect(game.state.stagedCards).toEqual([
+    expect(game.state.pickedCards).toEqual([
       { playerId: 'a', card: started.state.round.hands[0].cards[0] },
       { playerId: 'b', card: started.state.round.hands[1].cards[0] },
     ]);

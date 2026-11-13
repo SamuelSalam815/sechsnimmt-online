@@ -10,9 +10,9 @@ import {
   selectCard,
   selectHand,
   selectPenaltyValue,
+  selectPickedCard,
+  selectPickedCardOfPlayer,
   selectRoundState,
-  selectStagedCard,
-  selectStagedCardOfPlayer,
 } from './selectors';
 
 const aceOfAda: Card = { id: 0, faceValue: 1 };
@@ -29,7 +29,7 @@ const roundState: RoundState = {
       { playerId: 'b', cards: [] },
     ],
   },
-  stagedCards: [{ playerId: 'b', card: aceOfBen }],
+  pickedCards: [{ playerId: 'b', card: aceOfBen }],
 };
 
 describe('selectRoundState', () => {
@@ -67,20 +67,20 @@ describe('selectHand and selectCard', () => {
   });
 });
 
-describe('selectStagedCardOfPlayer and selectStagedCard', () => {
-  test('give the staged card of its owner', () => {
-    expect(selectStagedCardOfPlayer(roundState, 'b')?.card).toBe(aceOfBen);
-    expect(selectStagedCard(roundState, 'b', aceOfBen.id)?.card).toBe(aceOfBen);
+describe('selectPickedCardOfPlayer and selectPickedCard', () => {
+  test('give the picked card of its owner', () => {
+    expect(selectPickedCardOfPlayer(roundState, 'b')?.card).toBe(aceOfBen);
+    expect(selectPickedCard(roundState, 'b', aceOfBen.id)?.card).toBe(aceOfBen);
   });
 
-  test('give nothing for a player that has staged no card', () => {
-    expect(selectStagedCardOfPlayer(roundState, 'a')).toBeUndefined();
-    expect(selectStagedCard(roundState, 'a', aceOfAda.id)).toBeUndefined();
+  test('give nothing for a player that has picked no card', () => {
+    expect(selectPickedCardOfPlayer(roundState, 'a')).toBeUndefined();
+    expect(selectPickedCard(roundState, 'a', aceOfAda.id)).toBeUndefined();
   });
 
   // The card of one player must not be reachable through the ID of another.
-  test('give nothing when another player owns the staged card', () => {
-    expect(selectStagedCard(roundState, 'a', aceOfBen.id)).toBeUndefined();
+  test('give nothing when another player owns the picked card', () => {
+    expect(selectPickedCard(roundState, 'a', aceOfBen.id)).toBeUndefined();
   });
 });
 
