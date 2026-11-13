@@ -5,6 +5,9 @@ export enum GamePhase {
   PreStart = 'preStart',
   CardPick = 'cardPick',
   RowPick = 'rowPick',
+  // Every hand is empty. The deal of the next round is impure, so no reducer
+  // makes it. See advanceGame.
+  EndOfRound = 'endOfRound',
   GameOver = 'gameOver',
 }
 

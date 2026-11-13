@@ -68,6 +68,49 @@ test('a pick card request for every player places the picked cards', () => {
   ).toEqual([0, 1, 2, 3]);
 });
 
+test('the pick of the last card of a round deals the next round', () => {
+  const lastCard = { id: 0, faceValue: 50 };
+  const penaltyPiles = [{ playerId: 'a', cards: [{ id: 1, faceValue: 55 }] }];
+  const store = configureStore({
+    reducer: rootReducer,
+    preloadedState: {
+      game: {
+        phase: GamePhase.CardPick,
+        version: INITIAL_GAME_STATE_VERSION,
+        state: {
+          round: {
+            players: [{ id: 'a', name: 'Ada' }],
+            rows: [{ cards: [{ id: 2, faceValue: 10 }] }],
+            hands: [{ playerId: 'a', cards: [lastCard] }],
+          },
+          pickedCards: [],
+          penaltyPiles,
+        },
+      },
+      history: [],
+    },
+  });
+
+  const result = store.dispatch(
+    advanceGame({
+      type: RequestType.PickCard,
+      lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
+      playerId: 'a',
+      cardId: lastCard.id,
+    }),
+  );
+
+  expect(result).toBe(true);
+  const game = store.getState().game;
+  assert(game.phase === GamePhase.CardPick);
+  expect(game.state.round.hands[0].cards).toHaveLength(10);
+  expect(game.state.round.rows).toHaveLength(4);
+  expect(game.state.pickedCards).toEqual([]);
+  expect(game.state.penaltyPiles).toEqual(penaltyPiles);
+  // The pick, the reveal and the start of the round.
+  expect(game.version).toEqual({ sequence: 3, major: true });
+});
+
 test('a rejected request returns its error and keeps the state', () => {
   const store = configureStore({ reducer: rootReducer });
   const result = store.dispatch(

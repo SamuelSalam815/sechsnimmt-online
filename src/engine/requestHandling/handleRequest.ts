@@ -1,6 +1,7 @@
 import { GamePhase, type GameState } from '../dataTypes/gameState';
 import type { GameRequest } from '../requests/gameRequest';
 import { handleCardPickPhase } from './handleCardPickPhase';
+import { handleEndOfRoundPhase } from './handleEndOfRoundPhase';
 import { handleGameOverPhase } from './handleGameOverPhase';
 import { handlePreStartPhase } from './handlePreStartPhase';
 import { handleRowPickPhase } from './handleRowPickPhase';
@@ -22,6 +23,8 @@ export function handleRequest(
       return handleCardPickPhase(state.state, request);
     case GamePhase.RowPick:
       return handleRowPickPhase();
+    case GamePhase.EndOfRound:
+      return handleEndOfRoundPhase();
     case GamePhase.GameOver:
       return handleGameOverPhase();
   }

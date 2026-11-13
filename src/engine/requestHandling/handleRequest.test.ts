@@ -165,10 +165,10 @@ describe('card pick phase handling', () => {
   });
 });
 
-describe('row pick phase handling', () => {
-  test('throws, because it is not implemented', () => {
-    const rowPick: GameState = {
-      phase: GamePhase.RowPick,
+describe('handling of the phases that follow the reveal', () => {
+  function inPhase(phase: GamePhase.RowPick | GamePhase.EndOfRound): GameState {
+    return {
+      phase,
       version: INITIAL_GAME_STATE_VERSION,
       state: {
         round: { players: [], rows: [], hands: [] },
@@ -176,8 +176,17 @@ describe('row pick phase handling', () => {
         penaltyPiles: [],
       },
     };
-    expect(() => handleRequest(rowPick, startGameRequest)).toThrow(
-      'Not implemented',
-    );
+  }
+
+  test('throws in the row pick phase, because it is not implemented', () => {
+    expect(() =>
+      handleRequest(inPhase(GamePhase.RowPick), startGameRequest),
+    ).toThrow('Not implemented');
+  });
+
+  test('returns an error in the end of round phase', () => {
+    expect(
+      handleRequest(inPhase(GamePhase.EndOfRound), startGameRequest),
+    ).toEqual({ error: 'The end of round phase accepts no request' });
   });
 });

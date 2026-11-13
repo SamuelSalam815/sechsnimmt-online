@@ -10,6 +10,7 @@ import {
   pickCard,
   revealPickedCards,
   startGame,
+  startRound,
   unpickCard,
 } from './gameSlice';
 
@@ -149,13 +150,18 @@ describe('revealPickedCards', () => {
     return { playerId, card: { id: faceValue, faceValue } };
   }
 
+  // The hand of Ada holds a card unless the test says otherwise, so the round
+  // goes on after the reveal.
   function reveal(
     rows: number[][],
     pickedCards: PickedCard[],
-    penaltyPiles: PenaltyPile[] = [
-      { playerId: 'a', cards: [] },
-      { playerId: 'b', cards: [] },
-    ],
+    {
+      penaltyPiles = [
+        { playerId: 'a', cards: [] },
+        { playerId: 'b', cards: [] },
+      ],
+      handOfAda = cards(100),
+    }: { penaltyPiles?: PenaltyPile[]; handOfAda?: Card[] } = {},
   ) {
     const state: GameState = {
       phase: GamePhase.CardPick,
@@ -164,7 +170,10 @@ describe('revealPickedCards', () => {
         round: {
           players,
           rows: rows.map((row) => ({ cards: cards(...row) })),
-          hands: [],
+          hands: [
+            { playerId: 'a', cards: handOfAda },
+            { playerId: 'b', cards: [] },
+          ],
         },
         pickedCards,
         penaltyPiles,
@@ -233,10 +242,12 @@ describe('revealPickedCards', () => {
     const next = reveal(
       [[1, 2, 3, 4, 6], [50]],
       [picked('a', 51), picked('b', 7)],
-      [
-        { playerId: 'a', cards: [] },
-        { playerId: 'b', cards: pileOfBen },
-      ],
+      {
+        penaltyPiles: [
+          { playerId: 'a', cards: [] },
+          { playerId: 'b', cards: pileOfBen },
+        ],
+      },
     );
     expect(next.phase).toBe(GamePhase.GameOver);
     expect(next.rows).toEqual([[7], [50]]);
@@ -244,9 +255,41 @@ describe('revealPickedCards', () => {
     expect(next.pickedCards).toEqual([picked('a', 51)]);
   });
 
+  test('moves to the end of round phase when every hand is empty', () => {
+    const next = reveal([[10]], [picked('a', 11)], { handOfAda: [] });
+    expect(next.phase).toBe(GamePhase.EndOfRound);
+    expect(next.rows).toEqual([[10, 11]]);
+  });
+
   test('makes a major version change', () => {
     const next = reveal([[10]], [picked('a', 11)]);
     expect(next.version).toEqual({ sequence: 1, major: true });
+  });
+});
+
+test('replaces the round and keeps the penalty piles on startRound', () => {
+  const penaltyPiles = [{ playerId: 'a', cards: [aceOfAda] }];
+  const round = {
+    players,
+    rows: [{ cards: [aceOfBen] }],
+    hands: [{ playerId: 'a', cards: [otherOfAda] }],
+  };
+  const next = gameSlice.reducer(
+    {
+      phase: GamePhase.EndOfRound,
+      version: INITIAL_GAME_STATE_VERSION,
+      state: {
+        round: { players, rows: [], hands: [] },
+        pickedCards: [],
+        penaltyPiles,
+      },
+    },
+    startRound({ round }),
+  );
+  expect(next).toEqual({
+    phase: GamePhase.CardPick,
+    version: { sequence: 1, major: true },
+    state: { round, pickedCards: [], penaltyPiles },
   });
 });
 

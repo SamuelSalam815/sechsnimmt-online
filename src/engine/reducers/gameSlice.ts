@@ -26,6 +26,10 @@ export interface StartGamePayload {
   round: Round;
 }
 
+export interface StartRoundPayload {
+  round: Round;
+}
+
 export interface CardPickPayload {
   playerId: PlayerId;
   cardId: CardId;
@@ -110,6 +114,20 @@ export const gameSlice = createSlice({
       // chose its card without knowing the revealed cards.
       state.version = majorVersionBump(state);
     },
+
+    // Replaces the finished round with the next one. The penalty piles stay.
+    startRound: (state, action: PayloadAction<StartRoundPayload>) => {
+      if (state.phase === GamePhase.PreStart) {
+        throw new Error(
+          `The game state holds no round in the ${state.phase} phase`,
+        );
+      }
+      state.state.round = action.payload.round;
+      state.phase = GamePhase.CardPick;
+      // A new round is a major change: a request that saw an earlier version
+      // worked off cards that are no longer in the game.
+      state.version = majorVersionBump(state);
+    },
   },
 });
 
@@ -145,7 +163,8 @@ function unpickCardInRound(
 //   because each card that follows is higher than the card placed before it.
 // - Game over: a player took a row and reached the penalty limit. The cards
 //   that remain stay in the picked cards.
-// - Card pick: every card is placed.
+// - End of round: every card is placed and every hand is empty.
+// - Card pick: every card is placed and the hands hold cards.
 function placePickedCards(roundState: RoundState): RoundPhase {
   while (roundState.pickedCards.length > 0) {
     const { playerId, card } = roundState.pickedCards[0];
@@ -168,7 +187,10 @@ function placePickedCards(roundState: RoundState): RoundPhase {
       return GamePhase.GameOver;
     }
   }
-  return GamePhase.CardPick;
+  const handsAreEmpty = roundState.round.hands.every(
+    (hand) => hand.cards.length === 0,
+  );
+  return handsAreEmpty ? GamePhase.EndOfRound : GamePhase.CardPick;
 }
 
 function requireFound<T>(value: T | undefined, description: string): T {
@@ -186,12 +208,18 @@ function majorVersionBump(state: GameState): GameStateVersion {
   return { sequence: state.version.sequence + 1, major: true };
 }
 
-export const { startGame, pickCard, unpickCard, revealPickedCards } =
-  gameSlice.actions;
+export const {
+  startGame,
+  pickCard,
+  unpickCard,
+  revealPickedCards,
+  startRound,
+} = gameSlice.actions;
 
 export type GameAction = ReturnType<
   | typeof startGame
   | typeof pickCard
   | typeof unpickCard
   | typeof revealPickedCards
+  | typeof startRound
 >;
