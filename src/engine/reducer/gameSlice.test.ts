@@ -2,16 +2,16 @@ import { describe, expect, test } from 'vitest';
 import type { Card, PickedCard } from '../../shared/card';
 import {
   GamePhase,
+  type GameState,
   INITIAL_GAME_STATE_VERSION,
-  type RoundState,
 } from '../../shared/gameState';
 import {
+  gameSlice,
   pickCard,
   revealPickedCards,
   startGame,
   unpickCard,
-} from './gameActions';
-import { type GameState, gameSlice, selectRoundState } from './gameSlice';
+} from './gameSlice';
 
 const players = [
   { id: 'a', name: 'Ada' },
@@ -20,12 +20,6 @@ const players = [
 const aceOfAda: Card = { id: 0, faceValue: 1 };
 const otherOfAda: Card = { id: 1, faceValue: 2 };
 const aceOfBen: Card = { id: 2, faceValue: 3 };
-
-const preStart: GameState = {
-  phase: GamePhase.PreStart,
-  version: INITIAL_GAME_STATE_VERSION,
-  history: [],
-};
 
 // A picked card is no longer in the hand of its owner.
 function cardPick(pickedCards: PickedCard[] = []): GameState {
@@ -40,7 +34,6 @@ function cardPick(pickedCards: PickedCard[] = []): GameState {
   return {
     phase: GamePhase.CardPick,
     version: INITIAL_GAME_STATE_VERSION,
-    history: [],
     state: { round: { players, rows: [], hands }, pickedCards },
   };
 }
@@ -54,39 +47,16 @@ function handOf(state: GameState, playerId: string): Card[] {
   return hand.cards;
 }
 
-describe('selectRoundState', () => {
-  test('gives nothing for the pre-start phase, which holds no round', () => {
-    expect(selectRoundState(preStart)).toBeUndefined();
-  });
-
-  test.each([GamePhase.CardPick, GamePhase.Reveal] as const)(
-    'gives the round of the %s phase',
-    (phase) => {
-      const roundState: RoundState = {
-        round: { players, rows: [], hands: [] },
-        pickedCards: [],
-      };
-      const state: GameState = {
-        phase,
-        version: INITIAL_GAME_STATE_VERSION,
-        history: [],
-        state: roundState,
-      };
-      expect(selectRoundState(state)).toBe(roundState);
-    },
-  );
-});
-
 test('moves to the card pick phase with the round and no picked cards on startGame', () => {
   const round = { players: [{ id: 'a', name: 'Ada' }], rows: [], hands: [] };
-  const action = startGame({ round });
-  const next = gameSlice.reducer(preStart, action);
+  const next = gameSlice.reducer(
+    { phase: GamePhase.PreStart, version: INITIAL_GAME_STATE_VERSION },
+    startGame({ round }),
+  );
   // The start of the game is a major change.
-  const version = { sequence: 1, major: true };
   expect(next).toEqual({
     phase: GamePhase.CardPick,
-    version,
-    history: [{ version, action }],
+    version: { sequence: 1, major: true },
     state: { round, pickedCards: [] },
   });
 });
@@ -182,38 +152,15 @@ describe('revealPickedCards', () => {
   });
 });
 
-describe('the history of the applied actions', () => {
-  test('holds the action with the version that it produced', () => {
-    const action = pickCard({ playerId: 'a', cardId: aceOfAda.id });
-    const next = gameSlice.reducer(cardPick(), action);
-    expect(next.history).toEqual([
-      { version: { sequence: 1, major: false }, action },
-    ]);
-  });
-
-  test('keeps the earlier actions in the order of their application', () => {
-    const pick = pickCard({ playerId: 'a', cardId: aceOfAda.id });
-    const reveal = revealPickedCards();
-    const picked = gameSlice.reducer(
-      cardPick([{ playerId: 'b', card: aceOfBen }]),
-      pick,
-    );
-    const next = gameSlice.reducer(picked, reveal);
-    expect(next.history).toEqual([
-      { version: { sequence: 1, major: false }, action: pick },
-      { version: { sequence: 2, major: true }, action: reveal },
-    ]);
-    expect(next.version).toEqual({ sequence: 2, major: true });
-  });
-});
-
 // Layer 2 rejects such a request, so these actions never reach the reducer in
 // the running game. The throw makes a gap in that handling visible.
 describe('an action whose data is not in the state', () => {
+  const version = INITIAL_GAME_STATE_VERSION;
+
   test('throws if the phase holds no round', () => {
     expect(() =>
       gameSlice.reducer(
-        preStart,
+        { phase: GamePhase.PreStart, version },
         pickCard({ playerId: 'a', cardId: aceOfAda.id }),
       ),
     ).toThrow('The game state holds no round in the preStart phase');

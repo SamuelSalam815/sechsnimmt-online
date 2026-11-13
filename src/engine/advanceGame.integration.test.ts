@@ -3,10 +3,10 @@ import { expect, test } from 'vitest';
 import { GamePhase, INITIAL_GAME_STATE_VERSION } from '../shared/gameState';
 import { RequestType } from '../shared/requests';
 import { advanceGame } from './advanceGame';
-import { gameSlice } from './reducer/gameSlice';
+import { rootReducer } from './store';
 
 test('the start game request moves the store to the card pick phase', () => {
-  const store = configureStore({ reducer: { game: gameSlice.reducer } });
+  const store = configureStore({ reducer: rootReducer });
   const result = store.dispatch(
     advanceGame({
       type: RequestType.StartGame,
@@ -25,7 +25,7 @@ test('the start game request moves the store to the card pick phase', () => {
 });
 
 test('a pick card request for every player reaches the reveal phase', () => {
-  const store = configureStore({ reducer: { game: gameSlice.reducer } });
+  const store = configureStore({ reducer: rootReducer });
   store.dispatch(
     advanceGame({
       type: RequestType.StartGame,
@@ -68,7 +68,7 @@ test('a pick card request for every player reaches the reveal phase', () => {
   // The start of the game, two picks and the reveal. Only the picks are minor
   // changes. The history holds the version of each of them.
   expect(game.version).toEqual({ sequence: 4, major: true });
-  expect(game.history.map((applied) => applied.version)).toEqual([
+  expect(store.getState().history.map((applied) => applied.version)).toEqual([
     { sequence: 1, major: true },
     { sequence: 2, major: false },
     { sequence: 3, major: false },
@@ -77,7 +77,7 @@ test('a pick card request for every player reaches the reveal phase', () => {
 });
 
 test('a rejected request returns its error and keeps the state', () => {
-  const store = configureStore({ reducer: { game: gameSlice.reducer } });
+  const store = configureStore({ reducer: rootReducer });
   const result = store.dispatch(
     advanceGame({
       type: RequestType.PickCard,
@@ -92,6 +92,6 @@ test('a rejected request returns its error and keeps the state', () => {
   expect(store.getState().game).toEqual({
     phase: GamePhase.PreStart,
     version: INITIAL_GAME_STATE_VERSION,
-    history: [],
   });
+  expect(store.getState().history).toEqual([]);
 });

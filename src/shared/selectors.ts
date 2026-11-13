@@ -6,8 +6,13 @@ import {
   type Hand,
   type PickedCard,
 } from './card';
-import type { RoundState } from './gameState';
+import type { GameState, RoundState } from './gameState';
 import type { PlayerId } from './player';
+
+// The pre-start phase holds no round. Every phase that follows it does.
+export function selectRoundState(state: GameState): RoundState | undefined {
+  return 'state' in state ? state.state : undefined;
+}
 
 export function selectHand(
   roundState: RoundState,

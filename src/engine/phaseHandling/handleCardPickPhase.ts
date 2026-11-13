@@ -11,7 +11,7 @@ import {
   pickCard,
   revealPickedCards,
   unpickCard,
-} from '../reducer/gameActions';
+} from '../reducer/gameSlice';
 import type { PhaseHandlingResult } from './phaseHandlingResult';
 
 export function handleCardPickPhase(

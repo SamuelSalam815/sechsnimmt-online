@@ -37,10 +37,12 @@ export const INITIAL_GAME_STATE_VERSION: GameStateVersion = {
 };
 
 // A round in progress, with the cards that the players have picked so far.
-// GameState, which joins this with the phase, lives in
-// src/engine/reducer/gameSlice.ts, because it holds the history of the applied
-// actions and layer 3 defines those actions.
 export interface RoundState {
   round: Round;
   pickedCards: PickedCard[];
 }
+
+export type GameState =
+  | { phase: GamePhase.PreStart; version: GameStateVersion }
+  | { phase: GamePhase.CardPick; version: GameStateVersion; state: RoundState }
+  | { phase: GamePhase.Reveal; version: GameStateVersion; state: RoundState };

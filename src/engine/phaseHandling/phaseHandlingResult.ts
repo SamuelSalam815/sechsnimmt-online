@@ -1,4 +1,4 @@
-import type { GameAction } from '../reducer/gameActions';
+import type { GameAction } from '../reducer/gameSlice';
 import type { AppThunk } from '../store';
 
 // A thunk in the actions represents a state change that depends on impure

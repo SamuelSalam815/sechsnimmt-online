@@ -38,8 +38,8 @@ The impure code runs when the thunk is dispatched.
 ## Layer 3: Redux store
 
 The actions from layer 2 are dispatched to the Redux store.
-`gameActions.ts` defines the actions, and the game slice holds the game state and the reducer, which applies each action to the state.
-The actions sit outside the slice because `GameState` names their type: the game state holds the history of the applied actions, so actions that the slice derived from the state would make the two types reference each other.
+The game slice defines the actions and the reducer, which applies each action to the state.
+The store holds the history of the applied actions next to the game state.
 Rejected requests do not reach the store.
 
 Layer 2 decides whether an action fits the current phase, so a reducer does not check the phase.
@@ -60,10 +60,10 @@ The reducers of layer 3 own the version changes.
 The start of the game and the reveal of the picked cards are major changes. A card that is picked or unpicked is a minor change.
 No code resolves the requests yet.
 
-The game state holds the history of the applied actions, and each entry of it holds one action with the version that the action produced.
 An action carries no version of its own.
 One request can make several actions, for example a pick that reveals the picked cards, and only the reducer that applies an action knows the version that follows from it.
-Every version change therefore happens in the game slice, next to the history entry that records it.
+Each entry of the history therefore holds one action with the version that the action produced.
+The root reducer in `src/engine/store.ts` builds the history, because that version comes out of the game reducer and a sibling reducer cannot read it.
 
 ## Source structure
 
@@ -71,6 +71,6 @@ Every version change therefore happens in the game slice, next to the history en
 | -------------------------- | --------------------------------------------------------------------------------- |
 | `src/shared`               | The models and the requests of layer 1. The engine and the client both use them.  |
 | `src/engine/phaseHandling` | Layer 2, with one file for each game phase, for example `handlePreStartPhase.ts`. |
-| `src/engine/reducer`       | Layer 3, with the actions, the game state and the reducer.                        |
-| `src/engine`               | The store, and `advanceGame`, which connects the layers.                          |
+| `src/engine/reducer`       | Layer 3: the game slice, and the history of the applied actions.                  |
+| `src/engine`               | The store with its root reducer, and `advanceGame`, which connects the layers.    |
 | `src/client`               | The React components and hooks.                                                   |

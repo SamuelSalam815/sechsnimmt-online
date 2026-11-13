@@ -1,6 +1,5 @@
-import { GamePhase } from '../../shared/gameState';
+import { GamePhase, type GameState } from '../../shared/gameState';
 import type { GameRequest } from '../../shared/requests';
-import type { GameState } from '../reducer/gameSlice';
 import { handleCardPickPhase } from './handleCardPickPhase';
 import { handlePreStartPhase } from './handlePreStartPhase';
 import { handleRevealPhase } from './handleRevealPhase';
