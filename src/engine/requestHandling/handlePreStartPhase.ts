@@ -1,8 +1,9 @@
-import { assignCardIds, getDeckFaceValues } from '../../shared/card';
-import type { Player } from '../../shared/player';
-import { type GameRequest, RequestType } from '../../shared/requests';
-import { buildRound } from '../../shared/round';
+import { assignCardIds, getDeckFaceValues } from '../dataTypes/card';
+import type { Player } from '../dataTypes/player';
+import { buildRound } from '../dataTypes/round';
 import { startGame } from '../reducer/gameSlice';
+import type { GameRequest } from '../requests/gameRequest';
+import { RequestType } from '../requests/requestType';
 import type { AppThunk } from '../store';
 import type { PhaseHandlingResult } from './phaseHandlingResult';
 

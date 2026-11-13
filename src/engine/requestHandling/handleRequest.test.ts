@@ -1,17 +1,15 @@
 import { describe, expect, test } from 'vitest';
-import type { Card, CardId, PickedCard } from '../../shared/card';
+import type { Card, CardId, PickedCard } from '../dataTypes/card';
 import {
   GamePhase,
   type GameState,
   INITIAL_GAME_STATE_VERSION,
-} from '../../shared/gameState';
-import type { PlayerId } from '../../shared/player';
-import {
-  type GameRequest,
-  RequestType,
-  type StartGameRequest,
-} from '../../shared/requests';
+} from '../dataTypes/gameState';
+import type { PlayerId } from '../dataTypes/player';
 import { pickCard, revealPickedCards, unpickCard } from '../reducer/gameSlice';
+import type { GameRequest } from '../requests/gameRequest';
+import { RequestType } from '../requests/requestType';
+import type { StartGameRequest } from '../requests/startGameRequest';
 import { handleRequest } from './handleRequest';
 
 const startGameRequest: StartGameRequest = {

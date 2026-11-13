@@ -43,7 +43,7 @@ The store holds the history of the applied actions next to the game state.
 Rejected requests do not reach the store.
 
 Layer 2 decides whether an action fits the current phase, so a reducer does not check the phase.
-A reducer looks up the data of its action with a selector from `src/shared/selectors.ts`, and throws only when it cannot find that data, because layer 2 found the same data before it made the action.
+A reducer looks up the data of its action with a selector from `src/engine/dataTypes/selectors.ts`, and throws only when it cannot find that data, because layer 2 found the same data before it made the action.
 
 ## Game state version
 
@@ -67,10 +67,15 @@ The root reducer in `src/engine/store.ts` builds the history, because the versio
 
 ## Source structure
 
-| Directory                  | Contents                                                                          |
-| -------------------------- | --------------------------------------------------------------------------------- |
-| `src/shared`               | The models and the requests of layer 1. The engine and the client both use them.  |
-| `src/engine/phaseHandling` | Layer 2, with one file for each game phase, for example `handlePreStartPhase.ts`. |
-| `src/engine/reducer`       | Layer 3: the game slice, and the history of the applied actions.                  |
-| `src/engine`               | The store with its root reducer, and `advanceGame`, which connects the layers.    |
-| `src/client`               | The React components and hooks.                                                   |
+All of the game code sits in `src/engine`.
+A client replays the actions that the engine transmits, so it needs the engine, not a subset of it.
+A folder for code that the engine and the client share therefore has no purpose.
+
+| Directory                    | Contents                                                                          |
+| ---------------------------- | --------------------------------------------------------------------------------- |
+| `src/engine/dataTypes`       | The models of the game, and the selectors that read them.                         |
+| `src/engine/requests`        | The requests of layer 1, with one file for each request.                          |
+| `src/engine/requestHandling` | Layer 2, with one file for each game phase, for example `handlePreStartPhase.ts`. |
+| `src/engine/reducer`         | Layer 3: the game slice, and the history of the applied actions.                  |
+| `src/engine`                 | The store with its root reducer, and `advanceGame`, which connects the layers.    |
+| `src/client`                 | The React components and hooks.                                                   |

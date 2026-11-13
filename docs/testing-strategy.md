@@ -17,7 +17,7 @@ Impure code depends on something outside its input, for example random numbers, 
 
 - Do not write unit tests for impure code.
 - Do not mock an external dependency to make a unit test possible.
-- Keep impure code out of pure code. The pre-start phase handling in `src/engine/phaseHandling` returns a thunk that represents the dependency on random numbers. The phase handling itself stays pure.
+- Keep impure code out of pure code. The pre-start phase handling in `src/engine/requestHandling` returns a thunk that represents the dependency on random numbers. The phase handling itself stays pure.
 - Test impure code as an integration: run it with its real dependencies and examine the result.
 
 Integration tests are in files with the name `*.integration.test.ts`.

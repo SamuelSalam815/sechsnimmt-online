@@ -1,5 +1,5 @@
-import type { GameRequest } from '../shared/requests';
-import { handleRequest } from './phaseHandling/handleRequest';
+import { handleRequest } from './requestHandling/handleRequest';
+import type { GameRequest } from './requests/gameRequest';
 import type { AppThunk } from './store';
 
 // Connects the layers: handles the request in the current phase, then

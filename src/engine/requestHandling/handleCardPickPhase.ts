@@ -1,17 +1,18 @@
-import type { RoundState } from '../../shared/gameState';
-import type { PlayerId } from '../../shared/player';
-import { type GameRequest, RequestType } from '../../shared/requests';
+import type { RoundState } from '../dataTypes/gameState';
+import type { PlayerId } from '../dataTypes/player';
 import {
   selectCard,
   selectHand,
   selectPickedCard,
-} from '../../shared/selectors';
+} from '../dataTypes/selectors';
 import {
   type GameAction,
   pickCard,
   revealPickedCards,
   unpickCard,
-} from '../reducer/gameSlice';
+} from '../reducers/gameSlice';
+import type { GameRequest } from '../requests/gameRequest';
+import { RequestType } from '../requests/requestType';
 import type { PhaseHandlingResult } from './phaseHandlingResult';
 
 export function handleCardPickPhase(

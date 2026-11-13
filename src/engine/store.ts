@@ -3,7 +3,7 @@ import {
   type ThunkAction,
   type UnknownAction,
 } from '@reduxjs/toolkit';
-import type { GameState } from '../shared/gameState';
+import type { GameState } from './dataTypes/gameState';
 import { gameSlice } from './reducer/gameSlice';
 import {
   type AppliedAction,
