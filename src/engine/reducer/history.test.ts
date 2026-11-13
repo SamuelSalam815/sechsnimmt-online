@@ -7,7 +7,7 @@ const version: GameStateVersion = { sequence: 1, major: false };
 const action = pickCard({ playerId: 'a', cardId: 0 });
 
 describe('appendToHistory', () => {
-  test('appends a game action with the version that it produced', () => {
+  test('appends a game action with the version that it acted on', () => {
     expect(appendToHistory([], action, version)).toEqual([{ version, action }]);
   });
 

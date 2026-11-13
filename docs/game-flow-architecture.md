@@ -61,9 +61,9 @@ The start of the game and the reveal of the picked cards are major changes. A ca
 No code resolves the requests yet.
 
 An action carries no version of its own.
-One request can make several actions, for example a pick that reveals the picked cards, and only the reducer that applies an action knows the version that follows from it.
-Each entry of the history therefore holds one action with the version that the action produced.
-The root reducer in `src/engine/store.ts` builds the history, because that version comes out of the game reducer and a sibling reducer cannot read it.
+Each entry of the history pairs an action with the version that it acted on, which is the version that the game state held before the reducer applied the action.
+One request can make several actions, for example a pick that reveals the picked cards, and the second of them acts on the version that the first produced. Layer 2 cannot know that version.
+The root reducer in `src/engine/store.ts` builds the history, because the version sits in the game state and a reducer beside the game reducer cannot read it.
 
 ## Source structure
 

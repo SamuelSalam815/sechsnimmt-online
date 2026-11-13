@@ -2,9 +2,10 @@ import type { UnknownAction } from '@reduxjs/toolkit';
 import type { GameStateVersion } from '../../shared/gameState';
 import { type GameAction, gameSlice } from './gameSlice';
 
-// An applied action with the version that it produced. An action carries no
-// version of its own: one request can make several actions, and only the
-// reducer that applies one of them knows the version that follows from it.
+// An applied action with the version that it acted on, which is the version
+// that the game state held before the reducer applied the action. An action
+// carries no version of its own: one request can make several actions, and the
+// second of them acts on the version that the first produced.
 export interface AppliedAction {
   version: GameStateVersion;
   action: GameAction;

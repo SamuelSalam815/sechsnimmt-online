@@ -16,22 +16,29 @@ export interface RootState {
   history: AppliedAction[];
 }
 
-// Not combineReducers: every entry of the history holds the version that its
-// action produced, and only the game reducer makes that version.
+const initialRootState: RootState = {
+  game: gameSlice.getInitialState(),
+  history: INITIAL_HISTORY,
+};
+
+// Not combineReducers: the history pairs each action with the version that the
+// game state held before the game reducer applied it, and a reducer beside the
+// game reducer cannot read that version.
 export function rootReducer(
   state: RootState | undefined,
   action: UnknownAction,
 ): RootState {
-  const game = gameSlice.reducer(state?.game, action);
+  const previous = state ?? initialRootState;
+  const game = gameSlice.reducer(previous.game, action);
   const history = appendToHistory(
-    state?.history ?? INITIAL_HISTORY,
+    previous.history,
     action,
-    game.version,
+    previous.game.version,
   );
   // An action that changes nothing must leave the state identical, so that a
   // subscriber that compares references sees no change.
-  if (state && game === state.game && history === state.history) {
-    return state;
+  if (game === previous.game && history === previous.history) {
+    return previous;
   }
   return { game, history };
 }
