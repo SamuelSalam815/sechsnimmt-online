@@ -1,5 +1,5 @@
 import { assert, describe, expect, test } from 'vitest';
-import type { Card, PickedCard } from '../dataTypes/card';
+import type { Card, PenaltyPile, PickedCard } from '../dataTypes/card';
 import {
   GamePhase,
   type GameState,
@@ -22,6 +22,7 @@ const otherOfAda: Card = { id: 1, faceValue: 2 };
 const aceOfBen: Card = { id: 2, faceValue: 3 };
 
 // A picked card is no longer in the hand of its owner.
+// rename for clarity - its not immediately obvious this is for creating a test game state
 function cardPick(pickedCards: PickedCard[] = []): GameState {
   const pickedIds = new Set(pickedCards.map((picked) => picked.card.id));
   const hands = [
@@ -34,7 +35,11 @@ function cardPick(pickedCards: PickedCard[] = []): GameState {
   return {
     phase: GamePhase.CardPick,
     version: INITIAL_GAME_STATE_VERSION,
-    state: { round: { players, rows: [], hands }, pickedCards },
+    state: {
+      round: { players, rows: [], hands },
+      pickedCards,
+      penaltyPiles: [],
+    },
   };
 }
 
@@ -55,7 +60,11 @@ test('moves to the card pick phase with the round and no picked cards on startGa
   expect(next).toEqual({
     phase: GamePhase.CardPick,
     version: { sequence: 1, major: true },
-    state: { round, pickedCards: [] },
+    state: {
+      round,
+      pickedCards: [],
+      penaltyPiles: [{ playerId: 'a', cards: [] }],
+    },
   });
 });
 
@@ -132,20 +141,111 @@ describe('unpickCard', () => {
 });
 
 describe('revealPickedCards', () => {
-  const pickedCards = [
-    { playerId: 'a', card: aceOfAda },
-    { playerId: 'b', card: aceOfBen },
-  ];
+  function cards(...faceValues: number[]): Card[] {
+    return faceValues.map((faceValue) => ({ id: faceValue, faceValue }));
+  }
 
-  test('moves to the reveal phase and keeps the round and the picked cards', () => {
-    const next = gameSlice.reducer(cardPick(pickedCards), revealPickedCards());
-    expect(next.phase).toBe(GamePhase.Reveal);
-    expect(next).toMatchObject({ state: { pickedCards } });
-    expect(handOf(next, 'a')).toEqual([otherOfAda]);
+  function picked(playerId: string, faceValue: number): PickedCard {
+    return { playerId, card: { id: faceValue, faceValue } };
+  }
+
+  function reveal(
+    rows: number[][],
+    pickedCards: PickedCard[],
+    penaltyPiles: PenaltyPile[] = [
+      { playerId: 'a', cards: [] },
+      { playerId: 'b', cards: [] },
+    ],
+  ) {
+    const state: GameState = {
+      phase: GamePhase.CardPick,
+      version: INITIAL_GAME_STATE_VERSION,
+      state: {
+        round: {
+          players,
+          rows: rows.map((row) => ({ cards: cards(...row) })),
+          hands: [],
+        },
+        pickedCards,
+        penaltyPiles,
+      },
+    };
+    const next = gameSlice.reducer(state, revealPickedCards());
+    assert(next.phase !== GamePhase.PreStart);
+    return {
+      phase: next.phase,
+      version: next.version,
+      rows: next.state.round.rows.map((row) =>
+        row.cards.map((card) => card.faceValue),
+      ),
+      pickedCards: next.state.pickedCards,
+      penaltyPiles: next.state.penaltyPiles,
+    };
+  }
+
+  test('places each card, lowest first, after the closest lower last card', () => {
+    // The example of docs/game-rules.md.
+    const next = reveal(
+      [[12], [37], [43], [58]],
+      [picked('a', 61), picked('b', 44), picked('c', 15), picked('d', 14)],
+    );
+    expect(next.rows).toEqual([[12, 14, 15], [37], [43, 44], [58, 61]]);
+    expect(next.pickedCards).toEqual([]);
+    expect(next.phase).toBe(GamePhase.CardPick);
+  });
+
+  test('gives a full row to the player whose card starts the new row', () => {
+    const next = reveal([[1, 2, 3, 4, 5], [50]], [picked('b', 6)]);
+    expect(next.rows).toEqual([[6], [50]]);
+    expect(next.penaltyPiles).toEqual([
+      { playerId: 'a', cards: [] },
+      { playerId: 'b', cards: cards(1, 2, 3, 4, 5) },
+    ]);
+    expect(next.phase).toBe(GamePhase.CardPick);
+  });
+
+  test('moves to the row pick phase if the lowest card fits no row', () => {
+    const next = reveal([[10], [20]], [picked('b', 25), picked('a', 5)]);
+    expect(next.phase).toBe(GamePhase.RowPick);
+    // The cards stay picked, in ascending order.
+    expect(next.pickedCards).toEqual([picked('a', 5), picked('b', 25)]);
+    expect(next.rows).toEqual([[10], [20]]);
+  });
+
+  test('moves to the game over phase when a taken row reaches the penalty limit', () => {
+    // A penalty total of 61. The row adds 5, which reaches the limit of 66.
+    const pileOfBen = cards(
+      11,
+      22,
+      33,
+      44,
+      66,
+      77,
+      88,
+      99,
+      55,
+      10,
+      20,
+      30,
+      40,
+      5,
+    );
+    const next = reveal(
+      [[1, 2, 3, 4, 6], [50]],
+      [picked('a', 51), picked('b', 7)],
+      [
+        { playerId: 'a', cards: [] },
+        { playerId: 'b', cards: pileOfBen },
+      ],
+    );
+    expect(next.phase).toBe(GamePhase.GameOver);
+    expect(next.rows).toEqual([[7], [50]]);
+    // The cards that follow are not placed.
+    expect(next.pickedCards).toEqual([picked('a', 51)]);
   });
 
   test('makes a major version change', () => {
-    const next = gameSlice.reducer(cardPick(pickedCards), revealPickedCards());
+    const next = reveal([[10]], [picked('a', 11)]);
     expect(next.version).toEqual({ sequence: 1, major: true });
   });
 });

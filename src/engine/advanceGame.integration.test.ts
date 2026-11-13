@@ -22,7 +22,7 @@ test('the start game request moves the store to the card pick phase', () => {
   expect(game.state.pickedCards).toEqual([]);
 });
 
-test('a pick card request for every player reaches the reveal phase', () => {
+test('a pick card request for every player places the picked cards', () => {
   const store = configureStore({ reducer: rootReducer });
   store.dispatch(
     advanceGame({
@@ -50,11 +50,11 @@ test('a pick card request for every player reaches the reveal phase', () => {
   }
 
   const game = store.getState().game;
-  assert(game.phase === GamePhase.Reveal);
-  expect(game.state.pickedCards).toEqual([
-    { playerId: 'a', card: started.state.round.hands[0].cards[0] },
-    { playerId: 'b', card: started.state.round.hands[1].cards[0] },
-  ]);
+  // The shuffle decides whether the lowest picked card fits a row.
+  assert(game.phase === GamePhase.CardPick || game.phase === GamePhase.RowPick);
+  if (game.phase === GamePhase.CardPick) {
+    expect(game.state.pickedCards).toEqual([]);
+  }
   expect(game.state.round.hands.map((hand) => hand.cards)).toEqual([
     started.state.round.hands[0].cards.slice(1),
     started.state.round.hands[1].cards.slice(1),

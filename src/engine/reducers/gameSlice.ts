@@ -5,16 +5,21 @@ import {
   type GameState,
   type GameStateVersion,
   INITIAL_GAME_STATE_VERSION,
+  PENALTY_LIMIT,
+  type RoundPhase,
   type RoundState,
 } from '../dataTypes/gameState';
 import type { PlayerId } from '../dataTypes/player';
-import type { Round } from '../dataTypes/round';
+import { ROW_CAPACITY, type Round } from '../dataTypes/round';
 import {
   selectCard,
   selectHand,
+  selectPenaltyPile,
+  selectPenaltyTotal,
   selectPickedCard,
   selectPickedCardOfPlayer,
   selectRoundState,
+  selectRowForCard,
 } from '../dataTypes/selectors';
 
 export interface StartGamePayload {
@@ -40,7 +45,14 @@ export const gameSlice = createSlice({
       // The start of the game is a major change: a request that saw an earlier
       // version worked off a game that holds no cards.
       version: majorVersionBump(state),
-      state: { round: action.payload.round, pickedCards: [] },
+      state: {
+        round: action.payload.round,
+        pickedCards: [],
+        penaltyPiles: action.payload.round.players.map((player) => ({
+          playerId: player.id,
+          cards: [],
+        })),
+      },
     }),
 
     // Moves the chosen card out of the hand of the player and into the picked
@@ -82,18 +94,22 @@ export const gameSlice = createSlice({
       state.version = minorVersionBump(state);
     },
 
-    // TODO: A stub. It only moves to the reveal phase. Once the reveal is
-    // written, the reveal phase may turn out to be unnecessary.
-    revealPickedCards: (state): GameState => ({
-      phase: GamePhase.Reveal,
+    // Places the picked cards into the rows, lowest first, and moves to the
+    // phase that the placement ends in.
+    revealPickedCards: (state) => {
+      if (state.phase === GamePhase.PreStart) {
+        throw new Error(
+          `The game state holds no round in the ${state.phase} phase`,
+        );
+      }
+      state.state.pickedCards.sort(
+        (a, b) => a.card.faceValue - b.card.faceValue,
+      );
+      state.phase = placePickedCards(state.state);
       // The reveal is a major change: a request that saw an earlier version
       // chose its card without knowing the revealed cards.
-      version: majorVersionBump(state),
-      state: requireFound(
-        selectRoundState(state),
-        `round in the ${state.phase} phase`,
-      ),
-    }),
+      state.version = majorVersionBump(state);
+    },
   },
 });
 
@@ -120,6 +136,41 @@ function unpickCardInRound(
 // Layer 2 decides whether an action fits the phase and locates the same data
 // before it makes the action. A value that is missing here is therefore a bug
 // in that handling, not a rejected request.
+// Places the picked cards, which are in ascending order, until none remain or
+// the game needs something else first. Returns the phase that the game rests
+// in:
+//
+// - Row pick: the first card is lower than the last card of every row. The
+//   card stays first in the picked cards. Only the lowest card can meet this,
+//   because each card that follows is higher than the card placed before it.
+// - Game over: a player took a row and reached the penalty limit. The cards
+//   that remain stay in the picked cards.
+// - Card pick: every card is placed.
+function placePickedCards(roundState: RoundState): RoundPhase {
+  while (roundState.pickedCards.length > 0) {
+    const { playerId, card } = roundState.pickedCards[0];
+    const row = selectRowForCard(roundState.round, card);
+    if (!row) {
+      return GamePhase.RowPick;
+    }
+    roundState.pickedCards.shift();
+    if (row.cards.length < ROW_CAPACITY) {
+      row.cards.push(card);
+      continue;
+    }
+    const pile = requireFound(
+      selectPenaltyPile(roundState, playerId),
+      `penalty pile for the player ${playerId}`,
+    );
+    pile.cards.push(...row.cards);
+    row.cards = [card];
+    if (selectPenaltyTotal(pile) >= PENALTY_LIMIT) {
+      return GamePhase.GameOver;
+    }
+  }
+  return GamePhase.CardPick;
+}
+
 function requireFound<T>(value: T | undefined, description: string): T {
   if (value === undefined) {
     throw new Error(`The game state holds no ${description}`);

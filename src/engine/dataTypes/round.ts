@@ -3,6 +3,8 @@ import type { Player } from './player';
 
 export const ROW_COUNT = 4;
 export const HAND_SIZE = 10;
+// The card that would exceed this capacity takes the row instead.
+export const ROW_CAPACITY = 5;
 
 export type Row = CardContainer;
 

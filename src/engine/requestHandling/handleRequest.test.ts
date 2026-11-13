@@ -66,6 +66,7 @@ describe('card pick phase handling', () => {
       state: {
         round: { players: startGameRequest.players, rows: [], hands },
         pickedCards,
+        penaltyPiles: [],
       },
     };
   }
@@ -164,14 +165,18 @@ describe('card pick phase handling', () => {
   });
 });
 
-describe('reveal phase handling', () => {
+describe('row pick phase handling', () => {
   test('throws, because it is not implemented', () => {
-    const reveal: GameState = {
-      phase: GamePhase.Reveal,
+    const rowPick: GameState = {
+      phase: GamePhase.RowPick,
       version: INITIAL_GAME_STATE_VERSION,
-      state: { round: { players: [], rows: [], hands: [] }, pickedCards: [] },
+      state: {
+        round: { players: [], rows: [], hands: [] },
+        pickedCards: [],
+        penaltyPiles: [],
+      },
     };
-    expect(() => handleRequest(reveal, startGameRequest)).toThrow(
+    expect(() => handleRequest(rowPick, startGameRequest)).toThrow(
       'Not implemented',
     );
   });

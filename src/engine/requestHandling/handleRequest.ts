@@ -1,8 +1,9 @@
 import { GamePhase, type GameState } from '../dataTypes/gameState';
 import type { GameRequest } from '../requests/gameRequest';
 import { handleCardPickPhase } from './handleCardPickPhase';
+import { handleGameOverPhase } from './handleGameOverPhase';
 import { handlePreStartPhase } from './handlePreStartPhase';
-import { handleRevealPhase } from './handleRevealPhase';
+import { handleRowPickPhase } from './handleRowPickPhase';
 import type { PhaseHandlingResult } from './phaseHandlingResult';
 
 // The set of valid requests changes with the game state. Each phase therefore
@@ -19,7 +20,9 @@ export function handleRequest(
       return handlePreStartPhase(request);
     case GamePhase.CardPick:
       return handleCardPickPhase(state.state, request);
-    case GamePhase.Reveal:
-      return handleRevealPhase();
+    case GamePhase.RowPick:
+      return handleRowPickPhase();
+    case GamePhase.GameOver:
+      return handleGameOverPhase();
   }
 }

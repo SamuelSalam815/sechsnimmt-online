@@ -9,10 +9,13 @@ import {
 import {
   selectCard,
   selectHand,
+  selectPenaltyPile,
+  selectPenaltyTotal,
   selectPenaltyValue,
   selectPickedCard,
   selectPickedCardOfPlayer,
   selectRoundState,
+  selectRowForCard,
 } from './selectors';
 
 const aceOfAda: Card = { id: 0, faceValue: 1 };
@@ -30,6 +33,16 @@ const roundState: RoundState = {
     ],
   },
   pickedCards: [{ playerId: 'b', card: aceOfBen }],
+  penaltyPiles: [
+    { playerId: 'a', cards: [] },
+    {
+      playerId: 'b',
+      cards: [
+        { id: 3, faceValue: 55 },
+        { id: 4, faceValue: 10 },
+      ],
+    },
+  ],
 };
 
 describe('selectRoundState', () => {
@@ -41,7 +54,7 @@ describe('selectRoundState', () => {
     expect(selectRoundState(preStart)).toBeUndefined();
   });
 
-  test.each([GamePhase.CardPick, GamePhase.Reveal] as const)(
+  test.each([GamePhase.CardPick, GamePhase.RowPick] as const)(
     'gives the round of the %s phase',
     (phase) => {
       const state: GameState = {
@@ -52,6 +65,35 @@ describe('selectRoundState', () => {
       expect(selectRoundState(state)).toBe(roundState);
     },
   );
+});
+
+describe('selectPenaltyPile and selectPenaltyTotal', () => {
+  test('give the pile of a player and the sum of its penalty values', () => {
+    const pile = selectPenaltyPile(roundState, 'b');
+    expect(pile && selectPenaltyTotal(pile)).toBe(10);
+  });
+
+  test('give nothing for a player without a pile', () => {
+    expect(selectPenaltyPile(roundState, 'nobody')).toBeUndefined();
+  });
+});
+
+describe('selectRowForCard', () => {
+  const rows = [10, 30, 20].map((faceValue) => ({
+    cards: [
+      { id: 0, faceValue: 1 },
+      { id: faceValue, faceValue },
+    ],
+  }));
+  const round = { players: [], rows, hands: [] };
+
+  test('gives the row whose last card is the closest below the card', () => {
+    expect(selectRowForCard(round, { id: 50, faceValue: 25 })).toBe(rows[2]);
+  });
+
+  test('gives nothing if the card is lower than the last card of every row', () => {
+    expect(selectRowForCard(round, { id: 50, faceValue: 5 })).toBeUndefined();
+  });
 });
 
 describe('selectHand and selectCard', () => {

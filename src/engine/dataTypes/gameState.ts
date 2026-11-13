@@ -1,10 +1,9 @@
-import type { PickedCard } from './card';
+import type { PenaltyPile, PickedCard } from './card';
 import type { Round } from './round';
 
 export enum GamePhase {
   PreStart = 'preStart',
   CardPick = 'cardPick',
-  Reveal = 'reveal',
   RowPick = 'rowPick',
   GameOver = 'gameOver',
 }
@@ -37,13 +36,23 @@ export const INITIAL_GAME_STATE_VERSION: GameStateVersion = {
   major: false,
 };
 
+// The game ends when the penalty total of a player reaches this limit.
+export const PENALTY_LIMIT = 66;
+
 // A round in progress, with the cards that the players have picked so far.
 export interface RoundState {
   round: Round;
   pickedCards: PickedCard[];
+  // One pile for each player. The piles outlive a round, because the penalty
+  // limit applies to the whole game.
+  penaltyPiles: PenaltyPile[];
 }
 
+export type RoundPhase = Exclude<GamePhase, GamePhase.PreStart>;
+
+// The phases that hold a round share one member of the union. A reducer can
+// therefore change the phase of a draft in place. With one member for each
+// phase, the compiler rejects that assignment.
 export type GameState =
   | { phase: GamePhase.PreStart; version: GameStateVersion }
-  | { phase: GamePhase.CardPick; version: GameStateVersion; state: RoundState }
-  | { phase: GamePhase.Reveal; version: GameStateVersion; state: RoundState };
+  | { phase: RoundPhase; version: GameStateVersion; state: RoundState };

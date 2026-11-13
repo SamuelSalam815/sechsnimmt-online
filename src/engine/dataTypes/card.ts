@@ -31,6 +31,12 @@ export interface Hand extends CardContainer {
   playerId: PlayerId;
 }
 
+// The cards that a player has taken out of the rows. They count against that
+// player.
+export interface PenaltyPile extends CardContainer {
+  playerId: PlayerId;
+}
+
 // A card that a player has picked. The owner is marked, because the picked
 // cards of all the players are held together.
 export interface PickedCard {
