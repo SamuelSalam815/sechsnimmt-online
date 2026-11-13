@@ -1,17 +1,18 @@
 import { describe, expect, test } from 'vitest';
 import type { Card, CardId, PickedCard } from '../../shared/card';
-import {
-  GamePhase,
-  type GameState,
-  INITIAL_GAME_STATE_VERSION,
-} from '../../shared/gameState';
+import { GamePhase, INITIAL_GAME_STATE_VERSION } from '../../shared/gameState';
 import type { PlayerId } from '../../shared/player';
 import {
   type GameRequest,
   RequestType,
   type StartGameRequest,
 } from '../../shared/requests';
-import { pickCard, revealPickedCards, unpickCard } from '../reducer/gameSlice';
+import {
+  pickCard,
+  revealPickedCards,
+  unpickCard,
+} from '../reducer/gameActions';
+import type { GameState } from '../reducer/gameSlice';
 import { handleRequest } from './handleRequest';
 
 const startGameRequest: StartGameRequest = {
@@ -25,6 +26,7 @@ const startGameRequest: StartGameRequest = {
 const preStart: GameState = {
   phase: GamePhase.PreStart,
   version: INITIAL_GAME_STATE_VERSION,
+  history: [],
 };
 
 describe('pre-start phase handling', () => {
@@ -50,7 +52,6 @@ describe('card pick phase handling', () => {
   const aceOfAda: Card = { id: 0, faceValue: 1 };
   const otherOfAda: Card = { id: 1, faceValue: 2 };
   const aceOfBen: Card = { id: 2, faceValue: 3 };
-  const version = INITIAL_GAME_STATE_VERSION;
 
   // A picked card is no longer in the hand of its owner.
   function cardPick(pickedCards: PickedCard[] = []): GameState {
@@ -64,7 +65,8 @@ describe('card pick phase handling', () => {
     }));
     return {
       phase: GamePhase.CardPick,
-      version,
+      version: INITIAL_GAME_STATE_VERSION,
+      history: [],
       state: {
         round: { players: startGameRequest.players, rows: [], hands },
         pickedCards,
@@ -75,7 +77,7 @@ describe('card pick phase handling', () => {
   function pickRequest(playerId: PlayerId, cardId: CardId): GameRequest {
     return {
       type: RequestType.PickCard,
-      lastVersionSeen: version.sequence,
+      lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
       playerId,
       cardId,
     };
@@ -84,7 +86,7 @@ describe('card pick phase handling', () => {
   function unpickRequest(playerId: PlayerId, cardId: CardId): GameRequest {
     return {
       type: RequestType.UnpickCard,
-      lastVersionSeen: version.sequence,
+      lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
       playerId,
       cardId,
     };
@@ -111,7 +113,7 @@ describe('card pick phase handling', () => {
 
   test('handles the pick card request with the pick card action', () => {
     expect(handleRequest(cardPick(), pickRequest('a', aceOfAda.id))).toEqual({
-      actions: [pickCard({ version, playerId: 'a', cardId: aceOfAda.id })],
+      actions: [pickCard({ playerId: 'a', cardId: aceOfAda.id })],
     });
   });
 
@@ -131,7 +133,7 @@ describe('card pick phase handling', () => {
   test('handles the unpick card request with the unpick card action', () => {
     const state = cardPick([{ playerId: 'a', card: aceOfAda }]);
     expect(handleRequest(state, unpickRequest('a', aceOfAda.id))).toEqual({
-      actions: [unpickCard({ version, playerId: 'a', cardId: aceOfAda.id })],
+      actions: [unpickCard({ playerId: 'a', cardId: aceOfAda.id })],
     });
   });
 
@@ -152,8 +154,8 @@ describe('card pick phase handling', () => {
     const state = cardPick([{ playerId: 'b', card: aceOfBen }]);
     expect(handleRequest(state, pickRequest('a', aceOfAda.id))).toEqual({
       actions: [
-        pickCard({ version, playerId: 'a', cardId: aceOfAda.id }),
-        revealPickedCards({ version }),
+        pickCard({ playerId: 'a', cardId: aceOfAda.id }),
+        revealPickedCards(),
       ],
     });
   });
@@ -161,7 +163,7 @@ describe('card pick phase handling', () => {
   test('does not reveal when a pick only swaps the card of the player', () => {
     const state = cardPick([{ playerId: 'a', card: aceOfAda }]);
     expect(handleRequest(state, pickRequest('a', otherOfAda.id))).toEqual({
-      actions: [pickCard({ version, playerId: 'a', cardId: otherOfAda.id })],
+      actions: [pickCard({ playerId: 'a', cardId: otherOfAda.id })],
     });
   });
 });
@@ -171,6 +173,7 @@ describe('reveal phase handling', () => {
     const reveal: GameState = {
       phase: GamePhase.Reveal,
       version: INITIAL_GAME_STATE_VERSION,
+      history: [],
       state: { round: { players: [], rows: [], hands: [] }, pickedCards: [] },
     };
     expect(() => handleRequest(reveal, startGameRequest)).toThrow(

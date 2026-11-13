@@ -66,8 +66,14 @@ test('a pick card request for every player reaches the reveal phase', () => {
     ]);
   }
   // The start of the game, two picks and the reveal. Only the picks are minor
-  // changes.
+  // changes. The history holds the version of each of them.
   expect(game.version).toEqual({ sequence: 4, major: true });
+  expect(game.history.map((applied) => applied.version)).toEqual([
+    { sequence: 1, major: true },
+    { sequence: 2, major: false },
+    { sequence: 3, major: false },
+    { sequence: 4, major: true },
+  ]);
 });
 
 test('a rejected request returns its error and keeps the state', () => {
@@ -86,5 +92,6 @@ test('a rejected request returns its error and keeps the state', () => {
   expect(store.getState().game).toEqual({
     phase: GamePhase.PreStart,
     version: INITIAL_GAME_STATE_VERSION,
+    history: [],
   });
 });

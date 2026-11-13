@@ -1,4 +1,4 @@
-import type { GameStateVersion, RoundState } from '../../shared/gameState';
+import type { RoundState } from '../../shared/gameState';
 import type { PlayerId } from '../../shared/player';
 import { type GameRequest, RequestType } from '../../shared/requests';
 import {
@@ -11,11 +11,10 @@ import {
   pickCard,
   revealPickedCards,
   unpickCard,
-} from '../reducer/gameSlice';
+} from '../reducer/gameActions';
 import type { PhaseHandlingResult } from './phaseHandlingResult';
 
 export function handleCardPickPhase(
-  version: GameStateVersion,
   state: RoundState,
   request: GameRequest,
 ): PhaseHandlingResult {
@@ -38,7 +37,7 @@ export function handleCardPickPhase(
         error: `The player ${playerId} has not picked the card ${cardId}`,
       };
     }
-    return { actions: [unpickCard({ version, playerId, cardId })] };
+    return { actions: [unpickCard({ playerId, cardId })] };
   }
   const hand = selectHand(state, playerId);
   if (!hand || !selectCard(hand, cardId)) {
@@ -46,9 +45,9 @@ export function handleCardPickPhase(
       error: `The hand of the player ${playerId} does not hold the card ${cardId}`,
     };
   }
-  const actions: GameAction[] = [pickCard({ version, playerId, cardId })];
+  const actions: GameAction[] = [pickCard({ playerId, cardId })];
   if (wouldPickTheLastCard(state, playerId)) {
-    actions.push(revealPickedCards({ version }));
+    actions.push(revealPickedCards());
   }
   return { actions };
 }

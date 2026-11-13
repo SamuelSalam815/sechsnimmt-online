@@ -1,5 +1,6 @@
-import { GamePhase, type GameState } from '../../shared/gameState';
+import { GamePhase } from '../../shared/gameState';
 import type { GameRequest } from '../../shared/requests';
+import type { GameState } from '../reducer/gameSlice';
 import { handleCardPickPhase } from './handleCardPickPhase';
 import { handlePreStartPhase } from './handlePreStartPhase';
 import { handleRevealPhase } from './handleRevealPhase';
@@ -11,9 +12,9 @@ export function handleRequest(
 ): PhaseHandlingResult {
   switch (state.phase) {
     case GamePhase.PreStart:
-      return handlePreStartPhase(state.version, request);
+      return handlePreStartPhase(request);
     case GamePhase.CardPick:
-      return handleCardPickPhase(state.version, state.state, request);
+      return handleCardPickPhase(state.state, request);
     case GamePhase.Reveal:
       return handleRevealPhase();
   }

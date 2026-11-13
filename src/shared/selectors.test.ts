@@ -1,18 +1,12 @@
 import { describe, expect, test } from 'vitest';
 import type { Card } from './card';
-import {
-  GamePhase,
-  type GameState,
-  INITIAL_GAME_STATE_VERSION,
-  type RoundState,
-} from './gameState';
+import type { RoundState } from './gameState';
 import {
   selectCard,
   selectHand,
   selectPenaltyValue,
   selectPickedCard,
   selectPickedCardOfPlayer,
-  selectRoundState,
 } from './selectors';
 
 const aceOfAda: Card = { id: 0, faceValue: 1 };
@@ -31,28 +25,6 @@ const roundState: RoundState = {
   },
   pickedCards: [{ playerId: 'b', card: aceOfBen }],
 };
-
-describe('selectRoundState', () => {
-  test('gives nothing for the pre-start phase, which holds no round', () => {
-    const preStart: GameState = {
-      phase: GamePhase.PreStart,
-      version: INITIAL_GAME_STATE_VERSION,
-    };
-    expect(selectRoundState(preStart)).toBeUndefined();
-  });
-
-  test.each([GamePhase.CardPick, GamePhase.Reveal] as const)(
-    'gives the round of the %s phase',
-    (phase) => {
-      const state: GameState = {
-        phase,
-        version: INITIAL_GAME_STATE_VERSION,
-        state: roundState,
-      };
-      expect(selectRoundState(state)).toBe(roundState);
-    },
-  );
-});
 
 describe('selectHand and selectCard', () => {
   test('give the hand of a player and a card in it', () => {
