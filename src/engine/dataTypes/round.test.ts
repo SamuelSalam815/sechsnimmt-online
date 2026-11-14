@@ -8,7 +8,6 @@ import {
   addCardsToPenaltyPile,
   createPenaltyPile,
 } from '#engine/dataTypes/penaltyPile.ts';
-import { createPickedCard } from '#engine/dataTypes/pickedCard.ts';
 import {
   addPenaltyToPlayer,
   createPlayer,
@@ -18,8 +17,7 @@ import {
   buildRound,
   createRound,
   findHand,
-  findPickedCard,
-  findPickedCardOfPlayer,
+  findPickedCardId,
   pickCardInRound,
   type Round,
   resolveReveal,
@@ -87,7 +85,7 @@ describe('buildRound', () => {
 describe('createRound', () => {
   test('starts with no picked card and an empty penalty pile for each hand', () => {
     const round = cardPick();
-    expect(round.pickedCards).toEqual([]);
+    expect(round.picks).toEqual({});
     expect(round.penaltyPiles).toEqual([
       createPenaltyPile('a'),
       createPenaltyPile('b'),
@@ -108,35 +106,29 @@ describe('findHand', () => {
 });
 
 describe('pickCardInRound', () => {
-  test('moves the card out of the hand and into the picked cards', () => {
+  test('names the card as the pick of the player and leaves it in the hand', () => {
     const next = pickCardInRound(cardPick(), 'a', aceOfAda.id);
-    expect(handOf(next, 'a').cards).toEqual([otherOfAda]);
+    expect(handOf(next, 'a').cards).toEqual([aceOfAda, otherOfAda]);
     expect(handOf(next, 'b').cards).toEqual([aceOfBen]);
-    expect(next.pickedCards).toEqual([createPickedCard('a', aceOfAda)]);
+    expect(next.picks).toEqual({ a: aceOfAda.id });
   });
 
-  test('swaps the cards if the player has already picked one', () => {
+  test('replaces the pick if the player has already picked a card', () => {
     const picked = pickCardInRound(cardPick(), 'a', otherOfAda.id);
     const next = pickCardInRound(picked, 'a', aceOfAda.id);
-    // The card that was picked before returns to the end of the hand.
-    expect(handOf(next, 'a').cards).toEqual([otherOfAda]);
-    expect(next.pickedCards).toEqual([createPickedCard('a', aceOfAda)]);
+    expect(next.picks).toEqual({ a: aceOfAda.id });
   });
 
-  test('keeps the picked card of another player', () => {
+  test('keeps the pick of another player', () => {
     const picked = pickCardInRound(cardPick(), 'b', aceOfBen.id);
     const next = pickCardInRound(picked, 'a', aceOfAda.id);
-    expect(next.pickedCards).toEqual([
-      createPickedCard('b', aceOfBen),
-      createPickedCard('a', aceOfAda),
-    ]);
+    expect(next.picks).toEqual({ a: aceOfAda.id, b: aceOfBen.id });
   });
 
   test('leaves the round it was given', () => {
     const round = cardPick();
     pickCardInRound(round, 'a', aceOfAda.id);
-    expect(handOf(round, 'a').cards).toEqual([aceOfAda, otherOfAda]);
-    expect(round.pickedCards).toEqual([]);
+    expect(round.picks).toEqual({});
   });
 
   test('throws if the player has no hand', () => {
@@ -153,12 +145,11 @@ describe('pickCardInRound', () => {
 });
 
 describe('unpickCardInRound', () => {
-  test('returns the picked card to the hand of the player', () => {
+  test('drops the pick of the player and keeps the hand', () => {
     const picked = pickCardInRound(cardPick(), 'a', aceOfAda.id);
     const next = unpickCardInRound(picked, 'a', aceOfAda.id);
-    // The returned card goes to the end of the hand.
-    expect(handOf(next, 'a').cards).toEqual([otherOfAda, aceOfAda]);
-    expect(next.pickedCards).toEqual([]);
+    expect(handOf(next, 'a').cards).toEqual([aceOfAda, otherOfAda]);
+    expect(next.picks).toEqual({});
   });
 
   test('throws if the player has not picked the card', () => {
@@ -169,22 +160,15 @@ describe('unpickCardInRound', () => {
   });
 });
 
-describe('findPickedCardOfPlayer and findPickedCard', () => {
+describe('findPickedCardId', () => {
   const picked = pickCardInRound(cardPick(), 'b', aceOfBen.id);
 
-  test('give the picked card of its owner', () => {
-    expect(findPickedCardOfPlayer(picked, 'b')?.card).toEqual(aceOfBen);
-    expect(findPickedCard(picked, 'b', aceOfBen.id)?.card).toEqual(aceOfBen);
+  test('gives the picked card of its owner', () => {
+    expect(findPickedCardId(picked, 'b')).toBe(aceOfBen.id);
   });
 
-  test('give nothing for a player that has picked no card', () => {
-    expect(findPickedCardOfPlayer(picked, 'a')).toBeUndefined();
-    expect(findPickedCard(picked, 'a', aceOfAda.id)).toBeUndefined();
-  });
-
-  // The card of one player must not be reachable through the ID of another.
-  test('give nothing when another player owns the picked card', () => {
-    expect(findPickedCard(picked, 'a', aceOfBen.id)).toBeUndefined();
+  test('gives nothing for a player that has picked no card', () => {
+    expect(findPickedCardId(picked, 'a')).toBeUndefined();
   });
 });
 
@@ -235,14 +219,10 @@ describe('resolveReveal', () => {
       rows: outcome.round.rows.map((row) =>
         row.cards.map((card) => card.faceValue),
       ),
-      pickedCards: outcome.round.pickedCards,
+      picks: outcome.round.picks,
       penaltyPiles: outcome.round.penaltyPiles,
-      accruals: outcome.accruals,
+      accruals: outcome.penaltyAccruals,
     };
-  }
-
-  function picked(playerId: PlayerId, faceValue: number) {
-    return createPickedCard(playerId, cardOf(faceValue));
   }
 
   test('places each card, lowest first, after the closest lower last card', () => {
@@ -257,7 +237,7 @@ describe('resolveReveal', () => {
       ],
     );
     expect(next.rows).toEqual([[12, 14, 15], [37], [43, 44], [58, 61]]);
-    expect(next.pickedCards).toEqual([]);
+    expect(next.picks).toEqual({});
     // No row was full, so no player accrued a penalty.
     expect(next.accruals).toEqual([]);
     expect(next.phase).toBe(GamePhase.CardPick);
@@ -291,8 +271,8 @@ describe('resolveReveal', () => {
       ],
     );
     expect(next.phase).toBe(GamePhase.RowPick);
-    // The cards stay picked, in ascending order.
-    expect(next.pickedCards).toEqual([picked('a', 5), picked('b', 25)]);
+    // No card is placed, so both stay picked.
+    expect(next.picks).toEqual({ a: cardOf(5).id, b: cardOf(25).id });
     expect(next.rows).toEqual([[10], [20]]);
   });
 
@@ -312,7 +292,7 @@ describe('resolveReveal', () => {
       createPenaltyAccrual('b', [1, 2, 3, 4, 6].map(cardOf)),
     ]);
     // The cards that follow are not placed.
-    expect(next.pickedCards).toEqual([picked('a', 51)]);
+    expect(next.picks).toEqual({ a: cardOf(51).id });
   });
 
   test('moves to the end of round phase when every hand is empty', () => {

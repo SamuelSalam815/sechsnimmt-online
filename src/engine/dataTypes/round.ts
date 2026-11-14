@@ -5,7 +5,6 @@ import {
 } from '#engine/dataTypes/deck.ts';
 import { GamePhase, type RoundPhase } from '#engine/dataTypes/gameState.ts';
 import {
-  addCardToHand,
   createHand,
   findCardInHand,
   type Hand,
@@ -21,10 +20,6 @@ import {
   createPenaltyPile,
   type PenaltyPile,
 } from '#engine/dataTypes/penaltyPile.ts';
-import {
-  createPickedCard,
-  type PickedCard,
-} from '#engine/dataTypes/pickedCard.ts';
 import {
   addPenaltyToPlayer,
   findPlayer,
@@ -44,20 +39,25 @@ const HAND_SIZE = 10;
 
 declare const roundBrand: unique symbol;
 
-// A round in progress: the deal, the cards that the players have picked so
-// far, and the penalty piles. The players belong to the game, which outlives
-// the round, and so does the penalty score that each of them carries.
+// The card that each player has picked, by player ID. One entry per player is
+// the rule that a player picks one card.
+export type CardPicks = Readonly<Partial<Record<PlayerId, CardId>>>;
+
+// A round in progress: the deal, the card that each player has picked so far,
+// and the penalty piles. The players belong to the game, which outlives the
+// round, and so does the penalty score that each of them carries.
 export interface Round {
   readonly rows: readonly Row[];
   readonly hands: readonly Hand[];
-  readonly pickedCards: readonly PickedCard[];
+  // A picked card stays in the hand of its owner. The reveal takes it out.
+  readonly picks: CardPicks;
   readonly penaltyPiles: readonly PenaltyPile[];
   readonly [roundBrand]: true;
 }
 
 export interface RevealOutcome {
   readonly round: Round;
-  readonly accruals: readonly PenaltyAccrual[];
+  readonly penaltyAccruals: readonly PenaltyAccrual[];
   readonly phase: RoundPhase;
 }
 
@@ -77,7 +77,7 @@ export function createRound(
   return toRound({
     rows,
     hands,
-    pickedCards: [],
+    picks: {},
     penaltyPiles: hands.map((hand) => createPenaltyPile(hand.playerId)),
   });
 }
@@ -99,21 +99,11 @@ export function findHand(round: Round, playerId: PlayerId): Hand | undefined {
   return round.hands.find((hand) => hand.playerId === playerId);
 }
 
-// A player has at most one picked card.
-export function findPickedCardOfPlayer(
+export function findPickedCardId(
   round: Round,
   playerId: PlayerId,
-): PickedCard | undefined {
-  return round.pickedCards.find((picked) => picked.playerId === playerId);
-}
-
-export function findPickedCard(
-  round: Round,
-  playerId: PlayerId,
-  cardId: CardId,
-): PickedCard | undefined {
-  const picked = findPickedCardOfPlayer(round, playerId);
-  return picked?.card.id === cardId ? picked : undefined;
+): CardId | undefined {
+  return round.picks[playerId];
 }
 
 export function pickCardInRound(
@@ -125,26 +115,11 @@ export function pickCardInRound(
     findHand(round, playerId),
     `hand for the player ${playerId}`,
   );
-  const card = requireFound(
+  requireFound(
     findCardInHand(hand, cardId),
     `card ${cardId} in the hand of the player ${playerId}`,
   );
-  const picked = findPickedCardOfPlayer(round, playerId);
-  const withoutCard = removeCardFromHand(hand, card);
-  const nextPick = createPickedCard(playerId, card);
-  return toRound({
-    ...round,
-    // The card that the player picked before returns to the hand.
-    hands: handsWith(
-      round,
-      picked ? addCardToHand(withoutCard, picked.card) : withoutCard,
-    ),
-    pickedCards: picked
-      ? round.pickedCards.map((current) =>
-          current === picked ? nextPick : current,
-        )
-      : [...round.pickedCards, nextPick],
-  });
+  return toRound({ ...round, picks: { ...round.picks, [playerId]: cardId } });
 }
 
 export function unpickCardInRound(
@@ -152,19 +127,19 @@ export function unpickCardInRound(
   playerId: PlayerId,
   cardId: CardId,
 ): Round {
-  const picked = requireFound(
-    findPickedCard(round, playerId, cardId),
-    `picked card ${cardId} of the player ${playerId}`,
-  );
-  const hand = requireFound(
-    findHand(round, playerId),
-    `hand for the player ${playerId}`,
-  );
-  return toRound({
-    ...round,
-    hands: handsWith(round, addCardToHand(hand, picked.card)),
-    pickedCards: round.pickedCards.filter((current) => current !== picked),
-  });
+  if (findPickedCardId(round, playerId) !== cardId) {
+    throw new Error(
+      `The game state holds no picked card ${cardId} of the player ${playerId}`,
+    );
+  }
+  return toRound({ ...round, picks: picksWithout(round.picks, playerId) });
+}
+
+// A revealed card pairs the pick of a player with the card that it names, so
+// that the reveal can place the cards in order.
+interface RevealedCard {
+  readonly playerId: PlayerId;
+  readonly card: Card;
 }
 
 // Places the picked cards, lowest first, until none remain or the game needs
@@ -173,41 +148,34 @@ export function unpickCardInRound(
 // the game rests in:
 //
 // - Row pick: the lowest card is lower than the last card of every row. The
-//   card stays first in the picked cards. Only the lowest card can meet this,
-//   because each card that follows is higher than the card placed before it.
+//   card stays picked. Only the lowest card can meet this, because each card
+//   that follows is higher than the card placed before it.
 // - Game over: a player took a row and reached the penalty limit. The cards
-//   that remain stay in the picked cards.
+//   that remain stay picked.
 // - End of round: every card is placed and every hand is empty.
 // - Card pick: every card is placed and the hands hold cards.
 export function resolveReveal(
   round: Round,
   players: readonly Player[],
 ): RevealOutcome {
-  const ascending = [...round.pickedCards].sort(
-    (a, b) => a.card.faceValue - b.card.faceValue,
-  );
   let next = round;
-  let accruals: readonly PenaltyAccrual[] = [];
-  let placed = 0;
-  while (placed < ascending.length) {
-    const picked = ascending[placed];
-    const placement = placeCard(next.rows, picked.card);
+  let penaltyAccruals: readonly PenaltyAccrual[] = [];
+  for (const revealed of revealedCardsAscending(round)) {
+    const placement = placeCard(next.rows, revealed.card);
     if (!placement) {
-      return outcome(
-        next,
-        ascending.slice(placed),
-        accruals,
-        GamePhase.RowPick,
-      );
+      return {
+        round: next,
+        penaltyAccruals: penaltyAccruals,
+        phase: GamePhase.RowPick,
+      };
     }
-    next = toRound({ ...next, rows: placement.rows });
-    placed++;
+    next = placeRevealedCard(next, revealed, placement);
     if (placement.takenCards.length === 0) {
       continue;
     }
     const pile = requireFound(
-      findPileOfPlayer(next.penaltyPiles, picked.playerId),
-      `penalty pile for the player ${picked.playerId}`,
+      findPileOfPlayer(next.penaltyPiles, revealed.playerId),
+      `penalty pile for the player ${revealed.playerId}`,
     );
     next = toRound({
       ...next,
@@ -216,42 +184,73 @@ export function resolveReveal(
         addCardsToPenaltyPile(pile, placement.takenCards),
       ),
     });
-    const accrual = createPenaltyAccrual(picked.playerId, placement.takenCards);
-    accruals = [...accruals, accrual];
+    const accrual = createPenaltyAccrual(
+      revealed.playerId,
+      placement.takenCards,
+    );
+    penaltyAccruals = [...penaltyAccruals, accrual];
     // A player holds one picked card, so a reveal places one card for that
     // player and this accrual is the only one that it gets.
     const player = requireFound(
-      findPlayer(players, picked.playerId),
-      `player ${picked.playerId}`,
+      findPlayer(players, revealed.playerId),
+      `player ${revealed.playerId}`,
     );
     if (hasReachedPenaltyLimit(addPenaltyToPlayer(player, accrual))) {
-      return outcome(
-        next,
-        ascending.slice(placed),
-        accruals,
-        GamePhase.GameOver,
-      );
+      return {
+        round: next,
+        penaltyAccruals: penaltyAccruals,
+        phase: GamePhase.GameOver,
+      };
     }
   }
-  return outcome(
-    next,
-    [],
-    accruals,
-    everyHandIsEmpty(next) ? GamePhase.EndOfRound : GamePhase.CardPick,
-  );
+  return {
+    round: next,
+    penaltyAccruals: penaltyAccruals,
+    phase: everyHandIsEmpty(next) ? GamePhase.EndOfRound : GamePhase.CardPick,
+  };
 }
 
-function outcome(
+function revealedCardsAscending(round: Round): RevealedCard[] {
+  const revealed: RevealedCard[] = [];
+  for (const hand of round.hands) {
+    const cardId = findPickedCardId(round, hand.playerId);
+    if (cardId === undefined) {
+      continue;
+    }
+    revealed.push({
+      playerId: hand.playerId,
+      card: requireFound(
+        findCardInHand(hand, cardId),
+        `picked card ${cardId} in the hand of the player ${hand.playerId}`,
+      ),
+    });
+  }
+  return revealed.sort((a, b) => a.card.faceValue - b.card.faceValue);
+}
+
+// The placed card leaves the hand of its owner, and the pick of that player
+// leaves with it.
+function placeRevealedCard(
   round: Round,
-  pickedCards: readonly PickedCard[],
-  accruals: readonly PenaltyAccrual[],
-  phase: RoundPhase,
-): RevealOutcome {
-  return {
-    round: toRound({ ...round, pickedCards }),
-    accruals,
-    phase,
-  };
+  revealed: RevealedCard,
+  placement: CardPlacement,
+): Round {
+  const hand = requireFound(
+    findHand(round, revealed.playerId),
+    `hand for the player ${revealed.playerId}`,
+  );
+  return toRound({
+    ...round,
+    rows: placement.rows,
+    hands: handsWith(round, removeCardFromHand(hand, revealed.card)),
+    picks: picksWithout(round.picks, revealed.playerId),
+  });
+}
+
+function picksWithout(picks: CardPicks, playerId: PlayerId): CardPicks {
+  return Object.fromEntries(
+    Object.entries(picks).filter(([id]) => id !== playerId),
+  );
 }
 
 function pilesWith(

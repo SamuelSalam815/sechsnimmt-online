@@ -29,7 +29,7 @@ test('the start game request moves the store to the card pick phase', () => {
   assert(game.phase === GamePhase.CardPick);
   expect(game.round.hands).toHaveLength(1);
   expect(game.round.rows).toHaveLength(4);
-  expect(game.round.pickedCards).toEqual([]);
+  expect(game.round.picks).toEqual({});
 });
 
 test('a pick card request for every player places the picked cards', () => {
@@ -63,12 +63,13 @@ test('a pick card request for every player places the picked cards', () => {
   // The shuffle decides whether the lowest picked card fits a row.
   assert(game.phase === GamePhase.CardPick || game.phase === GamePhase.RowPick);
   if (game.phase === GamePhase.CardPick) {
-    expect(game.round.pickedCards).toEqual([]);
+    // The reveal placed both cards, which took them out of the hands.
+    expect(game.round.picks).toEqual({});
+    expect(game.round.hands.map((hand) => hand.cards)).toEqual([
+      started.round.hands[0].cards.slice(1),
+      started.round.hands[1].cards.slice(1),
+    ]);
   }
-  expect(game.round.hands.map((hand) => hand.cards)).toEqual([
-    started.round.hands[0].cards.slice(1),
-    started.round.hands[1].cards.slice(1),
-  ]);
   // The start of the game, two picks and the reveal. Only the picks are minor
   // changes.
   expect(game.version).toEqual({ sequence: 4, major: true });
@@ -113,7 +114,7 @@ test('the pick of the last card of a round deals the next round', () => {
   assert(game.phase === GamePhase.CardPick);
   expect(game.round.hands[0].cards).toHaveLength(10);
   expect(game.round.rows).toHaveLength(4);
-  expect(game.round.pickedCards).toEqual([]);
+  expect(game.round.picks).toEqual({});
   // The piles start empty in the new round, while the score carries over.
   expect(game.round.penaltyPiles).toEqual([createPenaltyPile('a')]);
   expect(game.players).toEqual([scored]);

@@ -8,11 +8,10 @@ import {
 } from '#engine/dataTypes/gameState.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
 import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
-import { createPickedCard } from '#engine/dataTypes/pickedCard.ts';
 import { addPenaltyToPlayer, createPlayer } from '#engine/dataTypes/player.ts';
 import {
   createRound,
-  findPickedCardOfPlayer,
+  findPickedCardId,
   type Round,
 } from '#engine/dataTypes/round.ts';
 import {
@@ -76,9 +75,7 @@ describe('pickCard', () => {
   test('picks the card of the player', () => {
     const next = gameSlice.reducer(cardPick(), pickAceOfAda);
     expect(next.phase).toBe(GamePhase.CardPick);
-    expect(findPickedCardOfPlayer(roundOf(next), 'a')).toEqual(
-      createPickedCard('a', aceOfAda),
-    );
+    expect(findPickedCardId(roundOf(next), 'a')).toBe(aceOfAda.id);
   });
 
   test('makes a minor version change', () => {
@@ -93,12 +90,12 @@ describe('unpickCard', () => {
     pickCard({ playerId: 'a', cardId: aceOfAda.id }),
   );
 
-  test('returns the picked card of the player', () => {
+  test('drops the pick of the player', () => {
     const next = gameSlice.reducer(
       picked,
       unpickCard({ playerId: 'a', cardId: aceOfAda.id }),
     );
-    expect(roundOf(next).pickedCards).toEqual([]);
+    expect(roundOf(next).picks).toEqual({});
   });
 
   test('makes a minor version change', () => {
@@ -121,7 +118,7 @@ describe('revealPickedCards', () => {
   test('takes the phase from the resolved reveal', () => {
     const next = gameSlice.reducer(picked, revealPickedCards());
     expect(next.phase).toBe(GamePhase.CardPick);
-    expect(roundOf(next).pickedCards).toEqual([]);
+    expect(roundOf(next).picks).toEqual({});
   });
 
   test('makes a major version change', () => {

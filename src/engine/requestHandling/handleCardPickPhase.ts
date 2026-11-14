@@ -1,11 +1,7 @@
 import type { RoundGameState } from '#engine/dataTypes/gameState.ts';
 import { findCardInHand } from '#engine/dataTypes/hand.ts';
 import { findPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
-import {
-  findHand,
-  findPickedCard,
-  findPickedCardOfPlayer,
-} from '#engine/dataTypes/round.ts';
+import { findHand, findPickedCardId } from '#engine/dataTypes/round.ts';
 import {
   type GameAction,
   pickCard,
@@ -35,7 +31,7 @@ export function handleCardPickPhase(
   }
   const round = state.round;
   if (request.type === RequestType.UnpickCard) {
-    if (!findPickedCard(round, playerId, cardId)) {
+    if (findPickedCardId(round, playerId) !== cardId) {
       return {
         error: `The player ${playerId} has not picked the card ${cardId}`,
       };
@@ -56,8 +52,8 @@ export function handleCardPickPhase(
 }
 
 // True if the pick of the given player leaves every player with a picked card.
-// A pick by a player that has already picked a card only swaps the two cards,
-// so it changes nothing here.
+// A pick by a player that has already picked a card replaces that pick, so it
+// changes nothing here.
 function wouldPickTheLastCard(
   state: RoundGameState,
   playerId: PlayerId,
@@ -65,6 +61,6 @@ function wouldPickTheLastCard(
   return state.players.every(
     (player) =>
       player.id === playerId ||
-      findPickedCardOfPlayer(state.round, player.id) !== undefined,
+      findPickedCardId(state.round, player.id) !== undefined,
   );
 }

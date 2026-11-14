@@ -8,10 +8,6 @@ import {
   INITIAL_GAME_STATE_VERSION,
 } from '#engine/dataTypes/gameState.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
-import {
-  createPickedCard,
-  type PickedCard,
-} from '#engine/dataTypes/pickedCard.ts';
 import { createPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
 import { createRound, pickCardInRound } from '#engine/dataTypes/round.ts';
 import {
@@ -63,15 +59,14 @@ describe('card pick phase handling', () => {
   const aceOfBen = cardOf(3);
   const version = INITIAL_GAME_STATE_VERSION;
 
-  function cardPick(pickedCards: PickedCard[] = []): GameState {
+  function cardPick(picks: [PlayerId, CardId][] = []): GameState {
     const hands = [
       createHand('a', [aceOfAda, otherOfAda]),
       createHand('b', [aceOfBen]),
     ];
     let round = createRound([], hands);
-    // The pick takes the card out of the hand of its owner.
-    for (const picked of pickedCards) {
-      round = pickCardInRound(round, picked.playerId, picked.card.id);
+    for (const [playerId, cardId] of picks) {
+      round = pickCardInRound(round, playerId, cardId);
     }
     return createGameState(GamePhase.CardPick, version, players, round);
   }
@@ -125,15 +120,8 @@ describe('card pick phase handling', () => {
     });
   });
 
-  test('returns an error for the pick card request of a picked card', () => {
-    const state = cardPick([createPickedCard('a', aceOfAda)]);
-    expect(handleRequest(state, pickRequest('a', aceOfAda.id))).toEqual({
-      error: 'The hand of the player a does not hold the card 0',
-    });
-  });
-
   test('handles the unpick card request with the unpick card action', () => {
-    const state = cardPick([createPickedCard('a', aceOfAda)]);
+    const state = cardPick([['a', aceOfAda.id]]);
     expect(handleRequest(state, unpickRequest('a', aceOfAda.id))).toEqual({
       actions: [unpickCard({ playerId: 'a', cardId: aceOfAda.id })],
     });
@@ -146,14 +134,14 @@ describe('card pick phase handling', () => {
   });
 
   test('returns an error if another player owns the picked card', () => {
-    const state = cardPick([createPickedCard('b', aceOfBen)]);
+    const state = cardPick([['b', aceOfBen.id]]);
     expect(handleRequest(state, unpickRequest('a', aceOfBen.id))).toEqual({
       error: 'The player a has not picked the card 2',
     });
   });
 
   test('reveals the picked cards once every player has picked one', () => {
-    const state = cardPick([createPickedCard('b', aceOfBen)]);
+    const state = cardPick([['b', aceOfBen.id]]);
     expect(handleRequest(state, pickRequest('a', aceOfAda.id))).toEqual({
       actions: [
         pickCard({ playerId: 'a', cardId: aceOfAda.id }),
@@ -162,8 +150,8 @@ describe('card pick phase handling', () => {
     });
   });
 
-  test('does not reveal when a pick only swaps the card of the player', () => {
-    const state = cardPick([createPickedCard('a', aceOfAda)]);
+  test('does not reveal when a pick only replaces the pick of the player', () => {
+    const state = cardPick([['a', aceOfAda.id]]);
     expect(handleRequest(state, pickRequest('a', otherOfAda.id))).toEqual({
       actions: [pickCard({ playerId: 'a', cardId: otherOfAda.id })],
     });

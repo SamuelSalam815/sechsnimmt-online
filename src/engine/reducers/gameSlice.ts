@@ -50,8 +50,8 @@ export const gameSlice = createSlice({
         action.payload.round,
       ),
 
-    // Moves the chosen card out of the hand of the player and into the picked
-    // cards. If the player has already picked a card, the two cards swap places.
+    // Names the chosen card as the pick of the player. The card stays in the
+    // hand, and a pick replaces the card that the player picked before.
     pickCard: (state, action: PayloadAction<CardPickPayload>): GameState => {
       assertRoundInProgress(state);
       const { playerId, cardId } = action.payload;
@@ -63,7 +63,7 @@ export const gameSlice = createSlice({
       );
     },
 
-    // Returns the chosen picked card to the hand of the player that owns it.
+    // Takes back the pick of the player.
     unpickCard: (state, action: PayloadAction<CardPickPayload>): GameState => {
       assertRoundInProgress(state);
       const { playerId, cardId } = action.payload;
@@ -77,10 +77,11 @@ export const gameSlice = createSlice({
 
     revealPickedCards: (state): GameState => {
       assertRoundInProgress(state);
-      const { round, accruals, phase } = resolveReveal(
-        state.round,
-        state.players,
-      );
+      const {
+        round,
+        penaltyAccruals: accruals,
+        phase,
+      } = resolveReveal(state.round, state.players);
       return createGameState(
         phase,
         // The reveal is a major change: a request that saw an earlier version
