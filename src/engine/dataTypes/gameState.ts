@@ -1,11 +1,10 @@
-import type { RoundState } from '#engine/dataTypes/roundState.ts';
+import type { Player } from '#engine/dataTypes/player.ts';
+import type { Round } from '#engine/dataTypes/round.ts';
 
 export enum GamePhase {
   PreStart = 'preStart',
   CardPick = 'cardPick',
   RowPick = 'rowPick',
-  // Every hand is empty. The deal of the next round is impure, so no reducer
-  // makes it. See advanceGame.
   EndOfRound = 'endOfRound',
   GameOver = 'gameOver',
 }
@@ -49,7 +48,10 @@ type GameStateFields =
   | {
       readonly phase: RoundPhase;
       readonly version: GameStateVersion;
-      readonly state: RoundState;
+      // The players outlive a round, and so does the penalty score that each
+      // of them carries.
+      readonly players: readonly Player[];
+      readonly round: Round;
     };
 
 export type GameState = GameStateFields & {
@@ -57,7 +59,7 @@ export type GameState = GameStateFields & {
 };
 
 // The game state of a phase that holds a round.
-export type RoundGameState = Extract<GameState, { state: RoundState }>;
+export type RoundGameState = Extract<GameState, { round: Round }>;
 
 function toGameState(fields: GameStateFields): GameState {
   // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
@@ -74,9 +76,10 @@ export function createInitialGameState(): GameState {
 export function createGameState(
   phase: RoundPhase,
   version: GameStateVersion,
-  state: RoundState,
+  players: readonly Player[],
+  round: Round,
 ): GameState {
-  return toGameState({ phase, version, state });
+  return toGameState({ phase, version, players, round });
 }
 
 // The pre-start phase holds no round. Layer 2 rejects a request that needs

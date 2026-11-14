@@ -8,16 +8,20 @@ import {
   type GameState,
   type GameStateVersion,
 } from '#engine/dataTypes/gameState.ts';
-import type { PlayerId } from '#engine/dataTypes/player.ts';
-import type { Round } from '#engine/dataTypes/round.ts';
 import {
-  createRoundState,
+  addPenaltiesToPlayers,
+  type Player,
+  type PlayerId,
+} from '#engine/dataTypes/player.ts';
+import {
   pickCardInRound,
+  type Round,
   resolveReveal,
   unpickCardInRound,
-} from '#engine/dataTypes/roundState.ts';
+} from '#engine/dataTypes/round.ts';
 
 export interface StartGamePayload {
+  players: readonly Player[];
   round: Round;
 }
 
@@ -42,7 +46,8 @@ export const gameSlice = createSlice({
         // The start of the game is a major change: a request that saw an
         // earlier version worked off a game that holds no cards.
         majorVersionBump(state),
-        createRoundState(action.payload.round),
+        action.payload.players,
+        action.payload.round,
       ),
 
     // Moves the chosen card out of the hand of the player and into the picked
@@ -53,7 +58,8 @@ export const gameSlice = createSlice({
       return createGameState(
         state.phase,
         minorVersionBump(state),
-        pickCardInRound(state.state, playerId, cardId),
+        state.players,
+        pickCardInRound(state.round, playerId, cardId),
       );
     },
 
@@ -64,19 +70,24 @@ export const gameSlice = createSlice({
       return createGameState(
         state.phase,
         minorVersionBump(state),
-        unpickCardInRound(state.state, playerId, cardId),
+        state.players,
+        unpickCardInRound(state.round, playerId, cardId),
       );
     },
 
     revealPickedCards: (state): GameState => {
       assertRoundInProgress(state);
-      const { roundState, phase } = resolveReveal(state.state);
+      const { round, accruals, phase } = resolveReveal(
+        state.round,
+        state.players,
+      );
       return createGameState(
         phase,
         // The reveal is a major change: a request that saw an earlier version
         // chose its card without knowing the revealed cards.
         majorVersionBump(state),
-        roundState,
+        addPenaltiesToPlayers(state.players, accruals),
+        round,
       );
     },
 
@@ -84,15 +95,15 @@ export const gameSlice = createSlice({
       state,
       action: PayloadAction<StartRoundPayload>,
     ): GameState => {
+      // A new round follows a round. A game starts with startGame.
       assertRoundInProgress(state);
       return createGameState(
         GamePhase.CardPick,
         // A new round is a major change: a request that saw an earlier version
         // worked off cards that are no longer in the game.
         majorVersionBump(state),
-        // The penalty piles stay: the penalty limit applies to the whole
-        // game, not to one round.
-        createRoundState(action.payload.round, state.state.penaltyPiles),
+        state.players,
+        action.payload.round,
       );
     },
   },

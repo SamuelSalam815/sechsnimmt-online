@@ -20,7 +20,7 @@ export function handleRequest(
     case GamePhase.PreStart:
       return handlePreStartPhase(request);
     case GamePhase.CardPick:
-      return handleCardPickPhase(state.state, request);
+      return handleCardPickPhase(state, request);
     case GamePhase.RowPick:
       return handleRowPickPhase();
     case GamePhase.EndOfRound:

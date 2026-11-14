@@ -1,4 +1,4 @@
-import type { Player } from '#engine/dataTypes/player.ts';
+import { createPlayer, type PlayerProfile } from '#engine/dataTypes/player.ts';
 import { startGame } from '#engine/reducers/gameSlice.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
 import { buildShuffledRound } from '#engine/requestHandling/shuffledRound.ts';
@@ -15,8 +15,11 @@ export function handlePreStartPhase(request: GameRequest): PhaseHandlingResult {
 
 // Impure, because the shuffle uses random numbers. It has no unit test. See
 // docs/testing-strategy.md.
-function startGameWithShuffledCards(players: Player[]): AppThunk {
+function startGameWithShuffledCards(
+  profiles: readonly PlayerProfile[],
+): AppThunk {
   return (dispatch) => {
-    dispatch(startGame({ round: buildShuffledRound(players) }));
+    const players = profiles.map((profile) => createPlayer(profile));
+    dispatch(startGame({ players, round: buildShuffledRound(players) }));
   };
 }

@@ -1,12 +1,10 @@
-import { type Card, getPenalty } from '#engine/dataTypes/card.ts';
+import type { Card } from '#engine/dataTypes/card.ts';
 import type { PlayerId } from '#engine/dataTypes/player.ts';
-
-// The game ends when the penalty total of a player reaches this limit. See
-// "End of the game" in docs/game-rules.md.
-const PENALTY_LIMIT = 66;
 
 declare const penaltyPileBrand: unique symbol;
 
+// The cards that a player has taken in the running round. The pile ends with
+// its round. The penalty score of the player carries the total of the game.
 export interface PenaltyPile {
   readonly playerId: PlayerId;
   readonly cards: readonly Card[];
@@ -30,12 +28,4 @@ export function addCardsToPenaltyPile(
   cards: readonly Card[],
 ): PenaltyPile {
   return toPenaltyPile(pile.playerId, [...pile.cards, ...cards]);
-}
-
-export function getPenaltyTotal(pile: PenaltyPile): number {
-  return pile.cards.reduce((total, card) => total + getPenalty(card), 0);
-}
-
-export function hasReachedPenaltyLimit(pile: PenaltyPile): boolean {
-  return getPenaltyTotal(pile) >= PENALTY_LIMIT;
 }

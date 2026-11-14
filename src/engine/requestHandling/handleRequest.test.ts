@@ -12,12 +12,8 @@ import {
   createPickedCard,
   type PickedCard,
 } from '#engine/dataTypes/pickedCard.ts';
-import type { PlayerId } from '#engine/dataTypes/player.ts';
-import { createRound } from '#engine/dataTypes/round.ts';
-import {
-  createRoundState,
-  pickCardInRound,
-} from '#engine/dataTypes/roundState.ts';
+import { createPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
+import { createRound, pickCardInRound } from '#engine/dataTypes/round.ts';
 import {
   pickCard,
   revealPickedCards,
@@ -38,6 +34,9 @@ const startGameRequest: StartGameRequest = {
   ],
 };
 const preStart = createInitialGameState();
+const players = startGameRequest.players.map((profile) =>
+  createPlayer(profile),
+);
 
 describe('pre-start phase handling', () => {
   test('handles the start game request with one thunk', () => {
@@ -69,13 +68,12 @@ describe('card pick phase handling', () => {
       createHand('a', [aceOfAda, otherOfAda]),
       createHand('b', [aceOfBen]),
     ];
-    const round = createRound(startGameRequest.players, [], hands);
-    let roundState = createRoundState(round);
+    let round = createRound([], hands);
     // The pick takes the card out of the hand of its owner.
     for (const picked of pickedCards) {
-      roundState = pickCardInRound(roundState, picked.playerId, picked.card.id);
+      round = pickCardInRound(round, picked.playerId, picked.card.id);
     }
-    return createGameState(GamePhase.CardPick, version, roundState);
+    return createGameState(GamePhase.CardPick, version, players, round);
   }
 
   function pickRequest(playerId: PlayerId, cardId: CardId): GameRequest {
@@ -177,7 +175,8 @@ describe('handling of the phases that follow the reveal', () => {
     return createGameState(
       phase,
       INITIAL_GAME_STATE_VERSION,
-      createRoundState(createRound([], [], [])),
+      players,
+      createRound([], []),
     );
   }
 

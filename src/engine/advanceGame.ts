@@ -22,7 +22,7 @@ export function advanceGame(request: GameRequest): AppThunk<string | true> {
     // therefore only marks the end of the round, and the deal happens here.
     const game = getState().game;
     if (game.phase === GamePhase.EndOfRound) {
-      dispatch(startRoundWithShuffledCards(game.state.round.players));
+      dispatch(startRoundWithShuffledCards(game.players));
     }
     return true;
   };

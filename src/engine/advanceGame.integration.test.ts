@@ -7,12 +7,10 @@ import {
   INITIAL_GAME_STATE_VERSION,
 } from '#engine/dataTypes/gameState.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
-import {
-  addCardsToPenaltyPile,
-  createPenaltyPile,
-} from '#engine/dataTypes/penaltyPile.ts';
+import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
+import { createPenaltyPile } from '#engine/dataTypes/penaltyPile.ts';
+import { addPenaltyToPlayer, createPlayer } from '#engine/dataTypes/player.ts';
 import { createRound } from '#engine/dataTypes/round.ts';
-import { createRoundState } from '#engine/dataTypes/roundState.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { rootReducer } from '#engine/store.ts';
 import { cardOf, rowOf } from '#testSupport/cards.ts';
@@ -29,9 +27,9 @@ test('the start game request moves the store to the card pick phase', () => {
   expect(result).toBe(true);
   const game = store.getState().game;
   assert(game.phase === GamePhase.CardPick);
-  expect(game.state.round.hands).toHaveLength(1);
-  expect(game.state.round.rows).toHaveLength(4);
-  expect(game.state.pickedCards).toEqual([]);
+  expect(game.round.hands).toHaveLength(1);
+  expect(game.round.rows).toHaveLength(4);
+  expect(game.round.pickedCards).toEqual([]);
 });
 
 test('a pick card request for every player places the picked cards', () => {
@@ -49,7 +47,7 @@ test('a pick card request for every player places the picked cards', () => {
   const started = store.getState().game;
   assert(started.phase === GamePhase.CardPick);
 
-  for (const hand of started.state.round.hands) {
+  for (const hand of started.round.hands) {
     const result = store.dispatch(
       advanceGame({
         type: RequestType.PickCard,
@@ -65,11 +63,11 @@ test('a pick card request for every player places the picked cards', () => {
   // The shuffle decides whether the lowest picked card fits a row.
   assert(game.phase === GamePhase.CardPick || game.phase === GamePhase.RowPick);
   if (game.phase === GamePhase.CardPick) {
-    expect(game.state.pickedCards).toEqual([]);
+    expect(game.round.pickedCards).toEqual([]);
   }
-  expect(game.state.round.hands.map((hand) => hand.cards)).toEqual([
-    started.state.round.hands[0].cards.slice(1),
-    started.state.round.hands[1].cards.slice(1),
+  expect(game.round.hands.map((hand) => hand.cards)).toEqual([
+    started.round.hands[0].cards.slice(1),
+    started.round.hands[1].cards.slice(1),
   ]);
   // The start of the game, two picks and the reveal. Only the picks are minor
   // changes.
@@ -82,21 +80,20 @@ test('a pick card request for every player places the picked cards', () => {
 
 test('the pick of the last card of a round deals the next round', () => {
   const lastCard = cardOf(50);
-  const penaltyPiles = [
-    addCardsToPenaltyPile(createPenaltyPile('a'), [cardOf(55)]),
-  ];
-  const round = createRound(
-    [{ id: 'a', name: 'Ada' }],
-    [rowOf(10)],
-    [createHand('a', [lastCard])],
+  // A score of 7 from the rounds before this one.
+  const scored = addPenaltyToPlayer(
+    createPlayer({ id: 'a', name: 'Ada' }),
+    createPenaltyAccrual('a', [cardOf(55)]),
   );
+  const round = createRound([rowOf(10)], [createHand('a', [lastCard])]);
   const store = configureStore({
     reducer: rootReducer,
     preloadedState: {
       game: createGameState(
         GamePhase.CardPick,
         INITIAL_GAME_STATE_VERSION,
-        createRoundState(round, penaltyPiles),
+        [scored],
+        round,
       ),
       history: [],
     },
@@ -114,10 +111,12 @@ test('the pick of the last card of a round deals the next round', () => {
   expect(result).toBe(true);
   const game = store.getState().game;
   assert(game.phase === GamePhase.CardPick);
-  expect(game.state.round.hands[0].cards).toHaveLength(10);
-  expect(game.state.round.rows).toHaveLength(4);
-  expect(game.state.pickedCards).toEqual([]);
-  expect(game.state.penaltyPiles).toEqual(penaltyPiles);
+  expect(game.round.hands[0].cards).toHaveLength(10);
+  expect(game.round.rows).toHaveLength(4);
+  expect(game.round.pickedCards).toEqual([]);
+  // The piles start empty in the new round, while the score carries over.
+  expect(game.round.penaltyPiles).toEqual([createPenaltyPile('a')]);
+  expect(game.players).toEqual([scored]);
   // The pick, the reveal and the start of the round.
   expect(game.version).toEqual({ sequence: 3, major: true });
 });

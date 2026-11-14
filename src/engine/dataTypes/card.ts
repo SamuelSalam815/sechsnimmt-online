@@ -27,6 +27,10 @@ function createCard(faceValue: number, position: number): Card {
   return { id: position, faceValue } as Card;
 }
 
+export function getPenaltyTotal(cards: readonly Card[]): number {
+  return cards.reduce((total, card) => total + getPenalty(card), 0);
+}
+
 export function getPenalty(card: Card): number {
   const { faceValue } = card;
   if (faceValue === 55) return 7;

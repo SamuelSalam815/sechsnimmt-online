@@ -3,6 +3,7 @@ import {
   createCards,
   getDeckFaceValues,
   getPenalty,
+  getPenaltyTotal,
 } from '#engine/dataTypes/card.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
@@ -76,10 +77,7 @@ describe('getPenalty', () => {
 
   // The printed deck of 104 cards shows 171 bullheads in total.
   test('gives 171 for the full deck of cards 1 to 104', () => {
-    const total = createCards(getDeckFaceValues()).reduce(
-      (sum, card) => sum + getPenalty(card),
-      0,
-    );
+    const total = getPenaltyTotal(createCards(getDeckFaceValues()));
     expect(total).toBe(171);
   });
 });

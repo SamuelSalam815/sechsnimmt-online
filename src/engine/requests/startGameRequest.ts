@@ -1,4 +1,4 @@
-import type { Player } from '#engine/dataTypes/player.ts';
+import type { PlayerProfile } from '#engine/dataTypes/player.ts';
 import type { GameRequestBase } from '#engine/requests/gameRequestBase.ts';
 import type { RequestType } from '#engine/requests/requestType.ts';
 
@@ -6,5 +6,5 @@ import type { RequestType } from '#engine/requests/requestType.ts';
 // is not written, will generate it.
 export interface StartGameRequest extends GameRequestBase {
   type: RequestType.StartGame;
-  players: Player[];
+  players: PlayerProfile[];
 }

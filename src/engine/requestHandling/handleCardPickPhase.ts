@@ -1,11 +1,11 @@
+import type { RoundGameState } from '#engine/dataTypes/gameState.ts';
 import { findCardInHand } from '#engine/dataTypes/hand.ts';
-import type { PlayerId } from '#engine/dataTypes/player.ts';
-import { findHand, hasPlayer } from '#engine/dataTypes/round.ts';
+import { findPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
 import {
+  findHand,
   findPickedCard,
   findPickedCardOfPlayer,
-  type RoundState,
-} from '#engine/dataTypes/roundState.ts';
+} from '#engine/dataTypes/round.ts';
 import {
   type GameAction,
   pickCard,
@@ -17,7 +17,7 @@ import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 
 export function handleCardPickPhase(
-  state: RoundState,
+  state: RoundGameState,
   request: GameRequest,
 ): PhaseHandlingResult {
   if (
@@ -30,18 +30,19 @@ export function handleCardPickPhase(
     };
   }
   const { playerId, cardId } = request;
-  if (!hasPlayer(state.round, playerId)) {
+  if (!findPlayer(state.players, playerId)) {
     return { error: `The game holds no player with the ID ${playerId}` };
   }
+  const round = state.round;
   if (request.type === RequestType.UnpickCard) {
-    if (!findPickedCard(state, playerId, cardId)) {
+    if (!findPickedCard(round, playerId, cardId)) {
       return {
         error: `The player ${playerId} has not picked the card ${cardId}`,
       };
     }
     return { actions: [unpickCard({ playerId, cardId })] };
   }
-  const hand = findHand(state.round, playerId);
+  const hand = findHand(round, playerId);
   if (!hand || !findCardInHand(hand, cardId)) {
     return {
       error: `The hand of the player ${playerId} does not hold the card ${cardId}`,
@@ -57,10 +58,13 @@ export function handleCardPickPhase(
 // True if the pick of the given player leaves every player with a picked card.
 // A pick by a player that has already picked a card only swaps the two cards,
 // so it changes nothing here.
-function wouldPickTheLastCard(state: RoundState, playerId: PlayerId): boolean {
-  return state.round.players.every(
+function wouldPickTheLastCard(
+  state: RoundGameState,
+  playerId: PlayerId,
+): boolean {
+  return state.players.every(
     (player) =>
       player.id === playerId ||
-      findPickedCardOfPlayer(state, player.id) !== undefined,
+      findPickedCardOfPlayer(state.round, player.id) !== undefined,
   );
 }

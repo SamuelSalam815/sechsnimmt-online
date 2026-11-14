@@ -14,6 +14,16 @@ It ends when every player has played all the cards in their hand.
 The rules summary counts the bullheads of a card, which are its minus points.
 The code calls that count the penalty of the card.
 
+## Penalty pile and penalty score
+
+The rules summary calls the cards that a player has taken the bullhead stack, and it records the minus points of each player at the end of a round.
+The code keeps a penalty pile and a penalty score instead.
+
+The penalty pile of a player holds the cards that the player took in the running round.
+It ends with the round.
+The penalty score of a player counts the penalty of every card that the player has taken in the game, the cards of the running round included.
+The game therefore ends as soon as a score reaches the limit, in the middle of a round.
+
 ## Game
 
 A game is one or more rounds.
