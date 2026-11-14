@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { cardOf, rowOf } from '../testSupport/cards';
 import { createCards, getDeckFaceValues } from './card';
+import { createDeck } from './deck';
 import { createHand } from './hand';
 import type { Player } from './player';
 import {
@@ -18,7 +19,7 @@ const bob: Player = { id: 'b', name: 'Bob' };
 
 describe('buildRound', () => {
   const cards = createCards(getDeckFaceValues());
-  const round = buildRound([ada, bob], cards);
+  const round = buildRound([ada, bob], createDeck(cards));
 
   test('keeps the players', () => {
     expect(round.players).toEqual([ada, bob]);
@@ -45,12 +46,13 @@ describe('buildRound', () => {
       id: `p${i}`,
       name: `Player ${i}`,
     }));
-    const fullRound = buildRound(tenPlayers, cards);
+    const fullRound = buildRound(tenPlayers, createDeck(cards));
     expect(fullRound.rows[3].cards).toEqual([cards[103]]);
   });
 
-  test('throws when there are too few cards for the players', () => {
-    expect(() => buildRound([ada, bob], cards.slice(0, 23))).toThrow();
+  test('throws when the deck holds too few cards for the players', () => {
+    const short = createDeck(cards.slice(0, 23));
+    expect(() => buildRound([ada, bob], short)).toThrow();
   });
 });
 

@@ -1,4 +1,5 @@
 import type { Card } from './card';
+import { type Deck, drawCardsFromDeck as drawCards } from './deck';
 import { createHand, type Hand, isHandEmpty } from './hand';
 import type { Player, PlayerId } from './player';
 import { addCardToRow, createRow, getLastCardOfRow, type Row } from './row';
@@ -31,23 +32,15 @@ export function createRound(
 }
 
 // The setup of docs/game-rules.md.
-export function buildRound(
-  players: readonly Player[],
-  cards: readonly Card[],
-): Round {
-  const cardsNeeded = ROW_COUNT + players.length * HAND_SIZE;
-  if (cards.length < cardsNeeded) {
-    throw new Error(
-      `A round with ${players.length} players needs ${cardsNeeded} cards, but there are ${cards.length}`,
-    );
+export function buildRound(players: readonly Player[], deck: Deck): Round {
+  const hands: Hand[] = [];
+  let rest = deck;
+  for (const player of players) {
+    const draw = drawCards(rest, HAND_SIZE);
+    hands.push(createHand(player.id, draw.cards));
+    rest = draw.deck;
   }
-  const hands = players.map((player, i) =>
-    createHand(player.id, cards.slice(i * HAND_SIZE, (i + 1) * HAND_SIZE)),
-  );
-  const firstRowCard = players.length * HAND_SIZE;
-  const rows = cards
-    .slice(firstRowCard, firstRowCard + ROW_COUNT)
-    .map(createRow);
+  const rows = drawCards(rest, ROW_COUNT).cards.map(createRow);
   return createRound(players, rows, hands);
 }
 

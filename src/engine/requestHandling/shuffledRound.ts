@@ -1,4 +1,5 @@
 import { createCards, getDeckFaceValues } from '../dataTypes/card';
+import { createDeck } from '../dataTypes/deck';
 import type { Player } from '../dataTypes/player';
 import { buildRound, type Round } from '../dataTypes/round';
 
@@ -8,8 +9,8 @@ export function buildShuffledRound(players: readonly Player[]): Round {
   const faceValues = getDeckFaceValues();
   shuffle(faceValues);
   // The cards get their IDs after the shuffle so IDs alone don't reveal faceValues
-  const cards = createCards(faceValues);
-  return buildRound(players, cards);
+  const deck = createDeck(createCards(faceValues));
+  return buildRound(players, deck);
 }
 
 // Fisher-Yates shuffle, in place.

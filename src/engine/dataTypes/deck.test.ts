@@ -1,0 +1,33 @@
+import { describe, expect, test } from 'vitest';
+import { cardOf } from '../testSupport/cards';
+import { createDeck, drawCardsFromDeck } from './deck';
+
+describe('drawCardsFromDeck', () => {
+  const deck = createDeck([1, 2, 3].map(cardOf));
+
+  test('takes the cards from the top of the deck, in order', () => {
+    expect(drawCardsFromDeck(deck, 2).cards).toEqual([cardOf(1), cardOf(2)]);
+  });
+
+  test('leaves a deck of the cards that it did not take', () => {
+    expect(drawCardsFromDeck(deck, 2).deck).toEqual(createDeck([cardOf(3)]));
+  });
+
+  test('leaves the deck it drew from unchanged', () => {
+    drawCardsFromDeck(deck, 2);
+    expect(deck).toEqual(createDeck([1, 2, 3].map(cardOf)));
+  });
+
+  test('draws no card for a count of 0', () => {
+    expect(drawCardsFromDeck(deck, 0)).toEqual({ deck, cards: [] });
+  });
+
+  test('empties the deck for a draw of every card', () => {
+    const draw = drawCardsFromDeck(deck, 3);
+    expect(draw.deck).toEqual(createDeck([]));
+  });
+
+  test('throws for a draw of more cards than the deck holds', () => {
+    expect(() => drawCardsFromDeck(deck, 4)).toThrow();
+  });
+});
