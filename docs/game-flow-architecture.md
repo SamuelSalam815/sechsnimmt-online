@@ -32,8 +32,13 @@ Such a change is a thunk, and its impurity runs on dispatch.
 ## Layer 3: Redux store
 
 The store and its reducers own the game state.
-They alone implement how the game progresses.
+They alone progress the game.
 A rejected request never reaches them.
+
+A reducer does not read into the state.
+It calls one operation of a data type and returns the result with a new version.
+The data types hold the rules of the game and their own invariants.
+See docs/data-type-design.md.
 
 A client needs the applied actions to replay the game.
 The store therefore holds their history next to the state.
@@ -41,7 +46,7 @@ The store therefore holds their history next to the state.
 Layer 2 already decided that an action fits the phase.
 A reducer therefore does not check the phase.
 Layer 2 also found the data of the action.
-A reducer therefore throws when a selector from `src/engine/dataTypes/selectors.ts` cannot find that data.
+An operation of a data type therefore throws when it cannot find that data.
 
 ## Game state version
 
