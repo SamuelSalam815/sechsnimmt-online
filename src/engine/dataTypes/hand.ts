@@ -4,6 +4,9 @@ import type { PlayerId } from '#engine/dataTypes/player.ts';
 
 declare const handBrand: unique symbol;
 
+// A hand names the player that holds it instead of belonging to that player:
+// the data of the game is held by lifetime first and by domain relations
+// after that. A round ends with its hands, while the players outlive it.
 export interface Hand {
   readonly playerId: PlayerId;
   readonly cards: readonly Card[];

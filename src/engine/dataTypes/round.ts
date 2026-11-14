@@ -69,8 +69,6 @@ function toRound(fields: RoundFields): Round {
   return fields as Round;
 }
 
-// A round starts with no picked card and an empty penalty pile for each hand.
-// The hands name the players of the round: each player of the game holds one.
 export function createRound(
   rows: readonly Row[],
   hands: readonly Hand[],

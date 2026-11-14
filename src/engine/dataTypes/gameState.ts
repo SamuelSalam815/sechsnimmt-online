@@ -26,9 +26,7 @@ export enum GamePhase {
 // describes it. When the code exists, keep only the reason for the version here
 // and reference that code. Do not describe the implementation.
 export interface GameStateVersion {
-  // Increments by one on every change of the game state.
   sequence: number;
-  // True if the change that produced this version is a major change.
   major: boolean;
 }
 
@@ -58,7 +56,6 @@ export type GameState = GameStateFields & {
   readonly [gameStateBrand]: true;
 };
 
-// The game state of a phase that holds a round.
 export type RoundGameState = Extract<GameState, { round: Round }>;
 
 function toGameState(fields: GameStateFields): GameState {

@@ -58,7 +58,6 @@ test('moves to the card pick phase with the players and the round on startGame',
     createInitialGameState(),
     startGame({ players: [players[0]], round }),
   );
-  // The start of the game is a major change.
   expect(next).toEqual(
     createGameState(
       GamePhase.CardPick,
@@ -108,7 +107,7 @@ describe('revealPickedCards', () => {
   );
 
   // resolveReveal decides the phase and places the cards. See
-  // dataTypes/roundState.test.ts.
+  // dataTypes/round.test.ts.
   test('takes the phase from the resolved reveal', () => {
     const next = gameSlice.reducer(picked, revealPickedCards());
     expect(next.phase).toBe(GamePhase.CardPick);

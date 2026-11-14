@@ -58,8 +58,6 @@ export const gameSlice = createSlice({
         action.payload.round,
       ),
 
-    // Names the chosen card as the pick of the player. The card stays in the
-    // hand, and a pick replaces the card that the player picked before.
     pickCard: (state, action: PayloadAction<PickCardPayload>): GameState => {
       assertRoundInProgress(state);
       const { playerId, card } = action.payload;
@@ -71,7 +69,6 @@ export const gameSlice = createSlice({
       );
     },
 
-    // Takes back the pick of the player.
     unpickCard: (
       state,
       action: PayloadAction<UnpickCardPayload>,

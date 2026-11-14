@@ -5,14 +5,8 @@ export interface ErrorMessage {
   readonly message: string;
 }
 
-// The outcome of a search for one value. The miss carries the message, so
-// that the search words the miss once and close to its cause.
-//
-// `andThen` chains a search that needs the value of the one before it. A miss
-// short-circuits the rest of the chain and keeps its own message.
-//
-// `exists` discriminates the union, for a caller that reads the outcome
-// instead of chaining.
+// A search that can fail, and that chains with the searches that need its
+// value. The search that knows what it sought words the message of the miss.
 export type Lookup<T> = Found<T> | Missing;
 
 class Found<T> {

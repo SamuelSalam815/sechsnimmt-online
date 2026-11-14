@@ -55,9 +55,6 @@ function pickActions(
   return actions;
 }
 
-// True if the pick of the given player leaves every player with a picked card.
-// A pick by a player that has already picked a card replaces that pick, so it
-// changes nothing here.
 function wouldBeLastRemainingPlayerToPick(
   state: RoundGameState,
   playerId: PlayerId,
