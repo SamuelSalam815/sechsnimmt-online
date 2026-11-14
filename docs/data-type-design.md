@@ -51,37 +51,38 @@ An operation therefore reports everything that follows from the change that it m
 `addCardToRow` gives the new row together with the cards that the player takes, for example.
 A row holds between one and five cards at all times, and no caller asks about the capacity.
 
-## A search reports its own miss
+## An operation reports its own failure
 
-A search for one value gives a `Lookup`: a `Found` that holds the value, or a `Missing` that holds the failure.
+An operation that can fail gives a `Result`: a `Success` that holds the value, or a `Failure` that holds the message.
 
 ```ts
 export interface ErrorMessage {
   readonly message: string;
 }
 
-export type Lookup<T> = Found<T> | Missing;
+export type Result<T> = Success<T> | Failure;
 ```
 
-The module that searches words the message of the miss.
-A message therefore names what was sought in the terms of the module that knows it, and no caller words it again.
+`success` and `fail` build the two halves.
+A search that gives `undefined` on a miss passes through `lookup`, which picks the half and words the miss with one message.
+
+The module that fails words that message.
+A message therefore names the failure in the terms of the module that knows it, and no caller words it again.
 One message serves every caller.
 
 A caller reaches the value in one of three ways:
 
-- `andThen` chains a search that needs the value of the search before it. A miss travels down the chain, and no later search runs.
-- `use` turns the value into the outcome of the caller. A miss gives its failure instead, which is the shape that layer 2 returns for a rejected request. No code wraps the message on the way out.
-- `force` gives the value and throws the message of a miss. It serves the code that has already established that the value is there.
+- `andThen` chains an operation that needs the value of the one before it. A failure travels down the chain, and no later operation runs.
+- `use` turns the value into the outcome of the caller. A failure gives its message instead, which is the shape that layer 2 returns for a rejected request. No code wraps the message on the way out.
+- `force` gives the value and throws the message of a failure. It serves the code that has already established that the value is there.
 
-`exists` discriminates the union, for a caller that reads the outcome instead of chaining.
+`Failure` carries no value type.
+A failure therefore travels through a chain of any value type as it is, and `never` as the argument of the callback states that the callback never runs.
 
-`Missing` carries no value type.
-A miss therefore travels through a chain of any value type as it is, and `never` as the argument of the callback states that the callback never runs.
-
-The name `then` would make a `Lookup` a thenable, which `await` and a dynamic import resolve as a promise.
+The name `then` would make a `Result` a thenable, which `await` and a dynamic import resolve as a promise.
 Biome bans it with `noThenProperty`, and `andThen` is the name that remains.
 
-`exists` discriminates the union.
+`ok` discriminates the union.
 A caller therefore asks the question before it reads the value or the message, and each half exposes only its own member.
 
 ## Immutable collections

@@ -14,14 +14,14 @@ const other = cardOf(2);
 describe('findCardInHand', () => {
   test('gives the card of the ID', () => {
     expect(findCardInHand(createHand('a', [ace, other]), other.id)).toEqual({
-      exists: true,
+      ok: true,
       value: other,
     });
   });
 
   test('names the miss for a card that the hand does not hold', () => {
     expect(findCardInHand(createHand('a', [ace]), other.id)).toEqual({
-      exists: false,
+      ok: false,
       failure: {
         message: `The hand of the player a does not hold the card ${other.id}`,
       },

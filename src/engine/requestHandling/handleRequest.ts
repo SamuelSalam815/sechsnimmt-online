@@ -1,6 +1,6 @@
 import { GamePhase, type GameState } from '#engine/dataTypes/gameState.ts';
 import { isRequestStale } from '#engine/dataTypes/gameStateVersion.ts';
-import { found, type Lookup, missing } from '#engine/dataTypes/lookup.ts';
+import { fail, type Result, success } from '#engine/dataTypes/result.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
 import { handleCardPickPhase } from '#engine/requestHandling/handleCardPickPhase.ts';
 import { handleEndOfRoundPhase } from '#engine/requestHandling/handleEndOfRoundPhase.ts';
@@ -25,14 +25,14 @@ export function handleRequest(
 function checkRequestStillGood(
   request: GameRequest,
   history: readonly AppliedAction[],
-): Lookup<GameRequest> {
+): Result<GameRequest> {
   const staleMaker = history.find((appliedAction) =>
     isRequestStale(request, appliedAction.newVersion),
   );
   if (staleMaker === undefined) {
-    return found(request);
+    return success(request);
   }
-  return missing(
+  return fail(
     `The ${request.type} request saw the version ${request.lastVersionSeen}, which the major change to the version ${staleMaker.newVersion.sequence} has outdated`,
   );
 }

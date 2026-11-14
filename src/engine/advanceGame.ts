@@ -1,6 +1,6 @@
 import { GamePhase } from '#engine/dataTypes/gameState.ts';
-import type { ErrorMessage } from '#engine/dataTypes/lookup.ts';
 import type { Player } from '#engine/dataTypes/player.ts';
+import type { ErrorMessage } from '#engine/dataTypes/result.ts';
 import { startRound } from '#engine/reducers/gameSlice.ts';
 import { handleRequest } from '#engine/requestHandling/handleRequest.ts';
 import { buildShuffledRound } from '#engine/requestHandling/shuffledRound.ts';

@@ -26,12 +26,12 @@ describe('createPlayer', () => {
 
 describe('findPlayer', () => {
   test('gives the player of an ID', () => {
-    expect(findPlayer([ada, ben], 'b')).toEqual({ exists: true, value: ben });
+    expect(findPlayer([ada, ben], 'b')).toEqual({ ok: true, value: ben });
   });
 
   test('names the miss for an unknown ID', () => {
     expect(findPlayer([ada, ben], 'nobody')).toEqual({
-      exists: false,
+      ok: false,
       failure: { message: 'The game holds no player with the ID nobody' },
     });
   });

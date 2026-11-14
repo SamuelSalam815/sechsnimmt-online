@@ -99,7 +99,7 @@ describe('findHand', () => {
 
   test('names the miss for a player that holds no hand', () => {
     expect(findHand(round, 'nobody')).toEqual({
-      exists: false,
+      ok: false,
       failure: {
         message: 'The game state holds no hand for the player nobody',
       },
@@ -154,14 +154,14 @@ describe('findPick', () => {
 
   test('gives the pick of the player', () => {
     expect(findPick(picked, 'b', aceOfBen.id)).toEqual({
-      exists: true,
+      ok: true,
       value: aceOfBen.id,
     });
   });
 
   test('names the pick of the player for another card', () => {
     expect(findPick(picked, 'b', aceOfAda.id)).toEqual({
-      exists: false,
+      ok: false,
       failure: {
         message: `The player b has picked the card ${aceOfBen.id}, not the card ${aceOfAda.id}`,
       },
@@ -170,7 +170,7 @@ describe('findPick', () => {
 
   test('names the miss for a player that has picked no card', () => {
     expect(findPick(picked, 'a', aceOfAda.id)).toEqual({
-      exists: false,
+      ok: false,
       failure: {
         message: `The player a has picked no card, not the card ${aceOfAda.id}`,
       },

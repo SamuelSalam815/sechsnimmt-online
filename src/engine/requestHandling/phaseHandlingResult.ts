@@ -1,4 +1,4 @@
-import type { ErrorMessage } from '#engine/dataTypes/lookup.ts';
+import type { ErrorMessage } from '#engine/dataTypes/result.ts';
 import type { GameAction } from '#engine/reducers/gameSlice.ts';
 import type { AppThunk } from '#engine/store.ts';
 

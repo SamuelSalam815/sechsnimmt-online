@@ -1,6 +1,6 @@
 import type { Card, CardId } from '#engine/dataTypes/card.ts';
-import { type Lookup, lookup } from '#engine/dataTypes/lookup.ts';
 import type { PlayerId } from '#engine/dataTypes/player.ts';
+import { lookup, type Result } from '#engine/dataTypes/result.ts';
 
 declare const handBrand: unique symbol;
 
@@ -22,7 +22,7 @@ export function createHand(playerId: PlayerId, cards: readonly Card[]): Hand {
   return toHand(playerId, [...cards]);
 }
 
-export function findCardInHand(hand: Hand, cardId: CardId): Lookup<Card> {
+export function findCardInHand(hand: Hand, cardId: CardId): Result<Card> {
   return lookup(
     hand.cards.find((card) => card.id === cardId),
     `The hand of the player ${hand.playerId} does not hold the card ${cardId}`,

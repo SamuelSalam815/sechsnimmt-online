@@ -11,7 +11,6 @@ import {
   isHandEmpty,
   removeCardFromHand,
 } from '#engine/dataTypes/hand.ts';
-import { type Lookup, lookup } from '#engine/dataTypes/lookup.ts';
 import {
   createPenaltyAccrual,
   type PenaltyAccrual,
@@ -28,6 +27,7 @@ import {
   type Player,
   type PlayerId,
 } from '#engine/dataTypes/player.ts';
+import { lookup, type Result } from '#engine/dataTypes/result.ts';
 import {
   addCardToRow,
   createRow,
@@ -94,7 +94,7 @@ export function buildRound(players: readonly Player[], deck: Deck): Round {
   return createRound(rows, hands);
 }
 
-export function findHand(round: Round, playerId: PlayerId): Lookup<Hand> {
+export function findHand(round: Round, playerId: PlayerId): Result<Hand> {
   return lookup(
     round.hands.find((hand) => hand.playerId === playerId),
     `The game state holds no hand for the player ${playerId}`,
@@ -115,7 +115,7 @@ export function findPick(
   round: Round,
   playerId: PlayerId,
   cardId: CardId,
-): Lookup<CardId> {
+): Result<CardId> {
   const picked = findPickedCardId(round, playerId);
   const describedPick = picked === undefined ? 'no card' : `the card ${picked}`;
   return lookup(
@@ -302,7 +302,7 @@ function findRowForCard(rows: readonly Row[], card: Card): Row | undefined {
 function findPileOfPlayer(
   piles: readonly PenaltyPile[],
   playerId: PlayerId,
-): Lookup<PenaltyPile> {
+): Result<PenaltyPile> {
   return lookup(
     piles.find((pile) => pile.playerId === playerId),
     `The game state holds no penalty pile for the player ${playerId}`,

@@ -1,5 +1,5 @@
-import { type Lookup, lookup } from '#engine/dataTypes/lookup.ts';
 import type { PenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
+import { lookup, type Result } from '#engine/dataTypes/result.ts';
 
 // The game ends when the penalty score of a player reaches this limit. See
 // "End of the game" in docs/game-rules.md.
@@ -35,7 +35,7 @@ export function createPlayer(profile: PlayerProfile): Player {
 export function findPlayer(
   players: readonly Player[],
   playerId: PlayerId,
-): Lookup<Player> {
+): Result<Player> {
   return lookup(
     players.find((player) => player.id === playerId),
     `The game holds no player with the ID ${playerId}`,
