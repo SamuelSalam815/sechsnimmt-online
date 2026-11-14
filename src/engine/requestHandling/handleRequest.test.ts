@@ -48,7 +48,7 @@ describe('pre-start phase handling', () => {
       cardId: 0,
     };
     expect(handleRequest(preStart, pickCardRequest)).toEqual({
-      error:
+      message:
         'The pre-start phase rejects the pickCard request: it accepts only the start game request',
     });
   });
@@ -92,7 +92,7 @@ describe('card pick phase handling', () => {
 
   test('returns an error for the start game request', () => {
     expect(handleRequest(cardPick(), startGameRequest)).toEqual({
-      error:
+      message:
         'The card pick phase rejects the startGame request: it accepts only the pick card and unpick card requests',
     });
   });
@@ -104,7 +104,7 @@ describe('card pick phase handling', () => {
     'returns an error for the %s request of an unknown player',
     (_, request) => {
       expect(handleRequest(cardPick(), request)).toEqual({
-        error: 'The game holds no player with the ID nobody',
+        message: 'The game holds no player with the ID nobody',
       });
     },
   );
@@ -117,7 +117,7 @@ describe('card pick phase handling', () => {
 
   test('returns an error if the card is not in the hand of the player', () => {
     expect(handleRequest(cardPick(), pickRequest('a', aceOfBen.id))).toEqual({
-      error: 'The hand of the player a does not hold the card 2',
+      message: 'The hand of the player a does not hold the card 2',
     });
   });
 
@@ -130,14 +130,14 @@ describe('card pick phase handling', () => {
 
   test('returns an error if the card is not picked', () => {
     expect(handleRequest(cardPick(), unpickRequest('a', aceOfAda.id))).toEqual({
-      error: 'The player a has picked no card, not the card 0',
+      message: 'The player a has picked no card, not the card 0',
     });
   });
 
   test('returns an error if another player owns the picked card', () => {
     const state = cardPick([['b', aceOfBen]]);
     expect(handleRequest(state, unpickRequest('a', aceOfBen.id))).toEqual({
-      error: 'The player a has picked no card, not the card 2',
+      message: 'The player a has picked no card, not the card 2',
     });
   });
 
@@ -179,7 +179,7 @@ describe('handling of the phases that follow the reveal', () => {
     expect(
       handleRequest(inPhase(GamePhase.EndOfRound), startGameRequest),
     ).toEqual({
-      error:
+      message:
         'The end of round phase rejects the startGame request: it accepts no request',
     });
   });

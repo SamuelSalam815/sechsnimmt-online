@@ -23,7 +23,7 @@ describe('findCardInHand', () => {
     expect(findCardInHand(createHand('a', [ace]), other.id)).toEqual({
       exists: false,
       failure: {
-        error: `The hand of the player a does not hold the card ${other.id}`,
+        message: `The hand of the player a does not hold the card ${other.id}`,
       },
     });
   });

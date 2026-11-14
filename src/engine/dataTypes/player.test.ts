@@ -32,7 +32,7 @@ describe('findPlayer', () => {
   test('names the miss for an unknown ID', () => {
     expect(findPlayer([ada, ben], 'nobody')).toEqual({
       exists: false,
-      failure: { error: 'The game holds no player with the ID nobody' },
+      failure: { message: 'The game holds no player with the ID nobody' },
     });
   });
 });

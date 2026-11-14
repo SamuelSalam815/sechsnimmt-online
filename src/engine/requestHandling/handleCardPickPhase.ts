@@ -1,3 +1,4 @@
+import type { Card } from '#engine/dataTypes/card.ts';
 import type { RoundGameState } from '#engine/dataTypes/gameState.ts';
 import { findCardInHand } from '#engine/dataTypes/hand.ts';
 import { findPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
@@ -25,41 +26,39 @@ export function handleCardPickPhase(
     request.type !== RequestType.UnpickCard
   ) {
     return {
-      error: `The card pick phase rejects the ${request.type} request: it accepts only the pick card and unpick card requests`,
+      message: `The card pick phase rejects the ${request.type} request: it accepts only the pick card and unpick card requests`,
     };
   }
   const { playerId, cardId } = request;
-  const player = findPlayer(state.players, playerId);
-  if (!player.exists) {
-    return player.failure;
-  }
   const round = state.round;
+  const player = findPlayer(state.players, playerId);
   if (request.type === RequestType.UnpickCard) {
-    const pick = findPick(round, playerId, cardId);
-    if (!pick.exists) {
-      return pick.failure;
-    }
-    return { actions: [unpickCard({ playerId })] };
+    return player
+      .andThen(() => findPick(round, playerId, cardId))
+      .use(() => ({ actions: [unpickCard({ playerId })] }));
   }
-  const hand = findHand(round, playerId);
-  if (!hand.exists) {
-    return hand.failure;
-  }
-  const card = findCardInHand(hand.value, cardId);
-  if (!card.exists) {
-    return card.failure;
-  }
-  const actions: GameAction[] = [pickCard({ playerId, card: card.value })];
-  if (wouldPickTheLastCard(state, playerId)) {
+  return player
+    .andThen(() => findHand(round, playerId))
+    .andThen((hand) => findCardInHand(hand, cardId))
+    .use((card) => ({ actions: pickActions(state, playerId, card) }));
+}
+
+function pickActions(
+  state: RoundGameState,
+  playerId: PlayerId,
+  card: Card,
+): GameAction[] {
+  const actions: GameAction[] = [pickCard({ playerId, card })];
+  if (wouldBeLastRemainingPlayerToPick(state, playerId)) {
     actions.push(revealPickedCards());
   }
-  return { actions };
+  return actions;
 }
 
 // True if the pick of the given player leaves every player with a picked card.
 // A pick by a player that has already picked a card replaces that pick, so it
 // changes nothing here.
-function wouldPickTheLastCard(
+function wouldBeLastRemainingPlayerToPick(
   state: RoundGameState,
   playerId: PlayerId,
 ): boolean {

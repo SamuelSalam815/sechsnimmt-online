@@ -11,7 +11,7 @@ export function handlePreStartPhase(request: GameRequest): PhaseHandlingResult {
     return { actions: [startGameWithShuffledCards(request.players)] };
   }
   return {
-    error: `The pre-start phase rejects the ${request.type} request: it accepts only the start game request`,
+    message: `The pre-start phase rejects the ${request.type} request: it accepts only the start game request`,
   };
 }
 

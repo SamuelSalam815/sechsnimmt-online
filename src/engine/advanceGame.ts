@@ -12,8 +12,8 @@ import type { AppThunk } from '#engine/store.ts';
 export function advanceGame(request: GameRequest): AppThunk<string | true> {
   return (dispatch, getState) => {
     const result = handleRequest(getState().game, request);
-    if ('error' in result) {
-      return result.error;
+    if ('message' in result) {
+      return result.message;
     }
     for (const action of result.actions) {
       dispatch(action);

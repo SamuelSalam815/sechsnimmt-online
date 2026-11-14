@@ -3,7 +3,6 @@ import { createCards, getDeckFaceValues } from '#engine/dataTypes/card.ts';
 import { createDeck } from '#engine/dataTypes/deck.ts';
 import { GamePhase } from '#engine/dataTypes/gameState.ts';
 import { createHand, type Hand } from '#engine/dataTypes/hand.ts';
-import { force } from '#engine/dataTypes/lookup.ts';
 import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
 import {
   addCardsToPenaltyPile,
@@ -43,7 +42,7 @@ function cardPick(): Round {
 }
 
 function handOf(round: Round, playerId: PlayerId): Hand {
-  return force(findHand(round, playerId));
+  return findHand(round, playerId).force();
 }
 
 describe('buildRound', () => {
@@ -101,7 +100,9 @@ describe('findHand', () => {
   test('names the miss for a player that holds no hand', () => {
     expect(findHand(round, 'nobody')).toEqual({
       exists: false,
-      failure: { error: 'The game state holds no hand for the player nobody' },
+      failure: {
+        message: 'The game state holds no hand for the player nobody',
+      },
     });
   });
 });
@@ -162,7 +163,7 @@ describe('findPick', () => {
     expect(findPick(picked, 'b', aceOfAda.id)).toEqual({
       exists: false,
       failure: {
-        error: `The player b has picked the card ${aceOfBen.id}, not the card ${aceOfAda.id}`,
+        message: `The player b has picked the card ${aceOfBen.id}, not the card ${aceOfAda.id}`,
       },
     });
   });
@@ -171,7 +172,7 @@ describe('findPick', () => {
     expect(findPick(picked, 'a', aceOfAda.id)).toEqual({
       exists: false,
       failure: {
-        error: `The player a has picked no card, not the card ${aceOfAda.id}`,
+        message: `The player a has picked no card, not the card ${aceOfAda.id}`,
       },
     });
   });

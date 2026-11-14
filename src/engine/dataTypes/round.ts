@@ -11,7 +11,7 @@ import {
   isHandEmpty,
   removeCardFromHand,
 } from '#engine/dataTypes/hand.ts';
-import { force, type Lookup, lookup } from '#engine/dataTypes/lookup.ts';
+import { type Lookup, lookup } from '#engine/dataTypes/lookup.ts';
 import {
   createPenaltyAccrual,
   type PenaltyAccrual,
@@ -176,7 +176,7 @@ export function resolveReveal(
     if (placement.takenCards.length === 0) {
       continue;
     }
-    const pile = force(findPileOfPlayer(next.penaltyPiles, revealed.playerId));
+    const pile = findPileOfPlayer(next.penaltyPiles, revealed.playerId).force();
     next = toRound({
       ...next,
       penaltyPiles: pilesWith(
@@ -191,7 +191,7 @@ export function resolveReveal(
     penaltyAccruals = [...penaltyAccruals, accrual];
     // A player holds one picked card, so a reveal places one card for that
     // player and this accrual is the only one that it gets.
-    const player = force(findPlayer(players, revealed.playerId));
+    const player = findPlayer(players, revealed.playerId).force();
     if (hasReachedPenaltyLimit(addPenaltyToPlayer(player, accrual))) {
       return {
         round: next,
@@ -216,7 +216,7 @@ function revealedCardsAscending(round: Round): RevealedCard[] {
     }
     revealed.push({
       playerId: hand.playerId,
-      card: force(findCardInHand(hand, cardId)),
+      card: findCardInHand(hand, cardId).force(),
     });
   }
   return revealed.sort((a, b) => a.card.faceValue - b.card.faceValue);
@@ -229,7 +229,7 @@ function placeRevealedCard(
   revealed: RevealedCard,
   placement: CardPlacement,
 ): Round {
-  const hand = force(findHand(round, revealed.playerId));
+  const hand = findHand(round, revealed.playerId).force();
   return toRound({
     ...round,
     rows: placement.rows,

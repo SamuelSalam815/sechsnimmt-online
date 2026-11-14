@@ -7,6 +7,6 @@ export function handleEndOfRoundPhase(
   request: GameRequest,
 ): PhaseHandlingResult {
   return {
-    error: `The end of round phase rejects the ${request.type} request: it accepts no request`,
+    message: `The end of round phase rejects the ${request.type} request: it accepts no request`,
   };
 }

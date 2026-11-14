@@ -53,32 +53,33 @@ A row holds between one and five cards at all times, and no caller asks about th
 
 ## A search reports its own miss
 
-A search for one value gives a `Lookup`:
+A search for one value gives a `Lookup`: a `Found` that holds the value, or a `Missing` that holds the failure.
 
 ```ts
-export interface ErrorResult {
-  readonly error: string;
+export interface ErrorMessage {
+  readonly message: string;
 }
 
 export type Lookup<T> = Found<T> | Missing;
-
-interface Found<T> {
-  readonly exists: true;
-  readonly value: T;
-}
-
-interface Missing {
-  readonly exists: false;
-  readonly failure: ErrorResult;
-}
 ```
 
 The module that searches words the message of the miss.
 A message therefore names what was sought in the terms of the module that knows it, and no caller words it again.
-One message serves both callers: layer 2 returns it to the client, and `force` throws it.
+One message serves every caller.
 
-The failure holds the shape that layer 2 returns for a rejected request.
-A call site therefore returns the failure as it is, and no code wraps the message on the way out.
+A caller reaches the value in one of three ways:
+
+- `andThen` chains a search that needs the value of the search before it. A miss travels down the chain, and no later search runs.
+- `use` turns the value into the outcome of the caller. A miss gives its failure instead, which is the shape that layer 2 returns for a rejected request. No code wraps the message on the way out.
+- `force` gives the value and throws the message of a miss. It serves the code that has already established that the value is there.
+
+`exists` discriminates the union, for a caller that reads the outcome instead of chaining.
+
+`Missing` carries no value type.
+A miss therefore travels through a chain of any value type as it is, and `never` as the argument of the callback states that the callback never runs.
+
+The name `then` would make a `Lookup` a thenable, which `await` and a dynamic import resolve as a promise.
+Biome bans it with `noThenProperty`, and `andThen` is the name that remains.
 
 `exists` discriminates the union.
 A caller therefore asks the question before it reads the value or the message, and each half exposes only its own member.
