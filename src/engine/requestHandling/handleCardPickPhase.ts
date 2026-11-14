@@ -1,10 +1,11 @@
-import type { RoundState } from '../dataTypes/gameState';
+import { findCardInHand } from '../dataTypes/hand';
 import type { PlayerId } from '../dataTypes/player';
+import { findHand, hasPlayer } from '../dataTypes/round';
 import {
-  selectCard,
-  selectHand,
-  selectPickedCard,
-} from '../dataTypes/selectors';
+  findPickedCard,
+  findPickedCardOfPlayer,
+  type RoundState,
+} from '../dataTypes/roundState';
 import {
   type GameAction,
   pickCard,
@@ -29,19 +30,19 @@ export function handleCardPickPhase(
     };
   }
   const { playerId, cardId } = request;
-  if (!state.round.players.some((player) => player.id === playerId)) {
+  if (!hasPlayer(state.round, playerId)) {
     return { error: `The game holds no player with the ID ${playerId}` };
   }
   if (request.type === RequestType.UnpickCard) {
-    if (!selectPickedCard(state, playerId, cardId)) {
+    if (!findPickedCard(state, playerId, cardId)) {
       return {
         error: `The player ${playerId} has not picked the card ${cardId}`,
       };
     }
     return { actions: [unpickCard({ playerId, cardId })] };
   }
-  const hand = selectHand(state, playerId);
-  if (!hand || !selectCard(hand, cardId)) {
+  const hand = findHand(state.round, playerId);
+  if (!hand || !findCardInHand(hand, cardId)) {
     return {
       error: `The hand of the player ${playerId} does not hold the card ${cardId}`,
     };
@@ -57,9 +58,9 @@ export function handleCardPickPhase(
 // A pick by a player that has already picked a card only swaps the two cards,
 // so it changes nothing here.
 function wouldPickTheLastCard(state: RoundState, playerId: PlayerId): boolean {
-  const pickedPlayerIds = new Set(
-    state.pickedCards.map((picked) => picked.playerId),
+  return state.round.players.every(
+    (player) =>
+      player.id === playerId ||
+      findPickedCardOfPlayer(state, player.id) !== undefined,
   );
-  pickedPlayerIds.add(playerId);
-  return state.round.players.every((player) => pickedPlayerIds.has(player.id));
 }

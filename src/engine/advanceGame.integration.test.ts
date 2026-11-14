@@ -1,9 +1,21 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { assert, expect, test } from 'vitest';
 import { advanceGame } from './advanceGame';
-import { GamePhase, INITIAL_GAME_STATE_VERSION } from './dataTypes/gameState';
+import {
+  createGameState,
+  GamePhase,
+  INITIAL_GAME_STATE_VERSION,
+} from './dataTypes/gameState';
+import { createHand } from './dataTypes/hand';
+import {
+  addCardsToPenaltyPile,
+  createPenaltyPile,
+} from './dataTypes/penaltyPile';
+import { createRound } from './dataTypes/round';
+import { createRoundState } from './dataTypes/roundState';
 import { RequestType } from './requests/requestType';
 import { rootReducer } from './store';
+import { cardOf, rowOf } from './testSupport/cards';
 
 test('the start game request moves the store to the card pick phase', () => {
   const store = configureStore({ reducer: rootReducer });
@@ -69,24 +81,23 @@ test('a pick card request for every player places the picked cards', () => {
 });
 
 test('the pick of the last card of a round deals the next round', () => {
-  const lastCard = { id: 0, faceValue: 50 };
-  const penaltyPiles = [{ playerId: 'a', cards: [{ id: 1, faceValue: 55 }] }];
+  const lastCard = cardOf(50);
+  const penaltyPiles = [
+    addCardsToPenaltyPile(createPenaltyPile('a'), [cardOf(55)]),
+  ];
+  const round = createRound(
+    [{ id: 'a', name: 'Ada' }],
+    [rowOf(10)],
+    [createHand('a', [lastCard])],
+  );
   const store = configureStore({
     reducer: rootReducer,
     preloadedState: {
-      game: {
-        phase: GamePhase.CardPick,
-        version: INITIAL_GAME_STATE_VERSION,
-        state: {
-          round: {
-            players: [{ id: 'a', name: 'Ada' }],
-            rows: [{ cards: [{ id: 2, faceValue: 10 }] }],
-            hands: [{ playerId: 'a', cards: [lastCard] }],
-          },
-          pickedCards: [],
-          penaltyPiles,
-        },
-      },
+      game: createGameState(
+        GamePhase.CardPick,
+        INITIAL_GAME_STATE_VERSION,
+        createRoundState(round, penaltyPiles),
+      ),
       history: [],
     },
   });

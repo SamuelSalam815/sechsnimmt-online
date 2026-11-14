@@ -30,7 +30,7 @@ export function advanceGame(request: GameRequest): AppThunk<string | true> {
 
 // Impure, because the shuffle uses random numbers. It has no unit test. See
 // docs/testing-strategy.md.
-function startRoundWithShuffledCards(players: Player[]): AppThunk {
+function startRoundWithShuffledCards(players: readonly Player[]): AppThunk {
   return (dispatch) => {
     dispatch(startRound({ round: buildShuffledRound(players) }));
   };

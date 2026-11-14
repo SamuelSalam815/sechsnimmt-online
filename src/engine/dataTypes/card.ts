@@ -1,45 +1,37 @@
-import type { PlayerId } from './player';
-
-// The position of the card in the deck after the shuffle.
+// Identifies a card without revealing its face value.
 export type CardId = number;
 
+declare const cardBrand: unique symbol;
+
 export interface Card {
-  id: CardId;
-  faceValue: number;
+  readonly id: CardId;
+  readonly faceValue: number;
+  readonly [cardBrand]: true;
 }
 
-export const DECK_SIZE = 104;
+const DECK_SIZE = 104;
 
 export function getDeckFaceValues(): number[] {
   return Array.from({ length: DECK_SIZE }, (_, i) => i + 1);
 }
 
-export function assignCardIds(faceValues: number[]): Card[] {
-  return faceValues.map((faceValue, position) => ({
-    id: position,
-    faceValue,
-  }));
+export function createDeck(faceValues: number[]): Card[] {
+  return faceValues.map(createCard);
 }
 
-export interface CardContainer {
-  cards: Card[];
+function createCard(faceValue: number, position: number): Card {
+  if (!Number.isInteger(faceValue) || faceValue < 1 || faceValue > DECK_SIZE) {
+    throw new Error(`Unrecognized card face value: ${faceValue}`);
+  }
+  // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
+  return { id: position, faceValue } as Card;
 }
 
-export type Deck = CardContainer;
-
-export interface Hand extends CardContainer {
-  playerId: PlayerId;
-}
-
-// The cards that a player has taken out of the rows. They count against that
-// player.
-export interface PenaltyPile extends CardContainer {
-  playerId: PlayerId;
-}
-
-// A card that a player has picked. The owner is marked, because the picked
-// cards of all the players are held together.
-export interface PickedCard {
-  playerId: PlayerId;
-  card: Card;
+export function getPenalty(card: Card): number {
+  const { faceValue } = card;
+  if (faceValue === 55) return 7;
+  if (faceValue % 11 === 0) return 5;
+  if (faceValue % 10 === 0) return 3;
+  if (faceValue % 5 === 0) return 2;
+  return 1;
 }

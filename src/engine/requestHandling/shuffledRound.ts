@@ -1,14 +1,14 @@
-import { assignCardIds, getDeckFaceValues } from '../dataTypes/card';
+import { createDeck, getDeckFaceValues } from '../dataTypes/card';
 import type { Player } from '../dataTypes/player';
 import { buildRound, type Round } from '../dataTypes/round';
 
 // Impure, because the shuffle uses random numbers. Call it from a thunk only.
 // See docs/testing-strategy.md.
-export function buildShuffledRound(players: Player[]): Round {
+export function buildShuffledRound(players: readonly Player[]): Round {
   const faceValues = getDeckFaceValues();
   shuffle(faceValues);
   // The cards get their IDs after the shuffle so IDs alone don't reveal faceValues
-  const cards = assignCardIds(faceValues);
+  const cards = createDeck(faceValues);
   return buildRound(players, cards);
 }
 

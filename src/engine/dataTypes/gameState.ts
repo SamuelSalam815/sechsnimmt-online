@@ -1,5 +1,4 @@
-import type { PenaltyPile, PickedCard } from './card';
-import type { Round } from './round';
+import type { RoundState } from './roundState';
 
 export enum GamePhase {
   PreStart = 'preStart',
@@ -39,23 +38,55 @@ export const INITIAL_GAME_STATE_VERSION: GameStateVersion = {
   major: false,
 };
 
-// The game ends when the penalty total of a player reaches this limit.
-export const PENALTY_LIMIT = 66;
-
-// A round in progress, with the cards that the players have picked so far.
-export interface RoundState {
-  round: Round;
-  pickedCards: PickedCard[];
-  // One pile for each player. The piles outlive a round, because the penalty
-  // limit applies to the whole game.
-  penaltyPiles: PenaltyPile[];
-}
-
 export type RoundPhase = Exclude<GamePhase, GamePhase.PreStart>;
 
-// The phases that hold a round share one member of the union. A reducer can
-// therefore change the phase of a draft in place. With one member for each
-// phase, the compiler rejects that assignment.
-export type GameState =
-  | { phase: GamePhase.PreStart; version: GameStateVersion }
-  | { phase: RoundPhase; version: GameStateVersion; state: RoundState };
+declare const gameStateBrand: unique symbol;
+
+// The phases that hold a round share one member of the union. With one member
+// for each phase, a change of phase would rebuild the whole state.
+type GameStateFields =
+  | { readonly phase: GamePhase.PreStart; readonly version: GameStateVersion }
+  | {
+      readonly phase: RoundPhase;
+      readonly version: GameStateVersion;
+      readonly state: RoundState;
+    };
+
+export type GameState = GameStateFields & {
+  readonly [gameStateBrand]: true;
+};
+
+// The game state of a phase that holds a round.
+export type RoundGameState = Extract<GameState, { state: RoundState }>;
+
+function toGameState(fields: GameStateFields): GameState {
+  // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
+  return fields as GameState;
+}
+
+export function createInitialGameState(): GameState {
+  return toGameState({
+    phase: GamePhase.PreStart,
+    version: INITIAL_GAME_STATE_VERSION,
+  });
+}
+
+export function createGameState(
+  phase: RoundPhase,
+  version: GameStateVersion,
+  state: RoundState,
+): GameState {
+  return toGameState({ phase, version, state });
+}
+
+// The pre-start phase holds no round. Layer 2 rejects a request that needs
+// one, so a missing round here is a bug in that handling.
+export function assertRoundInProgress(
+  state: GameState,
+): asserts state is RoundGameState {
+  if (state.phase === GamePhase.PreStart) {
+    throw new Error(
+      `The game state holds no round in the ${state.phase} phase`,
+    );
+  }
+}
