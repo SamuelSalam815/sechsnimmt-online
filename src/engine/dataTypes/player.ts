@@ -1,3 +1,4 @@
+import { type Lookup, lookup } from '#engine/dataTypes/lookup.ts';
 import type { PenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
 
 // The game ends when the penalty score of a player reaches this limit. See
@@ -34,8 +35,11 @@ export function createPlayer(profile: PlayerProfile): Player {
 export function findPlayer(
   players: readonly Player[],
   playerId: PlayerId,
-): Player | undefined {
-  return players.find((player) => player.id === playerId);
+): Lookup<Player> {
+  return lookup(
+    players.find((player) => player.id === playerId),
+    `The game holds no player with the ID ${playerId}`,
+  );
 }
 
 // An accrual that names another player is a bug in the caller: it would add

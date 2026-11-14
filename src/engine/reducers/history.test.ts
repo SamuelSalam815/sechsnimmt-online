@@ -5,9 +5,10 @@ import {
   type AppliedAction,
   appendToHistory,
 } from '#engine/reducers/history.ts';
+import { cardOf } from '#testSupport/cards.ts';
 
 const version: GameStateVersion = { sequence: 1, major: false };
-const action = pickCard({ playerId: 'a', cardId: 0 });
+const action = pickCard({ playerId: 'a', card: cardOf(1) });
 
 describe('appendToHistory', () => {
   test('appends a game action with the version that it acted on', () => {

@@ -3,6 +3,7 @@ import { createCards, getDeckFaceValues } from '#engine/dataTypes/card.ts';
 import { createDeck } from '#engine/dataTypes/deck.ts';
 import { GamePhase } from '#engine/dataTypes/gameState.ts';
 import { createHand, type Hand } from '#engine/dataTypes/hand.ts';
+import { force } from '#engine/dataTypes/lookup.ts';
 import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
 import {
   addCardsToPenaltyPile,
@@ -17,6 +18,7 @@ import {
   buildRound,
   createRound,
   findHand,
+  findPick,
   findPickedCardId,
   pickCardInRound,
   type Round,
@@ -41,11 +43,7 @@ function cardPick(): Round {
 }
 
 function handOf(round: Round, playerId: PlayerId): Hand {
-  const hand = findHand(round, playerId);
-  if (!hand) {
-    throw new Error(`The test state holds no hand for the player ${playerId}`);
-  }
-  return hand;
+  return force(findHand(round, playerId));
 }
 
 describe('buildRound', () => {
@@ -100,68 +98,87 @@ describe('findHand', () => {
     expect(handOf(round, 'a').cards).toEqual([aceOfAda, otherOfAda]);
   });
 
-  test('gives nothing for a player that holds no hand', () => {
-    expect(findHand(round, 'nobody')).toBeUndefined();
+  test('names the miss for a player that holds no hand', () => {
+    expect(findHand(round, 'nobody')).toEqual({
+      exists: false,
+      failure: { error: 'The game state holds no hand for the player nobody' },
+    });
   });
 });
 
 describe('pickCardInRound', () => {
   test('names the card as the pick of the player and leaves it in the hand', () => {
-    const next = pickCardInRound(cardPick(), 'a', aceOfAda.id);
+    const next = pickCardInRound(cardPick(), 'a', aceOfAda);
     expect(handOf(next, 'a').cards).toEqual([aceOfAda, otherOfAda]);
     expect(handOf(next, 'b').cards).toEqual([aceOfBen]);
     expect(next.picks).toEqual({ a: aceOfAda.id });
   });
 
   test('replaces the pick if the player has already picked a card', () => {
-    const picked = pickCardInRound(cardPick(), 'a', otherOfAda.id);
-    const next = pickCardInRound(picked, 'a', aceOfAda.id);
+    const picked = pickCardInRound(cardPick(), 'a', otherOfAda);
+    const next = pickCardInRound(picked, 'a', aceOfAda);
     expect(next.picks).toEqual({ a: aceOfAda.id });
   });
 
   test('keeps the pick of another player', () => {
-    const picked = pickCardInRound(cardPick(), 'b', aceOfBen.id);
-    const next = pickCardInRound(picked, 'a', aceOfAda.id);
+    const picked = pickCardInRound(cardPick(), 'b', aceOfBen);
+    const next = pickCardInRound(picked, 'a', aceOfAda);
     expect(next.picks).toEqual({ a: aceOfAda.id, b: aceOfBen.id });
   });
 
   test('leaves the round it was given', () => {
     const round = cardPick();
-    pickCardInRound(round, 'a', aceOfAda.id);
+    pickCardInRound(round, 'a', aceOfAda);
     expect(round.picks).toEqual({});
-  });
-
-  test('throws if the player has no hand', () => {
-    expect(() => pickCardInRound(cardPick(), 'nobody', aceOfAda.id)).toThrow(
-      'The game state holds no hand for the player nobody',
-    );
-  });
-
-  test('throws if the hand does not hold the card', () => {
-    expect(() => pickCardInRound(cardPick(), 'a', aceOfBen.id)).toThrow(
-      'The game state holds no card 2 in the hand of the player a',
-    );
   });
 });
 
 describe('unpickCardInRound', () => {
   test('drops the pick of the player and keeps the hand', () => {
-    const picked = pickCardInRound(cardPick(), 'a', aceOfAda.id);
-    const next = unpickCardInRound(picked, 'a', aceOfAda.id);
+    const picked = pickCardInRound(cardPick(), 'a', aceOfAda);
+    const next = unpickCardInRound(picked, 'a');
     expect(handOf(next, 'a').cards).toEqual([aceOfAda, otherOfAda]);
     expect(next.picks).toEqual({});
   });
 
-  test('throws if the player has not picked the card', () => {
-    const picked = pickCardInRound(cardPick(), 'b', aceOfBen.id);
-    expect(() => unpickCardInRound(picked, 'a', aceOfBen.id)).toThrow(
-      'The game state holds no picked card 2 of the player a',
-    );
+  test('keeps the pick of another player', () => {
+    const picked = pickCardInRound(cardPick(), 'b', aceOfBen);
+    const next = unpickCardInRound(picked, 'a');
+    expect(next.picks).toEqual({ b: aceOfBen.id });
+  });
+});
+
+describe('findPick', () => {
+  const picked = pickCardInRound(cardPick(), 'b', aceOfBen);
+
+  test('gives the pick of the player', () => {
+    expect(findPick(picked, 'b', aceOfBen.id)).toEqual({
+      exists: true,
+      value: aceOfBen.id,
+    });
+  });
+
+  test('names the pick of the player for another card', () => {
+    expect(findPick(picked, 'b', aceOfAda.id)).toEqual({
+      exists: false,
+      failure: {
+        error: `The player b has picked the card ${aceOfBen.id}, not the card ${aceOfAda.id}`,
+      },
+    });
+  });
+
+  test('names the miss for a player that has picked no card', () => {
+    expect(findPick(picked, 'a', aceOfAda.id)).toEqual({
+      exists: false,
+      failure: {
+        error: `The player a has picked no card, not the card ${aceOfAda.id}`,
+      },
+    });
   });
 });
 
 describe('findPickedCardId', () => {
-  const picked = pickCardInRound(cardPick(), 'b', aceOfBen.id);
+  const picked = pickCardInRound(cardPick(), 'b', aceOfBen);
 
   test('gives the picked card of its owner', () => {
     expect(findPickedCardId(picked, 'b')).toBe(aceOfBen.id);
@@ -211,7 +228,7 @@ describe('resolveReveal', () => {
       hands,
     );
     for (const [playerId, faceValue] of picks) {
-      round = pickCardInRound(round, playerId, cardOf(faceValue).id);
+      round = pickCardInRound(round, playerId, cardOf(faceValue));
     }
     const outcome = resolveReveal(round, players);
     return {

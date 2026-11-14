@@ -10,7 +10,9 @@ export function handlePreStartPhase(request: GameRequest): PhaseHandlingResult {
   if (request.type === RequestType.StartGame) {
     return { actions: [startGameWithShuffledCards(request.players)] };
   }
-  return { error: 'The pre-start phase accepts only the start game request' };
+  return {
+    error: `The pre-start phase rejects the ${request.type} request: it accepts only the start game request`,
+  };
 }
 
 // Impure, because the shuffle uses random numbers. It has no unit test. See

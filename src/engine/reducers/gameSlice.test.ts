@@ -70,7 +70,7 @@ test('moves to the card pick phase with the players and the round on startGame',
 });
 
 describe('pickCard', () => {
-  const pickAceOfAda = pickCard({ playerId: 'a', cardId: aceOfAda.id });
+  const pickAceOfAda = pickCard({ playerId: 'a', card: aceOfAda });
 
   test('picks the card of the player', () => {
     const next = gameSlice.reducer(cardPick(), pickAceOfAda);
@@ -87,22 +87,16 @@ describe('pickCard', () => {
 describe('unpickCard', () => {
   const picked = gameSlice.reducer(
     cardPick(),
-    pickCard({ playerId: 'a', cardId: aceOfAda.id }),
+    pickCard({ playerId: 'a', card: aceOfAda }),
   );
 
   test('drops the pick of the player', () => {
-    const next = gameSlice.reducer(
-      picked,
-      unpickCard({ playerId: 'a', cardId: aceOfAda.id }),
-    );
+    const next = gameSlice.reducer(picked, unpickCard({ playerId: 'a' }));
     expect(roundOf(next).picks).toEqual({});
   });
 
   test('makes a minor version change', () => {
-    const next = gameSlice.reducer(
-      picked,
-      unpickCard({ playerId: 'a', cardId: aceOfAda.id }),
-    );
+    const next = gameSlice.reducer(picked, unpickCard({ playerId: 'a' }));
     expect(next.version).toEqual({ sequence: 2, major: false });
   });
 });
@@ -110,7 +104,7 @@ describe('unpickCard', () => {
 describe('revealPickedCards', () => {
   const picked = gameSlice.reducer(
     cardPick(),
-    pickCard({ playerId: 'b', cardId: cardOfBen.id }),
+    pickCard({ playerId: 'b', card: cardOfBen }),
   );
 
   // resolveReveal decides the phase and places the cards. See
@@ -141,7 +135,7 @@ describe('revealPickedCards', () => {
     );
     const pickOfBen = gameSlice.reducer(
       fullRow,
-      pickCard({ playerId: 'b', cardId: cardOfBen.id }),
+      pickCard({ playerId: 'b', card: cardOfBen }),
     );
     const next = gameSlice.reducer(pickOfBen, revealPickedCards());
     assert(next.phase !== GamePhase.PreStart);
@@ -180,7 +174,7 @@ test('an action throws if the phase holds no round', () => {
   expect(() =>
     gameSlice.reducer(
       createInitialGameState(),
-      pickCard({ playerId: 'a', cardId: aceOfAda.id }),
+      pickCard({ playerId: 'a', card: aceOfAda }),
     ),
   ).toThrow('The game state holds no round in the preStart phase');
 });

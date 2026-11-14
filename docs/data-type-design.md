@@ -51,6 +51,38 @@ An operation therefore reports everything that follows from the change that it m
 `addCardToRow` gives the new row together with the cards that the player takes, for example.
 A row holds between one and five cards at all times, and no caller asks about the capacity.
 
+## A search reports its own miss
+
+A search for one value gives a `Lookup`:
+
+```ts
+export interface ErrorResult {
+  readonly error: string;
+}
+
+export type Lookup<T> = Found<T> | Missing;
+
+interface Found<T> {
+  readonly exists: true;
+  readonly value: T;
+}
+
+interface Missing {
+  readonly exists: false;
+  readonly failure: ErrorResult;
+}
+```
+
+The module that searches words the message of the miss.
+A message therefore names what was sought in the terms of the module that knows it, and no caller words it again.
+One message serves both callers: layer 2 returns it to the client, and `force` throws it.
+
+The failure holds the shape that layer 2 returns for a rejected request.
+A call site therefore returns the failure as it is, and no code wraps the message on the way out.
+
+`exists` discriminates the union.
+A caller therefore asks the question before it reads the value or the message, and each half exposes only its own member.
+
 ## Immutable collections
 
 A collection type declares `readonly cards: readonly Card[]`.

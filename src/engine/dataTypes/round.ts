@@ -11,6 +11,7 @@ import {
   isHandEmpty,
   removeCardFromHand,
 } from '#engine/dataTypes/hand.ts';
+import { force, type Lookup, lookup } from '#engine/dataTypes/lookup.ts';
 import {
   createPenaltyAccrual,
   type PenaltyAccrual,
@@ -95,8 +96,11 @@ export function buildRound(players: readonly Player[], deck: Deck): Round {
   return createRound(rows, hands);
 }
 
-export function findHand(round: Round, playerId: PlayerId): Hand | undefined {
-  return round.hands.find((hand) => hand.playerId === playerId);
+export function findHand(round: Round, playerId: PlayerId): Lookup<Hand> {
+  return lookup(
+    round.hands.find((hand) => hand.playerId === playerId),
+    `The game state holds no hand for the player ${playerId}`,
+  );
 }
 
 export function findPickedCardId(
@@ -106,32 +110,31 @@ export function findPickedCardId(
   return round.picks[playerId];
 }
 
+// The pick of a player, if it is the given card. The miss names the card that
+// the player has picked instead, which is the information that a client needs
+// to pick again.
+export function findPick(
+  round: Round,
+  playerId: PlayerId,
+  cardId: CardId,
+): Lookup<CardId> {
+  const picked = findPickedCardId(round, playerId);
+  const describedPick = picked === undefined ? 'no card' : `the card ${picked}`;
+  return lookup(
+    picked === cardId ? picked : undefined,
+    `The player ${playerId} has picked ${describedPick}, not the card ${cardId}`,
+  );
+}
+
 export function pickCardInRound(
   round: Round,
   playerId: PlayerId,
-  cardId: CardId,
+  card: Card,
 ): Round {
-  const hand = requireFound(
-    findHand(round, playerId),
-    `hand for the player ${playerId}`,
-  );
-  requireFound(
-    findCardInHand(hand, cardId),
-    `card ${cardId} in the hand of the player ${playerId}`,
-  );
-  return toRound({ ...round, picks: { ...round.picks, [playerId]: cardId } });
+  return toRound({ ...round, picks: { ...round.picks, [playerId]: card.id } });
 }
 
-export function unpickCardInRound(
-  round: Round,
-  playerId: PlayerId,
-  cardId: CardId,
-): Round {
-  if (findPickedCardId(round, playerId) !== cardId) {
-    throw new Error(
-      `The game state holds no picked card ${cardId} of the player ${playerId}`,
-    );
-  }
+export function unpickCardInRound(round: Round, playerId: PlayerId): Round {
   return toRound({ ...round, picks: picksWithout(round.picks, playerId) });
 }
 
@@ -173,10 +176,7 @@ export function resolveReveal(
     if (placement.takenCards.length === 0) {
       continue;
     }
-    const pile = requireFound(
-      findPileOfPlayer(next.penaltyPiles, revealed.playerId),
-      `penalty pile for the player ${revealed.playerId}`,
-    );
+    const pile = force(findPileOfPlayer(next.penaltyPiles, revealed.playerId));
     next = toRound({
       ...next,
       penaltyPiles: pilesWith(
@@ -191,10 +191,7 @@ export function resolveReveal(
     penaltyAccruals = [...penaltyAccruals, accrual];
     // A player holds one picked card, so a reveal places one card for that
     // player and this accrual is the only one that it gets.
-    const player = requireFound(
-      findPlayer(players, revealed.playerId),
-      `player ${revealed.playerId}`,
-    );
+    const player = force(findPlayer(players, revealed.playerId));
     if (hasReachedPenaltyLimit(addPenaltyToPlayer(player, accrual))) {
       return {
         round: next,
@@ -219,10 +216,7 @@ function revealedCardsAscending(round: Round): RevealedCard[] {
     }
     revealed.push({
       playerId: hand.playerId,
-      card: requireFound(
-        findCardInHand(hand, cardId),
-        `picked card ${cardId} in the hand of the player ${hand.playerId}`,
-      ),
+      card: force(findCardInHand(hand, cardId)),
     });
   }
   return revealed.sort((a, b) => a.card.faceValue - b.card.faceValue);
@@ -235,10 +229,7 @@ function placeRevealedCard(
   revealed: RevealedCard,
   placement: CardPlacement,
 ): Round {
-  const hand = requireFound(
-    findHand(round, revealed.playerId),
-    `hand for the player ${revealed.playerId}`,
-  );
+  const hand = force(findHand(round, revealed.playerId));
   return toRound({
     ...round,
     rows: placement.rows,
@@ -313,16 +304,9 @@ function findRowForCard(rows: readonly Row[], card: Card): Row | undefined {
 function findPileOfPlayer(
   piles: readonly PenaltyPile[],
   playerId: PlayerId,
-): PenaltyPile | undefined {
-  return piles.find((pile) => pile.playerId === playerId);
-}
-
-// Layer 2 decides whether a request fits the phase and locates the same data
-// before it makes the action. A value that is missing here is therefore a bug
-// in that handling, not a rejected request.
-function requireFound<T>(value: T | undefined, description: string): T {
-  if (value === undefined) {
-    throw new Error(`The game state holds no ${description}`);
-  }
-  return value;
+): Lookup<PenaltyPile> {
+  return lookup(
+    piles.find((pile) => pile.playerId === playerId),
+    `The game state holds no penalty pile for the player ${playerId}`,
+  );
 }

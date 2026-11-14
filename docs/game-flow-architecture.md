@@ -45,8 +45,22 @@ The store therefore holds their history next to the state.
 
 Layer 2 already decided that an action fits the phase.
 A reducer therefore does not check the phase.
-Layer 2 also found the data of the action.
-An operation of a data type therefore throws when it cannot find that data.
+
+## Parse, don't validate
+
+Layer 2 searches the state for the data that a request names.
+A search gives the value or the failure of its miss.
+See docs/data-type-design.md.
+The failure is the rejection of the request, and the handling returns it as it is.
+
+A found value then travels in the action.
+The pick card action carries the card itself, not the ID that the request held.
+The reducer therefore repeats no search, and no code decides twice whether the data exists.
+A second search could only confirm the first, because the reducer of a rejected request never runs.
+
+Layer 3 still searches for data that no request names, for example the hand that a revealed card leaves.
+Such a search passes through `force`, which throws the message of a miss.
+A miss there is a bug in this code, not a rejected request.
 
 ## Game state version
 

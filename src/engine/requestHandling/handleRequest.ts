@@ -22,10 +22,10 @@ export function handleRequest(
     case GamePhase.CardPick:
       return handleCardPickPhase(state, request);
     case GamePhase.RowPick:
-      return handleRowPickPhase();
+      return handleRowPickPhase(request);
     case GamePhase.EndOfRound:
-      return handleEndOfRoundPhase();
+      return handleEndOfRoundPhase(request);
     case GamePhase.GameOver:
-      return handleGameOverPhase();
+      return handleGameOverPhase(request);
   }
 }

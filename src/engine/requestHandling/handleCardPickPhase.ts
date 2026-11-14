@@ -1,7 +1,11 @@
 import type { RoundGameState } from '#engine/dataTypes/gameState.ts';
 import { findCardInHand } from '#engine/dataTypes/hand.ts';
 import { findPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
-import { findHand, findPickedCardId } from '#engine/dataTypes/round.ts';
+import {
+  findHand,
+  findPick,
+  findPickedCardId,
+} from '#engine/dataTypes/round.ts';
 import {
   type GameAction,
   pickCard,
@@ -21,30 +25,31 @@ export function handleCardPickPhase(
     request.type !== RequestType.UnpickCard
   ) {
     return {
-      error:
-        'The card pick phase accepts only the pick card and unpick card requests',
+      error: `The card pick phase rejects the ${request.type} request: it accepts only the pick card and unpick card requests`,
     };
   }
   const { playerId, cardId } = request;
-  if (!findPlayer(state.players, playerId)) {
-    return { error: `The game holds no player with the ID ${playerId}` };
+  const player = findPlayer(state.players, playerId);
+  if (!player.exists) {
+    return player.failure;
   }
   const round = state.round;
   if (request.type === RequestType.UnpickCard) {
-    if (findPickedCardId(round, playerId) !== cardId) {
-      return {
-        error: `The player ${playerId} has not picked the card ${cardId}`,
-      };
+    const pick = findPick(round, playerId, cardId);
+    if (!pick.exists) {
+      return pick.failure;
     }
-    return { actions: [unpickCard({ playerId, cardId })] };
+    return { actions: [unpickCard({ playerId })] };
   }
   const hand = findHand(round, playerId);
-  if (!hand || !findCardInHand(hand, cardId)) {
-    return {
-      error: `The hand of the player ${playerId} does not hold the card ${cardId}`,
-    };
+  if (!hand.exists) {
+    return hand.failure;
   }
-  const actions: GameAction[] = [pickCard({ playerId, cardId })];
+  const card = findCardInHand(hand.value, cardId);
+  if (!card.exists) {
+    return card.failure;
+  }
+  const actions: GameAction[] = [pickCard({ playerId, card: card.value })];
   if (wouldPickTheLastCard(state, playerId)) {
     actions.push(revealPickedCards());
   }

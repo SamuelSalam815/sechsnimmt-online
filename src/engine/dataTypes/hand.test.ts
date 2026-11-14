@@ -13,13 +13,19 @@ const other = cardOf(2);
 
 describe('findCardInHand', () => {
   test('gives the card of the ID', () => {
-    expect(findCardInHand(createHand('a', [ace, other]), other.id)).toEqual(
-      other,
-    );
+    expect(findCardInHand(createHand('a', [ace, other]), other.id)).toEqual({
+      exists: true,
+      value: other,
+    });
   });
 
-  test('gives nothing for a card that the hand does not hold', () => {
-    expect(findCardInHand(createHand('a', [ace]), other.id)).toBeUndefined();
+  test('names the miss for a card that the hand does not hold', () => {
+    expect(findCardInHand(createHand('a', [ace]), other.id)).toEqual({
+      exists: false,
+      failure: {
+        error: `The hand of the player a does not hold the card ${other.id}`,
+      },
+    });
   });
 });
 

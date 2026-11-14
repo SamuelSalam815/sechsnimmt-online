@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { CardId } from '#engine/dataTypes/card.ts';
+import type { Card, CardId } from '#engine/dataTypes/card.ts';
 import {
   createGameState,
   createInitialGameState,
@@ -48,7 +48,8 @@ describe('pre-start phase handling', () => {
       cardId: 0,
     };
     expect(handleRequest(preStart, pickCardRequest)).toEqual({
-      error: 'The pre-start phase accepts only the start game request',
+      error:
+        'The pre-start phase rejects the pickCard request: it accepts only the start game request',
     });
   });
 });
@@ -59,14 +60,14 @@ describe('card pick phase handling', () => {
   const aceOfBen = cardOf(3);
   const version = INITIAL_GAME_STATE_VERSION;
 
-  function cardPick(picks: [PlayerId, CardId][] = []): GameState {
+  function cardPick(picks: [PlayerId, Card][] = []): GameState {
     const hands = [
       createHand('a', [aceOfAda, otherOfAda]),
       createHand('b', [aceOfBen]),
     ];
     let round = createRound([], hands);
-    for (const [playerId, cardId] of picks) {
-      round = pickCardInRound(round, playerId, cardId);
+    for (const [playerId, card] of picks) {
+      round = pickCardInRound(round, playerId, card);
     }
     return createGameState(GamePhase.CardPick, version, players, round);
   }
@@ -92,7 +93,7 @@ describe('card pick phase handling', () => {
   test('returns an error for the start game request', () => {
     expect(handleRequest(cardPick(), startGameRequest)).toEqual({
       error:
-        'The card pick phase accepts only the pick card and unpick card requests',
+        'The card pick phase rejects the startGame request: it accepts only the pick card and unpick card requests',
     });
   });
 
@@ -110,7 +111,7 @@ describe('card pick phase handling', () => {
 
   test('handles the pick card request with the pick card action', () => {
     expect(handleRequest(cardPick(), pickRequest('a', aceOfAda.id))).toEqual({
-      actions: [pickCard({ playerId: 'a', cardId: aceOfAda.id })],
+      actions: [pickCard({ playerId: 'a', card: aceOfAda })],
     });
   });
 
@@ -121,39 +122,39 @@ describe('card pick phase handling', () => {
   });
 
   test('handles the unpick card request with the unpick card action', () => {
-    const state = cardPick([['a', aceOfAda.id]]);
+    const state = cardPick([['a', aceOfAda]]);
     expect(handleRequest(state, unpickRequest('a', aceOfAda.id))).toEqual({
-      actions: [unpickCard({ playerId: 'a', cardId: aceOfAda.id })],
+      actions: [unpickCard({ playerId: 'a' })],
     });
   });
 
   test('returns an error if the card is not picked', () => {
     expect(handleRequest(cardPick(), unpickRequest('a', aceOfAda.id))).toEqual({
-      error: 'The player a has not picked the card 0',
+      error: 'The player a has picked no card, not the card 0',
     });
   });
 
   test('returns an error if another player owns the picked card', () => {
-    const state = cardPick([['b', aceOfBen.id]]);
+    const state = cardPick([['b', aceOfBen]]);
     expect(handleRequest(state, unpickRequest('a', aceOfBen.id))).toEqual({
-      error: 'The player a has not picked the card 2',
+      error: 'The player a has picked no card, not the card 2',
     });
   });
 
   test('reveals the picked cards once every player has picked one', () => {
-    const state = cardPick([['b', aceOfBen.id]]);
+    const state = cardPick([['b', aceOfBen]]);
     expect(handleRequest(state, pickRequest('a', aceOfAda.id))).toEqual({
       actions: [
-        pickCard({ playerId: 'a', cardId: aceOfAda.id }),
+        pickCard({ playerId: 'a', card: aceOfAda }),
         revealPickedCards(),
       ],
     });
   });
 
   test('does not reveal when a pick only replaces the pick of the player', () => {
-    const state = cardPick([['a', aceOfAda.id]]);
+    const state = cardPick([['a', aceOfAda]]);
     expect(handleRequest(state, pickRequest('a', otherOfAda.id))).toEqual({
-      actions: [pickCard({ playerId: 'a', cardId: otherOfAda.id })],
+      actions: [pickCard({ playerId: 'a', card: otherOfAda })],
     });
   });
 });
@@ -177,6 +178,9 @@ describe('handling of the phases that follow the reveal', () => {
   test('returns an error in the end of round phase', () => {
     expect(
       handleRequest(inPhase(GamePhase.EndOfRound), startGameRequest),
-    ).toEqual({ error: 'The end of round phase accepts no request' });
+    ).toEqual({
+      error:
+        'The end of round phase rejects the startGame request: it accepts no request',
+    });
   });
 });
