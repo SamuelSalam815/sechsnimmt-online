@@ -19,6 +19,19 @@
 - Terminology that the code renames belongs in `docs/rule-clarifications.md`,
   not in a comment.
 
+## Git
+
+- Before deleting a branch, push, fetch, and confirm that the remote holds
+  every commit of it, for example with `git branch -r --contains <tip>`. A push
+  command that returned without an error is not proof.
+- A refusal from a non-forcing command is that check doing its work. Sync the
+  remote and run the same command again. Its success is the confirmation.
+- Ask for confirmation before a forcing command, and before any forcing or
+  deleting command that reaches a remote: `git branch -D`, `git push --force`,
+  `git push --force-with-lease`, `git push --delete`. A go-ahead for the task,
+  such as "delete both branches after the merge", covers the safe command only.
+  Name the branch, say what the force overrides and what has no other copy.
+
 ## Formatter
 
 - Accept the changes that the formatter (`npm run format`) makes. Do not revert them.
