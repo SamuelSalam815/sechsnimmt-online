@@ -1,4 +1,5 @@
 import { GamePhase } from '#engine/dataTypes/gameState.ts';
+import type { ErrorMessage } from '#engine/dataTypes/lookup.ts';
 import type { Player } from '#engine/dataTypes/player.ts';
 import { startRound } from '#engine/reducers/gameSlice.ts';
 import { handleRequest } from '#engine/requestHandling/handleRequest.ts';
@@ -6,14 +7,13 @@ import { buildShuffledRound } from '#engine/requestHandling/shuffledRound.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import type { AppThunk } from '#engine/store.ts';
 
-// Connects the layers: handles the request in the current phase, then
-// dispatches the state changes. Returns the error of a rejected request,
-// or true for an accepted request.
-export function advanceGame(request: GameRequest): AppThunk<string | true> {
+export function advanceGame(
+  request: GameRequest,
+): AppThunk<ErrorMessage | true> {
   return (dispatch, getState) => {
     const result = handleRequest(getState().game, request);
     if ('message' in result) {
-      return result.message;
+      return result;
     }
     for (const action of result.actions) {
       dispatch(action);

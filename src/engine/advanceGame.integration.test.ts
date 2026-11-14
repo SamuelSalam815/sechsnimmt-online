@@ -132,9 +132,10 @@ test('a rejected request returns its error and keeps the state', () => {
       cardId: 0,
     }),
   );
-  expect(result).toBe(
-    'The pre-start phase rejects the pickCard request: it accepts only the start game request',
-  );
+  expect(result).toEqual({
+    message:
+      'The pre-start phase rejects the pickCard request: it accepts only the start game request',
+  });
   expect(store.getState().game).toEqual({
     phase: GamePhase.PreStart,
     version: INITIAL_GAME_STATE_VERSION,
