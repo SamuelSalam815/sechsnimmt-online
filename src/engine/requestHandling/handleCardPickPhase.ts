@@ -1,20 +1,20 @@
-import { findCardInHand } from '../dataTypes/hand';
-import type { PlayerId } from '../dataTypes/player';
-import { findHand, hasPlayer } from '../dataTypes/round';
+import { findCardInHand } from '#engine/dataTypes/hand.ts';
+import type { PlayerId } from '#engine/dataTypes/player.ts';
+import { findHand, hasPlayer } from '#engine/dataTypes/round.ts';
 import {
   findPickedCard,
   findPickedCardOfPlayer,
   type RoundState,
-} from '../dataTypes/roundState';
+} from '#engine/dataTypes/roundState.ts';
 import {
   type GameAction,
   pickCard,
   revealPickedCards,
   unpickCard,
-} from '../reducers/gameSlice';
-import type { GameRequest } from '../requests/gameRequest';
-import { RequestType } from '../requests/requestType';
-import type { PhaseHandlingResult } from './phaseHandlingResult';
+} from '#engine/reducers/gameSlice.ts';
+import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
+import type { GameRequest } from '#engine/requests/gameRequest.ts';
+import { RequestType } from '#engine/requests/requestType.ts';
 
 export function handleCardPickPhase(
   state: RoundState,

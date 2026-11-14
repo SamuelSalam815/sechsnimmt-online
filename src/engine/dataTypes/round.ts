@@ -1,8 +1,16 @@
-import type { Card } from './card';
-import { type Deck, drawCardsFromDeck as drawCards } from './deck';
-import { createHand, type Hand, isHandEmpty } from './hand';
-import type { Player, PlayerId } from './player';
-import { addCardToRow, createRow, getLastCardOfRow, type Row } from './row';
+import type { Card } from '#engine/dataTypes/card.ts';
+import {
+  type Deck,
+  drawCardsFromDeck as drawCards,
+} from '#engine/dataTypes/deck.ts';
+import { createHand, type Hand, isHandEmpty } from '#engine/dataTypes/hand.ts';
+import type { Player, PlayerId } from '#engine/dataTypes/player.ts';
+import {
+  addCardToRow,
+  createRow,
+  getLastCardOfRow,
+  type Row,
+} from '#engine/dataTypes/row.ts';
 
 const ROW_COUNT = 4;
 const HAND_SIZE = 10;

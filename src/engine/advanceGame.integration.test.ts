@@ -1,21 +1,21 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { assert, expect, test } from 'vitest';
-import { advanceGame } from './advanceGame';
+import { advanceGame } from '#engine/advanceGame.ts';
 import {
   createGameState,
   GamePhase,
   INITIAL_GAME_STATE_VERSION,
-} from './dataTypes/gameState';
-import { createHand } from './dataTypes/hand';
+} from '#engine/dataTypes/gameState.ts';
+import { createHand } from '#engine/dataTypes/hand.ts';
 import {
   addCardsToPenaltyPile,
   createPenaltyPile,
-} from './dataTypes/penaltyPile';
-import { createRound } from './dataTypes/round';
-import { createRoundState } from './dataTypes/roundState';
-import { RequestType } from './requests/requestType';
-import { rootReducer } from './store';
-import { cardOf, rowOf } from './testSupport/cards';
+} from '#engine/dataTypes/penaltyPile.ts';
+import { createRound } from '#engine/dataTypes/round.ts';
+import { createRoundState } from '#engine/dataTypes/roundState.ts';
+import { RequestType } from '#engine/requests/requestType.ts';
+import { rootReducer } from '#engine/store.ts';
+import { cardOf, rowOf } from '#testSupport/cards.ts';
 
 test('the start game request moves the store to the card pick phase', () => {
   const store = configureStore({ reducer: rootReducer });

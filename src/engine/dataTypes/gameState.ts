@@ -1,4 +1,4 @@
-import type { RoundState } from './roundState';
+import type { RoundState } from '#engine/dataTypes/roundState.ts';
 
 export enum GamePhase {
   PreStart = 'preStart',

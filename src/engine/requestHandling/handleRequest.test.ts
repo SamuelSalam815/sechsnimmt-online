@@ -1,23 +1,33 @@
 import { describe, expect, test } from 'vitest';
-import type { CardId } from '../dataTypes/card';
+import type { CardId } from '#engine/dataTypes/card.ts';
 import {
   createGameState,
   createInitialGameState,
   GamePhase,
   type GameState,
   INITIAL_GAME_STATE_VERSION,
-} from '../dataTypes/gameState';
-import { createHand } from '../dataTypes/hand';
-import { createPickedCard, type PickedCard } from '../dataTypes/pickedCard';
-import type { PlayerId } from '../dataTypes/player';
-import { createRound } from '../dataTypes/round';
-import { createRoundState, pickCardInRound } from '../dataTypes/roundState';
-import { pickCard, revealPickedCards, unpickCard } from '../reducers/gameSlice';
-import type { GameRequest } from '../requests/gameRequest';
-import { RequestType } from '../requests/requestType';
-import type { StartGameRequest } from '../requests/startGameRequest';
-import { cardOf } from '../testSupport/cards';
-import { handleRequest } from './handleRequest';
+} from '#engine/dataTypes/gameState.ts';
+import { createHand } from '#engine/dataTypes/hand.ts';
+import {
+  createPickedCard,
+  type PickedCard,
+} from '#engine/dataTypes/pickedCard.ts';
+import type { PlayerId } from '#engine/dataTypes/player.ts';
+import { createRound } from '#engine/dataTypes/round.ts';
+import {
+  createRoundState,
+  pickCardInRound,
+} from '#engine/dataTypes/roundState.ts';
+import {
+  pickCard,
+  revealPickedCards,
+  unpickCard,
+} from '#engine/reducers/gameSlice.ts';
+import { handleRequest } from '#engine/requestHandling/handleRequest.ts';
+import type { GameRequest } from '#engine/requests/gameRequest.ts';
+import { RequestType } from '#engine/requests/requestType.ts';
+import type { StartGameRequest } from '#engine/requests/startGameRequest.ts';
+import { cardOf } from '#testSupport/cards.ts';
 
 const startGameRequest: StartGameRequest = {
   type: RequestType.StartGame,

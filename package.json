@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "imports": {
+    "#engine/*": "./src/engine/*",
+    "#client/*": "./src/client/*",
+    "#testSupport/*": "./src/engine/testSupport/*"
+  },
   "scripts": {
     "dev": "vite",
     "build": "npm run lint && tsc && vite build",

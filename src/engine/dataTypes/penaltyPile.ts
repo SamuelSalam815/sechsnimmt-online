@@ -1,5 +1,5 @@
-import { type Card, getPenalty } from './card';
-import type { PlayerId } from './player';
+import { type Card, getPenalty } from '#engine/dataTypes/card.ts';
+import type { PlayerId } from '#engine/dataTypes/player.ts';
 
 // The game ends when the penalty total of a player reaches this limit. See
 // "End of the game" in docs/game-rules.md.

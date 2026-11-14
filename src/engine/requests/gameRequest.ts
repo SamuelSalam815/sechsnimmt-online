@@ -1,6 +1,6 @@
-import type { PickCardRequest } from './pickCardRequest';
-import type { StartGameRequest } from './startGameRequest';
-import type { UnpickCardRequest } from './unpickCardRequest';
+import type { PickCardRequest } from '#engine/requests/pickCardRequest.ts';
+import type { StartGameRequest } from '#engine/requests/startGameRequest.ts';
+import type { UnpickCardRequest } from '#engine/requests/unpickCardRequest.ts';
 
 export type GameRequest =
   | StartGameRequest

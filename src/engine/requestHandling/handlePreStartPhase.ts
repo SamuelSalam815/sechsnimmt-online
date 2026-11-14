@@ -1,10 +1,10 @@
-import type { Player } from '../dataTypes/player';
-import { startGame } from '../reducers/gameSlice';
-import type { GameRequest } from '../requests/gameRequest';
-import { RequestType } from '../requests/requestType';
-import type { AppThunk } from '../store';
-import type { PhaseHandlingResult } from './phaseHandlingResult';
-import { buildShuffledRound } from './shuffledRound';
+import type { Player } from '#engine/dataTypes/player.ts';
+import { startGame } from '#engine/reducers/gameSlice.ts';
+import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
+import { buildShuffledRound } from '#engine/requestHandling/shuffledRound.ts';
+import type { GameRequest } from '#engine/requests/gameRequest.ts';
+import { RequestType } from '#engine/requests/requestType.ts';
+import type { AppThunk } from '#engine/store.ts';
 
 export function handlePreStartPhase(request: GameRequest): PhaseHandlingResult {
   if (request.type === RequestType.StartGame) {

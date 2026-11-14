@@ -3,13 +3,13 @@ import {
   type ThunkAction,
   type UnknownAction,
 } from '@reduxjs/toolkit';
-import type { GameState } from './dataTypes/gameState';
-import { gameSlice } from './reducers/gameSlice';
+import type { GameState } from '#engine/dataTypes/gameState.ts';
+import { gameSlice } from '#engine/reducers/gameSlice.ts';
 import {
   type AppliedAction,
   appendToHistory,
   INITIAL_HISTORY,
-} from './reducers/history';
+} from '#engine/reducers/history.ts';
 
 export interface RootState {
   game: GameState;

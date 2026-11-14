@@ -1,7 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import type { GameStateVersion } from '../dataTypes/gameState';
-import { pickCard } from './gameSlice';
-import { type AppliedAction, appendToHistory } from './history';
+import type { GameStateVersion } from '#engine/dataTypes/gameState.ts';
+import { pickCard } from '#engine/reducers/gameSlice.ts';
+import {
+  type AppliedAction,
+  appendToHistory,
+} from '#engine/reducers/history.ts';
 
 const version: GameStateVersion = { sequence: 1, major: false };
 const action = pickCard({ playerId: 'a', cardId: 0 });

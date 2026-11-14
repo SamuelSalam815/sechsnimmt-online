@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'vitest';
-import { cardOf } from '../testSupport/cards';
 import {
   addCardToHand,
   createHand,
   findCardInHand,
   isHandEmpty,
   removeCardFromHand,
-} from './hand';
+} from '#engine/dataTypes/hand.ts';
+import { cardOf } from '#testSupport/cards.ts';
 
 const ace = cardOf(1);
 const other = cardOf(2);

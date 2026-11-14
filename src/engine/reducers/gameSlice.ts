@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { CardId } from '../dataTypes/card';
+import type { CardId } from '#engine/dataTypes/card.ts';
 import {
   assertRoundInProgress,
   createGameState,
@@ -7,15 +7,15 @@ import {
   GamePhase,
   type GameState,
   type GameStateVersion,
-} from '../dataTypes/gameState';
-import type { PlayerId } from '../dataTypes/player';
-import type { Round } from '../dataTypes/round';
+} from '#engine/dataTypes/gameState.ts';
+import type { PlayerId } from '#engine/dataTypes/player.ts';
+import type { Round } from '#engine/dataTypes/round.ts';
 import {
   createRoundState,
   pickCardInRound,
   resolveReveal,
   unpickCardInRound,
-} from '../dataTypes/roundState';
+} from '#engine/dataTypes/roundState.ts';
 
 export interface StartGamePayload {
   round: Round;

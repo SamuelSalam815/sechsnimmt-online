@@ -1,11 +1,11 @@
-import { GamePhase, type GameState } from '../dataTypes/gameState';
-import type { GameRequest } from '../requests/gameRequest';
-import { handleCardPickPhase } from './handleCardPickPhase';
-import { handleEndOfRoundPhase } from './handleEndOfRoundPhase';
-import { handleGameOverPhase } from './handleGameOverPhase';
-import { handlePreStartPhase } from './handlePreStartPhase';
-import { handleRowPickPhase } from './handleRowPickPhase';
-import type { PhaseHandlingResult } from './phaseHandlingResult';
+import { GamePhase, type GameState } from '#engine/dataTypes/gameState.ts';
+import { handleCardPickPhase } from '#engine/requestHandling/handleCardPickPhase.ts';
+import { handleEndOfRoundPhase } from '#engine/requestHandling/handleEndOfRoundPhase.ts';
+import { handleGameOverPhase } from '#engine/requestHandling/handleGameOverPhase.ts';
+import { handlePreStartPhase } from '#engine/requestHandling/handlePreStartPhase.ts';
+import { handleRowPickPhase } from '#engine/requestHandling/handleRowPickPhase.ts';
+import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
+import type { GameRequest } from '#engine/requests/gameRequest.ts';
 
 // The set of valid requests changes with the game state. Each phase therefore
 // has its own handling, which names the request types that it accepts.

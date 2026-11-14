@@ -1,15 +1,14 @@
 import { describe, expect, test } from 'vitest';
-import { cardOf, rowOf } from '../testSupport/cards';
-import { GamePhase } from './gameState';
-import { createHand, type Hand } from './hand';
+import { GamePhase } from '#engine/dataTypes/gameState.ts';
+import { createHand, type Hand } from '#engine/dataTypes/hand.ts';
 import {
   addCardsToPenaltyPile,
   createPenaltyPile,
   type PenaltyPile,
-} from './penaltyPile';
-import { createPickedCard } from './pickedCard';
-import type { Player, PlayerId } from './player';
-import { createRound, findHand } from './round';
+} from '#engine/dataTypes/penaltyPile.ts';
+import { createPickedCard } from '#engine/dataTypes/pickedCard.ts';
+import type { Player, PlayerId } from '#engine/dataTypes/player.ts';
+import { createRound, findHand } from '#engine/dataTypes/round.ts';
 import {
   createRoundState,
   findPenaltyPile,
@@ -19,7 +18,8 @@ import {
   type RoundState,
   resolveReveal,
   unpickCardInRound,
-} from './roundState';
+} from '#engine/dataTypes/roundState.ts';
+import { cardOf, rowOf } from '#testSupport/cards.ts';
 
 const ada: Player = { id: 'a', name: 'Ada' };
 const ben: Player = { id: 'b', name: 'Ben' };

@@ -1,5 +1,5 @@
-import type { Card } from './card';
-import type { PlayerId } from './player';
+import type { Card } from '#engine/dataTypes/card.ts';
+import type { PlayerId } from '#engine/dataTypes/player.ts';
 
 declare const pickedCardBrand: unique symbol;
 

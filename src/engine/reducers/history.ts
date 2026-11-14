@@ -1,6 +1,6 @@
 import type { UnknownAction } from '@reduxjs/toolkit';
-import type { GameStateVersion } from '../dataTypes/gameState';
-import { type GameAction, gameSlice } from './gameSlice';
+import type { GameStateVersion } from '#engine/dataTypes/gameState.ts';
+import { type GameAction, gameSlice } from '#engine/reducers/gameSlice.ts';
 
 // An applied action with the version that it acted on, which is the version
 // that the game state held before the reducer applied the action. An action

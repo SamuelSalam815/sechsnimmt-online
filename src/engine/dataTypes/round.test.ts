@@ -1,9 +1,8 @@
 import { describe, expect, test } from 'vitest';
-import { cardOf, rowOf } from '../testSupport/cards';
-import { createCards, getDeckFaceValues } from './card';
-import { createDeck } from './deck';
-import { createHand } from './hand';
-import type { Player } from './player';
+import { createCards, getDeckFaceValues } from '#engine/dataTypes/card.ts';
+import { createDeck } from '#engine/dataTypes/deck.ts';
+import { createHand } from '#engine/dataTypes/hand.ts';
+import type { Player } from '#engine/dataTypes/player.ts';
 import {
   buildRound,
   createRound,
@@ -12,7 +11,8 @@ import {
   hasPlayer,
   placeCard,
   replaceHand,
-} from './round';
+} from '#engine/dataTypes/round.ts';
+import { cardOf, rowOf } from '#testSupport/cards.ts';
 
 const ada: Player = { id: 'a', name: 'Ada' };
 const bob: Player = { id: 'b', name: 'Bob' };

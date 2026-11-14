@@ -1,4 +1,4 @@
-import type { Card } from './card';
+import type { Card } from '#engine/dataTypes/card.ts';
 
 const ROW_CAPACITY = 5;
 

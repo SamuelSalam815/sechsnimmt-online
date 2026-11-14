@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import { cardOf } from '../testSupport/cards';
 import {
   addCardsToPenaltyPile,
   createPenaltyPile,
   getPenaltyTotal,
-} from './penaltyPile';
+} from '#engine/dataTypes/penaltyPile.ts';
+import { cardOf } from '#testSupport/cards.ts';
 
 describe('createPenaltyPile', () => {
   test('starts the pile of a player without cards', () => {

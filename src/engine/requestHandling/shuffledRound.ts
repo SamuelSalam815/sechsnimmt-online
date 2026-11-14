@@ -1,7 +1,7 @@
-import { createCards, getDeckFaceValues } from '../dataTypes/card';
-import { createDeck } from '../dataTypes/deck';
-import type { Player } from '../dataTypes/player';
-import { buildRound, type Round } from '../dataTypes/round';
+import { createCards, getDeckFaceValues } from '#engine/dataTypes/card.ts';
+import { createDeck } from '#engine/dataTypes/deck.ts';
+import type { Player } from '#engine/dataTypes/player.ts';
+import { buildRound, type Round } from '#engine/dataTypes/round.ts';
 
 // Impure, because the shuffle uses random numbers. Call it from a thunk only.
 // See docs/testing-strategy.md.

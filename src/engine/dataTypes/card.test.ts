@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import { cardOf } from '../testSupport/cards';
-import { createCards, getDeckFaceValues, getPenalty } from './card';
+import {
+  createCards,
+  getDeckFaceValues,
+  getPenalty,
+} from '#engine/dataTypes/card.ts';
+import { cardOf } from '#testSupport/cards.ts';
 
 describe('getDeckFaceValues', () => {
   test('gives the face values 1 to 104 in ascending order', () => {

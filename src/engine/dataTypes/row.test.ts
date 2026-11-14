@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import { cardOf, rowOf } from '../testSupport/cards';
-import { addCardToRow, createRow, getLastCardOfRow } from './row';
+import {
+  addCardToRow,
+  createRow,
+  getLastCardOfRow,
+} from '#engine/dataTypes/row.ts';
+import { cardOf, rowOf } from '#testSupport/cards.ts';
 
 describe('createRow and getLastCardOfRow', () => {
   test('start a row with one card, which is its last card', () => {

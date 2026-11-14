@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { cardOf } from '../testSupport/cards';
-import { createDeck, drawCardsFromDeck } from './deck';
+import { createDeck, drawCardsFromDeck } from '#engine/dataTypes/deck.ts';
+import { cardOf } from '#testSupport/cards.ts';
 
 describe('drawCardsFromDeck', () => {
   const deck = createDeck([1, 2, 3].map(cardOf));

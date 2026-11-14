@@ -1,4 +1,4 @@
-import type { PhaseHandlingResult } from './phaseHandlingResult';
+import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
 
 // advanceGame leaves this phase in the same call that reached it, so no
 // request can find the game here.

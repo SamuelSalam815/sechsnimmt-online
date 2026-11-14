@@ -1,21 +1,28 @@
-import type { CardId } from './card';
-import { GamePhase, type RoundPhase } from './gameState';
-import { addCardToHand, findCardInHand, removeCardFromHand } from './hand';
+import type { CardId } from '#engine/dataTypes/card.ts';
+import { GamePhase, type RoundPhase } from '#engine/dataTypes/gameState.ts';
+import {
+  addCardToHand,
+  findCardInHand,
+  removeCardFromHand,
+} from '#engine/dataTypes/hand.ts';
 import {
   addCardsToPenaltyPile,
   createPenaltyPile,
   hasReachedPenaltyLimit,
   type PenaltyPile,
-} from './penaltyPile';
-import { createPickedCard, type PickedCard } from './pickedCard';
-import type { PlayerId } from './player';
+} from '#engine/dataTypes/penaltyPile.ts';
+import {
+  createPickedCard,
+  type PickedCard,
+} from '#engine/dataTypes/pickedCard.ts';
+import type { PlayerId } from '#engine/dataTypes/player.ts';
 import {
   everyHandIsEmpty,
   findHand,
   placeCard,
   type Round,
   replaceHand,
-} from './round';
+} from '#engine/dataTypes/round.ts';
 
 declare const roundStateBrand: unique symbol;
 

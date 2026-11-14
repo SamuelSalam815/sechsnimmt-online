@@ -5,20 +5,19 @@ import {
   GamePhase,
   type GameState,
   INITIAL_GAME_STATE_VERSION,
-} from '../dataTypes/gameState';
-import { createHand } from '../dataTypes/hand';
+} from '#engine/dataTypes/gameState.ts';
+import { createHand } from '#engine/dataTypes/hand.ts';
 import {
   addCardsToPenaltyPile,
   createPenaltyPile,
-} from '../dataTypes/penaltyPile';
-import { createPickedCard } from '../dataTypes/pickedCard';
-import { createRound } from '../dataTypes/round';
+} from '#engine/dataTypes/penaltyPile.ts';
+import { createPickedCard } from '#engine/dataTypes/pickedCard.ts';
+import { createRound } from '#engine/dataTypes/round.ts';
 import {
   createRoundState,
   findPickedCardOfPlayer,
   type RoundState,
-} from '../dataTypes/roundState';
-import { cardOf, rowOf } from '../testSupport/cards';
+} from '#engine/dataTypes/roundState.ts';
 import {
   gameSlice,
   pickCard,
@@ -26,7 +25,8 @@ import {
   startGame,
   startRound,
   unpickCard,
-} from './gameSlice';
+} from '#engine/reducers/gameSlice.ts';
+import { cardOf, rowOf } from '#testSupport/cards.ts';
 
 const players = [
   { id: 'a', name: 'Ada' },

@@ -1,10 +1,10 @@
-import { GamePhase } from './dataTypes/gameState';
-import type { Player } from './dataTypes/player';
-import { startRound } from './reducers/gameSlice';
-import { handleRequest } from './requestHandling/handleRequest';
-import { buildShuffledRound } from './requestHandling/shuffledRound';
-import type { GameRequest } from './requests/gameRequest';
-import type { AppThunk } from './store';
+import { GamePhase } from '#engine/dataTypes/gameState.ts';
+import type { Player } from '#engine/dataTypes/player.ts';
+import { startRound } from '#engine/reducers/gameSlice.ts';
+import { handleRequest } from '#engine/requestHandling/handleRequest.ts';
+import { buildShuffledRound } from '#engine/requestHandling/shuffledRound.ts';
+import type { GameRequest } from '#engine/requests/gameRequest.ts';
+import type { AppThunk } from '#engine/store.ts';
 
 // Connects the layers: handles the request in the current phase, then
 // dispatches the state changes. Returns the error of a rejected request,
