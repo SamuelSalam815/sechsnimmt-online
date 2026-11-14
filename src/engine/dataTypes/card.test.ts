@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { cardOf } from '../testSupport/cards';
-import { createDeck, getDeckFaceValues, getPenalty } from './card';
+import { createCards, getDeckFaceValues, getPenalty } from './card';
 
 describe('getDeckFaceValues', () => {
   test('gives the face values 1 to 104 in ascending order', () => {
@@ -9,21 +9,21 @@ describe('getDeckFaceValues', () => {
   });
 });
 
-describe('createDeck', () => {
+describe('createCards', () => {
   test('gives the cards in the order of the face values', () => {
-    const cards = createDeck([42, 7, 104]);
+    const cards = createCards([42, 7, 104]);
     expect(cards.map((card) => card.faceValue)).toEqual([42, 7, 104]);
   });
 
   test('gives each card its position as its ID', () => {
-    const cards = createDeck([42, 7, 104]);
+    const cards = createCards([42, 7, 104]);
     expect(cards.map((card) => card.id)).toEqual([0, 1, 2]);
   });
 
   test.each([0, -5, 105, 110, 1.5, Number.NaN])(
     'throws for %d, which is not a card in the deck',
     (faceValue) => {
-      expect(() => createDeck([faceValue])).toThrow();
+      expect(() => createCards([faceValue])).toThrow();
     },
   );
 });
@@ -72,7 +72,7 @@ describe('getPenalty', () => {
 
   // The printed deck of 104 cards shows 171 bullheads in total.
   test('gives 171 for the full deck of cards 1 to 104', () => {
-    const total = createDeck(getDeckFaceValues()).reduce(
+    const total = createCards(getDeckFaceValues()).reduce(
       (sum, card) => sum + getPenalty(card),
       0,
     );

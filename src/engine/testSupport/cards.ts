@@ -1,10 +1,10 @@
 // Test support. It builds cards and rows through their constructors, so a test
 // needs no cast to hold one.
-import { type Card, createDeck, getDeckFaceValues } from '../dataTypes/card';
+import { type Card, createCards, getDeckFaceValues } from '../dataTypes/card';
 import { addCardToRow, createRow, type Row } from '../dataTypes/row';
 
 const standardDeck = new Map(
-  createDeck(getDeckFaceValues()).map((card) => [card.faceValue, card]),
+  createCards(getDeckFaceValues()).map((card) => [card.faceValue, card]),
 );
 
 // The ID of the card is its face value minus one, because the deck is not

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { cardOf, rowOf } from '../testSupport/cards';
-import { createDeck, getDeckFaceValues } from './card';
+import { createCards, getDeckFaceValues } from './card';
 import { createHand } from './hand';
 import type { Player } from './player';
 import {
@@ -17,7 +17,7 @@ const ada: Player = { id: 'a', name: 'Ada' };
 const bob: Player = { id: 'b', name: 'Bob' };
 
 describe('buildRound', () => {
-  const cards = createDeck(getDeckFaceValues());
+  const cards = createCards(getDeckFaceValues());
   const round = buildRound([ada, bob], cards);
 
   test('keeps the players', () => {
