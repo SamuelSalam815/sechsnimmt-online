@@ -6,8 +6,11 @@ import {
   createInitialGameState,
   GamePhase,
   type GameState,
-  type GameStateVersion,
 } from '#engine/dataTypes/gameState.ts';
+import {
+  majorVersionBump,
+  minorVersionBump,
+} from '#engine/dataTypes/gameStateVersion.ts';
 import {
   addPenaltiesToPlayers,
   type Player,
@@ -53,7 +56,7 @@ export const gameSlice = createSlice({
         GamePhase.CardPick,
         // The start of the game is a major change: a request that saw an
         // earlier version worked off a game that holds no cards.
-        majorVersionBump(state),
+        majorVersionBump(state.version),
         action.payload.players,
         action.payload.round,
       ),
@@ -63,7 +66,7 @@ export const gameSlice = createSlice({
       const { playerId, card } = action.payload;
       return createGameState(
         state.phase,
-        minorVersionBump(state),
+        minorVersionBump(state.version),
         state.players,
         pickCardInRound(state.round, playerId, card),
       );
@@ -76,7 +79,7 @@ export const gameSlice = createSlice({
       assertRoundInProgress(state);
       return createGameState(
         state.phase,
-        minorVersionBump(state),
+        minorVersionBump(state.version),
         state.players,
         unpickCardInRound(state.round, action.payload.playerId),
       );
@@ -93,7 +96,7 @@ export const gameSlice = createSlice({
         phase,
         // The reveal is a major change: a request that saw an earlier version
         // chose its card without knowing the revealed cards.
-        majorVersionBump(state),
+        majorVersionBump(state.version),
         addPenaltiesToPlayers(state.players, accruals),
         round,
       );
@@ -109,21 +112,13 @@ export const gameSlice = createSlice({
         GamePhase.CardPick,
         // A new round is a major change: a request that saw an earlier version
         // worked off cards that are no longer in the game.
-        majorVersionBump(state),
+        majorVersionBump(state.version),
         state.players,
         action.payload.round,
       );
     },
   },
 });
-
-function minorVersionBump(state: GameState): GameStateVersion {
-  return { sequence: state.version.sequence + 1, major: false };
-}
-
-function majorVersionBump(state: GameState): GameStateVersion {
-  return { sequence: state.version.sequence + 1, major: true };
-}
 
 export const {
   startGame,

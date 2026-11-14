@@ -1,13 +1,14 @@
 import type { UnknownAction } from '@reduxjs/toolkit';
-import type { GameStateVersion } from '#engine/dataTypes/gameState.ts';
+import type { GameStateVersion } from '#engine/dataTypes/gameStateVersion.ts';
 import { type GameAction, gameSlice } from '#engine/reducers/gameSlice.ts';
 
-// An applied action with the version that it acted on, which is the version
-// that the game state held before the reducer applied the action. An action
+// An applied action with the old version of the game state, which the action
+// acted on, and the new version that the reducer produced from it. An action
 // carries no version of its own: one request can make several actions, and the
-// second of them acts on the version that the first produced.
+// new version of the first is the old version of the second.
 export interface AppliedAction {
-  version: GameStateVersion;
+  oldVersion: GameStateVersion;
+  newVersion: GameStateVersion;
   action: GameAction;
 }
 
@@ -16,12 +17,13 @@ export const INITIAL_HISTORY: AppliedAction[] = [];
 export function appendToHistory(
   history: AppliedAction[],
   action: UnknownAction,
-  version: GameStateVersion,
+  oldVersion: GameStateVersion,
+  newVersion: GameStateVersion,
 ): AppliedAction[] {
   if (!isGameAction(action)) {
     return history;
   }
-  return [...history, { version, action }];
+  return [...history, { oldVersion, newVersion, action }];
 }
 
 // An allowlist of the actions that the game slice creates. Everything else that

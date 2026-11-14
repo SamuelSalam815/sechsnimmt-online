@@ -11,7 +11,7 @@ export function advanceGame(
   request: GameRequest,
 ): AppThunk<ErrorMessage | true> {
   return (dispatch, getState) => {
-    const result = handleRequest(getState().game, request);
+    const result = handleRequest(getState().game, getState().history, request);
     if ('message' in result) {
       return result;
     }

@@ -1,11 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { assert, expect, test } from 'vitest';
 import { advanceGame } from '#engine/advanceGame.ts';
-import {
-  createGameState,
-  GamePhase,
-  INITIAL_GAME_STATE_VERSION,
-} from '#engine/dataTypes/gameState.ts';
+import { createGameState, GamePhase } from '#engine/dataTypes/gameState.ts';
+import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
 import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
 import { createPenaltyPile } from '#engine/dataTypes/penaltyPile.ts';
@@ -75,8 +72,18 @@ test('a pick card request for every player places the picked cards', () => {
   expect(game.version).toEqual({ sequence: 4, major: true });
   // Each of the four actions acted on the version that the one before it left.
   expect(
-    store.getState().history.map((applied) => applied.version.sequence),
-  ).toEqual([0, 1, 2, 3]);
+    store
+      .getState()
+      .history.map((applied) => [
+        applied.oldVersion.sequence,
+        applied.newVersion.sequence,
+      ]),
+  ).toEqual([
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 4],
+  ]);
 });
 
 test('the pick of the last card of a round deals the next round', () => {

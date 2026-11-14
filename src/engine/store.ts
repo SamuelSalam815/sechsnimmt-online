@@ -21,9 +21,9 @@ const initialRootState: RootState = {
   history: INITIAL_HISTORY,
 };
 
-// Not combineReducers: the history pairs each action with the version that the
-// game state held before the game reducer applied it, and a reducer beside the
-// game reducer cannot read that version.
+// Not combineReducers: the history pairs each action with the old and the new
+// version of the game state that the game reducer applied it to, and a reducer
+// beside the game reducer cannot read those versions.
 export function rootReducer(
   state: RootState | undefined,
   action: UnknownAction,
@@ -34,6 +34,7 @@ export function rootReducer(
     previous.history,
     action,
     previous.game.version,
+    game.version,
   );
   // An action that changes nothing must leave the state identical, so that a
   // subscriber that compares references sees no change.

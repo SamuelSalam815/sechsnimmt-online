@@ -51,5 +51,15 @@ class Missing {
 }
 
 export function lookup<T>(value: T | undefined, message: string): Lookup<T> {
-  return value === undefined ? new Missing({ message }) : new Found(value);
+  return value === undefined ? missing(message) : found(value);
+}
+
+export function found<T>(value: T): Lookup<T> {
+  return new Found(value);
+}
+
+// For a search that words its message from what it found, which `lookup`
+// cannot: that message exists only once the search has missed.
+export function missing<T>(message: string): Lookup<T> {
+  return new Missing({ message });
 }

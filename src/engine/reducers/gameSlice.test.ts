@@ -4,8 +4,8 @@ import {
   createInitialGameState,
   GamePhase,
   type GameState,
-  INITIAL_GAME_STATE_VERSION,
 } from '#engine/dataTypes/gameState.ts';
+import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
 import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
 import { addPenaltyToPlayer, createPlayer } from '#engine/dataTypes/player.ts';

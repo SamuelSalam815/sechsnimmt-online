@@ -77,10 +77,10 @@ The split into major and minor follows the progression rules of layer 3.
 Layer 3 therefore owns the version changes.
 It is the one source of truth for the next version.
 Either layer could own them, so this is a decision, not a necessity.
-No code resolves the requests yet.
+`handleRequest` resolves a request before it reaches the handling of the phase.
 
 An action therefore carries no version.
-Each entry of the history pairs an action with the version that it acted on.
+Each entry of the history pairs an action with the old and the new version of the game state.
 One request can make several actions, for example a pick that reveals the picked cards.
 The second action then acts on the version that the first produced.
 
