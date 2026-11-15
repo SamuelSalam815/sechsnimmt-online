@@ -31,13 +31,13 @@ export function handleCardPickPhase(
   }
   const { playerId, cardId } = request;
   const round = state.round;
-  const player = findPlayer(state.players, playerId);
+  const checkPlayerExists = findPlayer(state.players, playerId);
   if (request.type === RequestType.UnpickCard) {
-    return player
+    return checkPlayerExists
       .andThen(() => findPick(round, playerId, cardId))
       .use(() => ({ actions: [unpickCard({ playerId })] }));
   }
-  return player
+  return checkPlayerExists
     .andThen(() => findHand(round, playerId))
     .andThen((hand) => findCardInHand(hand, cardId))
     .use((card) => ({ actions: pickActions(state, playerId, card) }));
