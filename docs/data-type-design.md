@@ -85,6 +85,23 @@ Biome bans it with `noThenProperty`, and `andThen` is the name that remains.
 `ok` discriminates the union.
 A caller therefore asks the question before it reads the value or the message, and each half exposes only its own member.
 
+## Naming, work in progress
+
+A name states the type of the thing that it holds.
+A local is `nextRound`, `cardPlacement`, `revealedCard`, not `next`, `placement`, `revealed`.
+`round.ts` follows this rule.
+The rest of the engine does not yet, so the two styles stand side by side until a pass over the other modules closes the gap.
+
+Two questions stay open.
+
+Each module names its brand constructor `toRound`, `toPlayer`, `toRow`.
+`to` names no action, so a name such as `brandAsRound` would say more.
+Seven modules carry the pattern, and a rename has to change all seven at once, so `toX` stands until then.
+
+`createRound` builds a round from rows and hands, and `buildRound` deals one from a deck.
+The two verbs do not say which does which.
+The distinction needs a name for the deal, not a second verb for the same act.
+
 ## Immutable collections
 
 A collection type declares `readonly cards: readonly Card[]`.
