@@ -83,14 +83,12 @@ export function createRound(
 
 // The setup of docs/game-rules.md.
 export function buildRound(players: readonly Player[], deck: Deck): Round {
-  const hands: Hand[] = [];
-  let rest = deck;
-  for (const player of players) {
-    const draw = drawCards(rest, HAND_SIZE);
-    hands.push(createHand(player.id, draw.cards));
-    rest = draw.deck;
-  }
-  const rows = drawCards(rest, ROW_COUNT).cards.map(createRow);
+  const hands = players.map((player) => {
+    const draw = drawCards(deck, HAND_SIZE);
+    deck = draw.newDeck;
+    return createHand(player.id, draw.cards);
+  });
+  const rows = drawCards(deck, ROW_COUNT).cards.map(createRow);
   return createRound(rows, hands);
 }
 

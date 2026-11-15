@@ -8,7 +8,7 @@ export interface Deck {
 }
 
 export interface DeckDraw {
-  readonly deck: Deck;
+  readonly newDeck: Deck;
   readonly cards: readonly Card[];
 }
 
@@ -28,7 +28,7 @@ export function drawCardsFromDeck(deck: Deck, count: number): DeckDraw {
     );
   }
   return {
-    deck: toDeck(deck.cards.slice(count)),
+    newDeck: toDeck(deck.cards.slice(count)),
     cards: deck.cards.slice(0, count),
   };
 }

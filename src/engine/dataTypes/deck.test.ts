@@ -10,7 +10,7 @@ describe('drawCardsFromDeck', () => {
   });
 
   test('leaves a deck of the cards that it did not take', () => {
-    expect(drawCardsFromDeck(deck, 2).deck).toEqual(createDeck([cardOf(3)]));
+    expect(drawCardsFromDeck(deck, 2).newDeck).toEqual(createDeck([cardOf(3)]));
   });
 
   test('leaves the deck it drew from unchanged', () => {
@@ -19,12 +19,12 @@ describe('drawCardsFromDeck', () => {
   });
 
   test('draws no card for a count of 0', () => {
-    expect(drawCardsFromDeck(deck, 0)).toEqual({ deck, cards: [] });
+    expect(drawCardsFromDeck(deck, 0)).toEqual({ newDeck: deck, cards: [] });
   });
 
   test('empties the deck for a draw of every card', () => {
     const draw = drawCardsFromDeck(deck, 3);
-    expect(draw.deck).toEqual(createDeck([]));
+    expect(draw.newDeck).toEqual(createDeck([]));
   });
 
   test('throws for a draw of more cards than the deck holds', () => {
