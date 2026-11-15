@@ -142,9 +142,7 @@ interface RevealedCard {
 }
 
 // Places the picked cards, lowest first, until none remain or the game needs
-// something else first. A player that takes a row takes its cards into the
-// penalty pile and into the penalty score. The outcome holds the phase that
-// the game rests in:
+// something else first. The outcome holds the phase that the game rests in:
 //
 // - Row pick: the lowest card is lower than the last card of every row. The
 //   card stays picked. Only the lowest card can meet this, because each card
@@ -157,80 +155,94 @@ export function resolveReveal(
   round: Round,
   players: readonly Player[],
 ): RevealOutcome {
-  let next = round;
-  let penaltyAccruals: readonly PenaltyAccrual[] = [];
-  for (const revealed of revealedCardsAscending(round)) {
-    const placement = placeCard(next.rows, revealed.card);
-    if (!placement) {
-      return {
-        round: next,
-        penaltyAccruals: penaltyAccruals,
-        phase: GamePhase.RowPick,
-      };
+  let nextRound = round;
+  const penaltyAccruals: PenaltyAccrual[] = [];
+  for (const revealedCard of revealedCardsLowestFirst(round)) {
+    const cardPlacement = placeCardInRows(nextRound.rows, revealedCard.card);
+    if (!cardPlacement) {
+      return { round: nextRound, penaltyAccruals, phase: GamePhase.RowPick };
     }
-    next = placeRevealedCard(next, revealed, placement);
-    if (placement.takenCards.length === 0) {
+    nextRound = placeRevealedCard(nextRound, revealedCard, cardPlacement);
+    const takenCards = cardPlacement.takenCards;
+    if (takenCards.length === 0) {
       continue;
     }
-    const pile = findPileOfPlayer(next.penaltyPiles, revealed.playerId).force();
-    next = toRound({
-      ...next,
-      penaltyPiles: pilesWith(
-        next.penaltyPiles,
-        addCardsToPenaltyPile(pile, placement.takenCards),
-      ),
-    });
-    const accrual = createPenaltyAccrual(
-      revealed.playerId,
-      placement.takenCards,
+    nextRound = takeCardsIntoPenaltyPile(
+      nextRound,
+      revealedCard.playerId,
+      takenCards,
     );
-    penaltyAccruals = [...penaltyAccruals, accrual];
-    // A player holds one picked card, so a reveal places one card for that
-    // player and this accrual is the only one that it gets.
-    const player = findPlayer(players, revealed.playerId).force();
-    if (hasReachedPenaltyLimit(addPenaltyToPlayer(player, accrual))) {
-      return {
-        round: next,
-        penaltyAccruals: penaltyAccruals,
-        phase: GamePhase.GameOver,
-      };
+    const penaltyAccrual = createPenaltyAccrual(
+      revealedCard.playerId,
+      takenCards,
+    );
+    penaltyAccruals.push(penaltyAccrual);
+    if (reachesPenaltyLimit(players, penaltyAccrual)) {
+      return { round: nextRound, penaltyAccruals, phase: GamePhase.GameOver };
     }
   }
   return {
-    round: next,
-    penaltyAccruals: penaltyAccruals,
-    phase: everyHandIsEmpty(next) ? GamePhase.EndOfRound : GamePhase.CardPick,
+    round: nextRound,
+    penaltyAccruals,
+    phase: everyHandIsEmpty(nextRound)
+      ? GamePhase.EndOfRound
+      : GamePhase.CardPick,
   };
 }
 
-function revealedCardsAscending(round: Round): RevealedCard[] {
-  const revealed: RevealedCard[] = [];
+// A player holds one picked card, so a reveal gives that player one accrual.
+// The score with this one accrual therefore decides whether the game ends.
+function reachesPenaltyLimit(
+  players: readonly Player[],
+  accrual: PenaltyAccrual,
+): boolean {
+  const player = findPlayer(players, accrual.playerId).force();
+  return hasReachedPenaltyLimit(addPenaltyToPlayer(player, accrual));
+}
+
+function takeCardsIntoPenaltyPile(
+  round: Round,
+  playerId: PlayerId,
+  cards: readonly Card[],
+): Round {
+  const pile = findPileOfPlayer(round.penaltyPiles, playerId).force();
+  return toRound({
+    ...round,
+    penaltyPiles: pilesWith(
+      round.penaltyPiles,
+      addCardsToPenaltyPile(pile, cards),
+    ),
+  });
+}
+
+function revealedCardsLowestFirst(round: Round): RevealedCard[] {
+  const revealedCards: RevealedCard[] = [];
   for (const hand of round.hands) {
     const cardId = findPickedCardId(round, hand.playerId);
     if (cardId === undefined) {
       continue;
     }
-    revealed.push({
+    revealedCards.push({
       playerId: hand.playerId,
       card: findCardInHand(hand, cardId).force(),
     });
   }
-  return revealed.sort((a, b) => a.card.faceValue - b.card.faceValue);
+  return revealedCards.sort((a, b) => a.card.faceValue - b.card.faceValue);
 }
 
 // The placed card leaves the hand of its owner, and the pick of that player
 // leaves with it.
 function placeRevealedCard(
   round: Round,
-  revealed: RevealedCard,
-  placement: CardPlacement,
+  revealedCard: RevealedCard,
+  cardPlacement: CardPlacement,
 ): Round {
-  const hand = findHand(round, revealed.playerId).force();
+  const hand = findHand(round, revealedCard.playerId).force();
   return toRound({
     ...round,
-    rows: placement.rows,
-    hands: handsWith(round, removeCardFromHand(hand, revealed.card)),
-    picks: picksWithout(round.picks, revealed.playerId),
+    rows: cardPlacement.rows,
+    hands: handsWith(round.hands, removeCardFromHand(hand, revealedCard.card)),
+    picks: picksWithout(round.picks, revealedCard.playerId),
   });
 }
 
@@ -249,8 +261,8 @@ function pilesWith(
   );
 }
 
-function handsWith(round: Round, hand: Hand): readonly Hand[] {
-  return round.hands.map((current) =>
+function handsWith(hands: readonly Hand[], hand: Hand): readonly Hand[] {
+  return hands.map((current) =>
     current.playerId === hand.playerId ? hand : current,
   );
 }
@@ -267,7 +279,7 @@ interface CardPlacement {
 
 // Undefined for rule 4 of docs/game-rules.md: the card is lower than the last
 // card of every row, and the player chooses the row to take.
-function placeCard(
+function placeCardInRows(
   rows: readonly Row[],
   card: Card,
 ): CardPlacement | undefined {
