@@ -13,5 +13,14 @@ export default function App() {
     return () => events.close();
   }, []);
 
-  return <p>{counter ?? 'waiting for the server'}</p>;
+  return (
+    <div
+      style={{
+        maxWidth: 'fit-content',
+        marginInline: 'auto',
+      }}
+    >
+      <p>{counter ?? 'waiting for the server'}</p>
+    </div>
+  );
 }
