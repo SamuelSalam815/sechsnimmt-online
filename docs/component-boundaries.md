@@ -1,7 +1,7 @@
 # Component boundaries
 
 A component is a directory of `src`.
-`src/engine/dataTypes` and `src/client` are components, and so is
+`src/engine/dataTypes`, `src/client` and `src/server` are components, and so is
 `src/engine/testSupport`.
 
 ## An import names the component it reaches into
@@ -12,6 +12,7 @@ A component is a directory of `src`.
 "imports": {
   "#engine/*": "./src/engine/*",
   "#client/*": "./src/client/*",
+  "#server/*": "./src/server/*",
   "#testSupport/*": "./src/engine/testSupport/*"
 }
 ```

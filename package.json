@@ -6,11 +6,16 @@
   "imports": {
     "#engine/*": "./src/engine/*",
     "#client/*": "./src/client/*",
+    "#server/*": "./src/server/*",
     "#testSupport/*": "./src/engine/testSupport/*"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently --names server,client --kill-others \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:client": "vite",
+    "dev:server": "tsx watch src/server/main.ts",
     "build": "npm run lint && tsc && vite build",
+    "start": "NODE_ENV=production tsx src/server/main.ts",
+    "host": "npm run build && npm start",
     "preview": "vite preview",
     "test": "vitest run",
     "test:unit": "vitest run --exclude \"**/*.integration.test.ts\"",
@@ -20,15 +25,21 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "2.14.0",
+    "express": "5.3.0",
+    "pino": "10.4.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-redux": "9.3.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.7",
+    "@types/express": "5.0.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "4.7.0",
+    "concurrently": "10.0.7",
+    "pino-pretty": "13.2.0",
+    "tsx": "4.23.15",
     "typescript": "7.0.2",
     "vite": "7.3.8",
     "vitest": "5.1.0"
