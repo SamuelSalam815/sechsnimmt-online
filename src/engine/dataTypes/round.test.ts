@@ -14,8 +14,8 @@ import {
   type PlayerId,
 } from '#engine/dataTypes/player.ts';
 import {
-  buildRound,
   createRound,
+  dealRound,
   findHand,
   findPick,
   findPickedCardId,
@@ -45,9 +45,9 @@ function handOf(round: Round, playerId: PlayerId): Hand {
   return findHand(round, playerId).force();
 }
 
-describe('buildRound', () => {
+describe('dealRound', () => {
   const cards = createCards(getDeckFaceValues());
-  const round = buildRound([ada, ben], createDeck(cards));
+  const round = dealRound([ada, ben], createDeck(cards));
 
   test('gives each player a hand of 10 cards, starting at the first card', () => {
     expect(round.hands).toEqual([
@@ -69,13 +69,13 @@ describe('buildRound', () => {
     const tenPlayers = Array.from({ length: 10 }, (_, i) =>
       createPlayer({ id: `p${i}`, name: `Player ${i}` }),
     );
-    const fullRound = buildRound(tenPlayers, createDeck(cards));
+    const fullRound = dealRound(tenPlayers, createDeck(cards));
     expect(fullRound.rows[3].cards).toEqual([cards[103]]);
   });
 
   test('throws when the deck holds too few cards for the players', () => {
     const short = createDeck(cards.slice(0, 23));
-    expect(() => buildRound([ada, ben], short)).toThrow();
+    expect(() => dealRound([ada, ben], short)).toThrow();
   });
 });
 

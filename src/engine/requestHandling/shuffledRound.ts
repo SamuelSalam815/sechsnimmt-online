@@ -1,7 +1,7 @@
 import { createCards, getDeckFaceValues } from '#engine/dataTypes/card.ts';
 import { createDeck } from '#engine/dataTypes/deck.ts';
 import type { Player } from '#engine/dataTypes/player.ts';
-import { buildRound, type Round } from '#engine/dataTypes/round.ts';
+import { dealRound, type Round } from '#engine/dataTypes/round.ts';
 
 // Impure, because the shuffle uses random numbers. Call it from a thunk only.
 // See docs/testing-strategy.md.
@@ -10,7 +10,7 @@ export function buildShuffledRound(players: readonly Player[]): Round {
   shuffle(faceValues);
   // The cards get their IDs after the shuffle so IDs alone don't reveal faceValues
   const deck = createDeck(createCards(faceValues));
-  return buildRound(players, deck);
+  return dealRound(players, deck);
 }
 
 // Fisher-Yates shuffle, in place.

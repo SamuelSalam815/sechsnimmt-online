@@ -96,11 +96,9 @@ Each module names its brand constructor `brandAsRound`, `brandAsPlayer`, `brandA
 The name states the one thing that the function does, which the earlier `toRound` did not.
 `card.ts` and `penaltyAccrual.ts` hold no such function: their public constructor carries the assertion itself.
 
-One question stays open.
-
-`createRound` builds a round from rows and hands, and `buildRound` deals one from a deck.
-The two verbs do not say which does which.
-The distinction needs a name for the deal, not a second verb for the same act.
+`createRound` takes the rows and the hands that a caller already holds.
+`dealRound` deals them from a deck, which is the act that the rules name.
+A second verb for the same act, such as the earlier `buildRound`, says nothing about the deck.
 
 ## Immutable collections
 
