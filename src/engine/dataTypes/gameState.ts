@@ -36,13 +36,13 @@ export type GameState = GameStateFields & {
 
 export type RoundGameState = Extract<GameState, { round: Round }>;
 
-function toGameState(fields: GameStateFields): GameState {
+function brandAsGameState(fields: GameStateFields): GameState {
   // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
   return fields as GameState;
 }
 
 export function createInitialGameState(): GameState {
-  return toGameState({
+  return brandAsGameState({
     phase: GamePhase.PreStart,
     version: INITIAL_GAME_STATE_VERSION,
   });
@@ -54,7 +54,7 @@ export function createGameState(
   players: readonly Player[],
   round: Round,
 ): GameState {
-  return toGameState({ phase, version, players, round });
+  return brandAsGameState({ phase, version, players, round });
 }
 
 // The pre-start phase holds no round. Layer 2 rejects a request that needs

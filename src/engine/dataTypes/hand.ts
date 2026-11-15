@@ -13,13 +13,13 @@ export interface Hand {
   readonly [handBrand]: true;
 }
 
-function toHand(playerId: PlayerId, cards: readonly Card[]): Hand {
+function brandAsHand(playerId: PlayerId, cards: readonly Card[]): Hand {
   // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
   return { playerId, cards } as Hand;
 }
 
 export function createHand(playerId: PlayerId, cards: readonly Card[]): Hand {
-  return toHand(playerId, [...cards]);
+  return brandAsHand(playerId, [...cards]);
 }
 
 export function findCardInHand(hand: Hand, cardId: CardId): Result<Card> {
@@ -40,12 +40,12 @@ export function removeCardFromHand(hand: Hand, card: Card): Hand {
       `The hand of the player ${hand.playerId} holds no card ${card.id}`,
     );
   }
-  return toHand(
+  return brandAsHand(
     hand.playerId,
     hand.cards.filter((_, index) => index !== position),
   );
 }
 
 export function addCardToHand(hand: Hand, card: Card): Hand {
-  return toHand(hand.playerId, [...hand.cards, card]);
+  return brandAsHand(hand.playerId, [...hand.cards, card]);
 }

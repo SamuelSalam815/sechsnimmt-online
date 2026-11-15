@@ -11,7 +11,7 @@ export interface PenaltyPile {
   readonly [penaltyPileBrand]: true;
 }
 
-function toPenaltyPile(
+function brandAsPenaltyPile(
   playerId: PlayerId,
   cards: readonly Card[],
 ): PenaltyPile {
@@ -20,12 +20,12 @@ function toPenaltyPile(
 }
 
 export function createPenaltyPile(playerId: PlayerId): PenaltyPile {
-  return toPenaltyPile(playerId, []);
+  return brandAsPenaltyPile(playerId, []);
 }
 
 export function addCardsToPenaltyPile(
   pile: PenaltyPile,
   cards: readonly Card[],
 ): PenaltyPile {
-  return toPenaltyPile(pile.playerId, [...pile.cards, ...cards]);
+  return brandAsPenaltyPile(pile.playerId, [...pile.cards, ...cards]);
 }

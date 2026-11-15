@@ -15,13 +15,13 @@ export interface RowPlacementOutcome {
   readonly takenCards: readonly Card[];
 }
 
-function toRow(cards: readonly Card[]): Row {
+function brandAsRow(cards: readonly Card[]): Row {
   // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
   return { cards } as Row;
 }
 
 export function createRow(card: Card): Row {
-  return toRow([card]);
+  return brandAsRow([card]);
 }
 
 export function getLastCardOfRow(row: Row): Card {
@@ -30,7 +30,7 @@ export function getLastCardOfRow(row: Row): Card {
 
 export function addCardToRow(row: Row, card: Card): RowPlacementOutcome {
   if (row.cards.length < ROW_CAPACITY) {
-    return { row: toRow([...row.cards, card]), takenCards: [] };
+    return { row: brandAsRow([...row.cards, card]), takenCards: [] };
   }
-  return { row: toRow([card]), takenCards: row.cards };
+  return { row: brandAsRow([card]), takenCards: row.cards };
 }

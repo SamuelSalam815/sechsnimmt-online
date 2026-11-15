@@ -23,13 +23,17 @@ export interface Player {
 // score belongs to the game, so no request carries it.
 export type PlayerProfile = Pick<Player, 'id' | 'name'>;
 
-function toPlayer(id: PlayerId, name: string, penaltyScore: number): Player {
+function brandAsPlayer(
+  id: PlayerId,
+  name: string,
+  penaltyScore: number,
+): Player {
   // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
   return { id, name, penaltyScore } as Player;
 }
 
 export function createPlayer(profile: PlayerProfile): Player {
-  return toPlayer(profile.id, profile.name, 0);
+  return brandAsPlayer(profile.id, profile.name, 0);
 }
 
 export function findPlayer(
@@ -53,7 +57,7 @@ export function addPenaltyToPlayer(
       `The penalty of the player ${accrual.playerId} does not belong to the player ${player.id}`,
     );
   }
-  return toPlayer(
+  return brandAsPlayer(
     player.id,
     player.name,
     player.penaltyScore + accrual.penalty,

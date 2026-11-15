@@ -64,7 +64,7 @@ export interface RevealOutcome {
 
 type RoundFields = Omit<Round, typeof roundBrand>;
 
-function toRound(fields: RoundFields): Round {
+function brandAsRound(fields: RoundFields): Round {
   // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
   return fields as Round;
 }
@@ -73,7 +73,7 @@ export function createRound(
   rows: readonly Row[],
   hands: readonly Hand[],
 ): Round {
-  return toRound({
+  return brandAsRound({
     rows,
     hands,
     picks: {},
@@ -127,11 +127,14 @@ export function pickCardInRound(
   playerId: PlayerId,
   card: Card,
 ): Round {
-  return toRound({ ...round, picks: { ...round.picks, [playerId]: card.id } });
+  return brandAsRound({
+    ...round,
+    picks: { ...round.picks, [playerId]: card.id },
+  });
 }
 
 export function unpickCardInRound(round: Round, playerId: PlayerId): Round {
-  return toRound({ ...round, picks: picksWithout(round.picks, playerId) });
+  return brandAsRound({ ...round, picks: picksWithout(round.picks, playerId) });
 }
 
 // A revealed card pairs the pick of a player with the card that it names, so
@@ -206,7 +209,7 @@ function takeCardsIntoPenaltyPile(
   cards: readonly Card[],
 ): Round {
   const pile = findPileOfPlayer(round.penaltyPiles, playerId).force();
-  return toRound({
+  return brandAsRound({
     ...round,
     penaltyPiles: pilesWith(
       round.penaltyPiles,
@@ -238,7 +241,7 @@ function placeRevealedCard(
   cardPlacement: CardPlacement,
 ): Round {
   const hand = findHand(round, revealedCard.playerId).force();
-  return toRound({
+  return brandAsRound({
     ...round,
     rows: cardPlacement.rows,
     hands: handsWith(round.hands, removeCardFromHand(hand, revealedCard.card)),

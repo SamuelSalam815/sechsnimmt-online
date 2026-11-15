@@ -12,13 +12,13 @@ export interface DeckDraw {
   readonly cards: readonly Card[];
 }
 
-function toDeck(cards: readonly Card[]): Deck {
+function brandAsDeck(cards: readonly Card[]): Deck {
   // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
   return { cards } as Deck;
 }
 
 export function createDeck(cards: readonly Card[]): Deck {
-  return toDeck([...cards]);
+  return brandAsDeck([...cards]);
 }
 
 export function drawCardsFromDeck(deck: Deck, count: number): DeckDraw {
@@ -28,7 +28,7 @@ export function drawCardsFromDeck(deck: Deck, count: number): DeckDraw {
     );
   }
   return {
-    newDeck: toDeck(deck.cards.slice(count)),
+    newDeck: brandAsDeck(deck.cards.slice(count)),
     cards: deck.cards.slice(0, count),
   };
 }

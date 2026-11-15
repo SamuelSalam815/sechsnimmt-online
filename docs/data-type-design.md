@@ -92,11 +92,11 @@ A local is `nextRound`, `cardPlacement`, `revealedCard`, not `next`, `placement`
 `round.ts` follows this rule.
 The rest of the engine does not yet, so the two styles stand side by side until a pass over the other modules closes the gap.
 
-Two questions stay open.
+Each module names its brand constructor `brandAsRound`, `brandAsPlayer`, `brandAsRow`.
+The name states the one thing that the function does, which the earlier `toRound` did not.
+`card.ts` and `penaltyAccrual.ts` hold no such function: their public constructor carries the assertion itself.
 
-Each module names its brand constructor `toRound`, `toPlayer`, `toRow`.
-`to` names no action, so a name such as `brandAsRound` would say more.
-Seven modules carry the pattern, and a rename has to change all seven at once, so `toX` stands until then.
+One question stays open.
 
 `createRound` builds a round from rows and hands, and `buildRound` deals one from a deck.
 The two verbs do not say which does which.
