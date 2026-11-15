@@ -1,11 +1,8 @@
+import { createServer } from 'node:http';
 import express, { type Request, type Response } from 'express';
 import pino from 'pino';
 
-const serverPort = 3000;
-
-// Vite serves the client itself while developing, with HMR. Its port comes
-// from `server.port` of vite.config.js.
-const clientDevUrl = 'http://localhost:5173';
+const port = 3000;
 
 const inProduction = process.env.NODE_ENV === 'production';
 
@@ -14,6 +11,7 @@ const logger = pino(
 );
 
 const app = express();
+const httpServer = createServer(app);
 
 app.use((request, _response, next) => {
   logger.info({ method: request.method, url: request.url }, 'request');
@@ -49,15 +47,24 @@ setInterval(() => {
     subscriber.write(`data: ${counter}\n\n`);
   }
   logger.info({ counter, subscribers: subscribers.size }, 'counter advanced');
-}, 1000);
+}, 10_000);
 
-// `npm run build` writes the client here.
-app.use(express.static('dist'));
+if (inProduction) {
+  // `npm run build` writes the client here.
+  app.use(express.static('dist'));
+} else {
+  // Vite is a devDependency, so production must not reach this import.
+  const vite = await import('vite');
+  const devServer = await vite.createServer({
+    appType: 'spa',
+    // Vite serves the client through this server instead of one of its own,
+    // which keeps the page and the API on a single port. Handing it the HTTP
+    // server puts the HMR socket on that port as well.
+    server: { middlewareMode: true, hmr: { server: httpServer } },
+  });
+  app.use(devServer.middlewares);
+}
 
-app.listen(serverPort, () => {
-  const clientUrl = inProduction
-    ? `http://localhost:${serverPort}`
-    : clientDevUrl;
-  logger.info(`server listening on http://localhost:${serverPort}`);
-  logger.info(`open a client at ${clientUrl}`);
+httpServer.listen(port, () => {
+  logger.info(`open a client at http://localhost:${port}`);
 });

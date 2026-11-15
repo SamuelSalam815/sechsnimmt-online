@@ -10,13 +10,10 @@
     "#testSupport/*": "./src/engine/testSupport/*"
   },
   "scripts": {
-    "dev": "concurrently --names server,client --kill-others \"npm:dev:server\" \"npm:dev:client\"",
-    "dev:client": "vite",
-    "dev:server": "tsx watch src/server/main.ts",
+    "dev": "tsx watch src/server/main.ts",
     "build": "npm run lint && tsc && vite build",
     "start": "NODE_ENV=production tsx src/server/main.ts",
     "host": "npm run build && npm start",
-    "preview": "vite preview",
     "test": "vitest run",
     "test:unit": "vitest run --exclude \"**/*.integration.test.ts\"",
     "test:integration": "vitest run .integration.test.",
