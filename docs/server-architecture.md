@@ -28,14 +28,14 @@ Its outbound messages are therefore messages that other actors define.
 An outbound message has no type of its own.
 
 The I/O of an actor is the work of its shell.
-The shell is therefore one more recipient, with messages of its own, for example `shell/streamWrite`.
+The shell is therefore one more recipient, with messages of its own, for example `eventStreamShell/streamWrite`.
 Such a message is data that says what the shell must do.
 
 An enum of each actor holds the tags of its messages, for example `CounterMessageType`.
 The prefix of the tag of an actor message names its recipient.
 `counter/tickRequested` goes to the counter, and `eventStream/broadcastAction` goes to the event stream.
-The prefix `shell/` names the shell of the sender.
-The shell therefore routes an outbound message by its tag alone.
+The prefix of the tag of a shell message names the actor of that shell and ends in `Shell`, for example `restHandlerShell/`.
+The shell therefore routes an outbound message by its tag alone, and no two shells share a tag.
 An action of the game is payload inside a message.
 It is never a message itself.
 

@@ -14,9 +14,9 @@ export enum EventStreamMessageType {
 }
 
 export enum EventStreamShellMessageType {
-  StreamOpen = 'shell/streamOpen',
-  StreamWrite = 'shell/streamWrite',
-  StreamClose = 'shell/streamClose',
+  StreamOpen = 'eventStreamShell/streamOpen',
+  StreamWrite = 'eventStreamShell/streamWrite',
+  StreamClose = 'eventStreamShell/streamClose',
 }
 
 export interface EventStreamCoreContext {

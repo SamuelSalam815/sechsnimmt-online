@@ -6,7 +6,7 @@ export enum RestHandlerMessageType {
 }
 
 export enum RestHandlerShellMessageType {
-  Pong = 'shell/pong',
+  Pong = 'restHandlerShell/pong',
 }
 
 export type RestHandlerMessage = MessageBase & {
