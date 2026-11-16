@@ -24,6 +24,11 @@
 - A name carries every word that it needs to be clear away from its
   declaration. Write `logLevel`, not `level`, and `streamId`, not `id`.
 - Do not shorten a word to save characters. Write `message`, not `msg`.
+- Use one name for one concept. Look for synonyms of a concept, for example
+  `subscription`, `connection` and `stream` for one event stream.
+- Do not rename because you found synonyms. Ask the user why the names are
+  different and which name is correct. If there is no reason to change, keep
+  the name that the code uses most.
 
 ## Git
 
