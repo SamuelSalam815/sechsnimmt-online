@@ -14,8 +14,8 @@ export default function App() {
     // included. The replay therefore starts again from nothing.
     events.onopen = () => setHistory([]);
     events.onmessage = (event) => {
-      const action: CounterAction = JSON.parse(event.data);
-      setHistory((earlier) => [...(earlier ?? []), action]);
+      const actions: CounterAction[] = JSON.parse(event.data);
+      setHistory((earlier) => [...(earlier ?? []), ...actions]);
     };
     return () => events.close();
   }, []);

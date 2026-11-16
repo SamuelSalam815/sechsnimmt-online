@@ -88,9 +88,7 @@ export function webAppActor(
       );
       return;
     }
-    for (const action of actions) {
-      connection.write(`data: ${JSON.stringify(action)}\n\n`);
-    }
+    connection.write(`data: ${JSON.stringify(actions)}\n\n`);
   }
 
   return { actor, router: webAppRouter(actor) };

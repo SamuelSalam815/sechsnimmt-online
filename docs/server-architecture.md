@@ -66,6 +66,6 @@ The actions that the request handlers of the engine emit will take the place of 
 
 ## Wire format
 
-The event stream carries one action per event, as JSON.
+Each event of the stream carries a JSON array of actions.
 A new subscriber first gets the full history, then each new action.
 The client replays the actions to get the state.
