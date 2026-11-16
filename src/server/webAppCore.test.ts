@@ -21,7 +21,7 @@ describe('webAppStep', () => {
       webAppStep(initialWebAppCoreContext, { type: 'webApp/ping' }),
     ).toEqual({
       coreContext: initialWebAppCoreContext,
-      outboundMessages: [{ type: 'webAppShell/pong' }],
+      outboundMessages: [{ type: 'shell/pong' }],
     });
   });
 
@@ -34,7 +34,7 @@ describe('webAppStep', () => {
         subscribers: new Map([[5, 'pending']]),
       },
       outboundMessages: [
-        { type: 'webAppShell/accept', subscriberId: 5 },
+        { type: 'shell/subscriptionOpen', subscriberId: 5 },
         { type: 'counter/historyRequested', subscriberId: 5 },
       ],
     });
@@ -50,7 +50,7 @@ describe('webAppStep', () => {
     ).toEqual({
       coreContext: coreContextWith([[1, 'active']]),
       outboundMessages: [
-        { type: 'webAppShell/write', subscriberId: 1, actions: [one, two] },
+        { type: 'shell/write', subscriberId: 1, actions: [one, two] },
       ],
     });
   });
@@ -77,32 +77,32 @@ describe('webAppStep', () => {
     ).toEqual({
       coreContext,
       outboundMessages: [
-        { type: 'webAppShell/write', subscriberId: 1, actions: [two] },
-        { type: 'webAppShell/write', subscriberId: 3, actions: [two] },
+        { type: 'shell/write', subscriberId: 1, actions: [two] },
+        { type: 'shell/write', subscriberId: 3, actions: [two] },
       ],
     });
   });
 
-  test('a closed subscription removes the subscriber and releases it', () => {
+  test('a closed connection removes the subscriber and releases it', () => {
     expect(
       webAppStep(
         coreContextWith([
           [1, 'active'],
           [2, 'pending'],
         ]),
-        { type: 'webApp/subscriptionClosed', subscriberId: 1 },
+        { type: 'webApp/connectionClosed', subscriberId: 1 },
       ),
     ).toEqual({
       coreContext: coreContextWith([[2, 'pending']]),
-      outboundMessages: [{ type: 'webAppShell/release', subscriberId: 1 }],
+      outboundMessages: [{ type: 'shell/subscriptionClose', subscriberId: 1 }],
     });
   });
 
-  test('a second close of the same subscription changes nothing', () => {
+  test('a second close of the same connection changes nothing', () => {
     const coreContext = coreContextWith([]);
     expect(
       webAppStep(coreContext, {
-        type: 'webApp/subscriptionClosed',
+        type: 'webApp/connectionClosed',
         subscriberId: 1,
       }),
     ).toEqual({ coreContext, outboundMessages: [] });

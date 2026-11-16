@@ -20,7 +20,7 @@ export type LoggerMessage =
   | { readonly type: 'logger/listening'; readonly port: number };
 
 export interface LoggerShellMessage {
-  readonly type: 'loggerShell/log';
+  readonly type: 'shell/log';
   readonly fields: object;
   readonly text: string;
 }
@@ -72,7 +72,7 @@ function logsOfStep(
   const outboundMessages: LoggerShellMessage[] = [];
   for (const message of stepOutboundMessages) {
     switch (message.type) {
-      case 'webAppShell/accept':
+      case 'shell/subscriptionOpen':
         subscribers += 1;
         outboundMessages.push(
           log(
@@ -81,7 +81,7 @@ function logsOfStep(
           ),
         );
         break;
-      case 'webAppShell/release':
+      case 'shell/subscriptionClose':
         subscribers -= 1;
         outboundMessages.push(
           log(
@@ -104,5 +104,5 @@ function logsOfStep(
 }
 
 function log(fields: object, text: string): LoggerShellMessage {
-  return { type: 'loggerShell/log', fields, text };
+  return { type: 'shell/log', fields, text };
 }

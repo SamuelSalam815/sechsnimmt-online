@@ -37,11 +37,11 @@ export function webAppActor(
           sendToCounter(outboundMessage);
           return;
 
-        case 'webAppShell/pong':
+        case 'shell/pong':
           requireResponse(response).json({ message: 'pong' });
           return;
 
-        case 'webAppShell/accept': {
+        case 'shell/subscriptionOpen': {
           const { subscriberId } = outboundMessage;
           const connection = requireResponse(response);
           connection.writeHead(200, {
@@ -54,12 +54,12 @@ export function webAppActor(
           // request. A close needs the event loop, so it cannot fire before
           // this listener exists.
           connection.on('close', () =>
-            actor.send({ type: 'webApp/subscriptionClosed', subscriberId }),
+            actor.send({ type: 'webApp/connectionClosed', subscriberId }),
           );
           return;
         }
 
-        case 'webAppShell/write': {
+        case 'shell/write': {
           const connection = connectionOf(outboundMessage.subscriberId);
           for (const action of outboundMessage.actions) {
             connection.write(`data: ${JSON.stringify(action)}\n\n`);
@@ -67,7 +67,7 @@ export function webAppActor(
           return;
         }
 
-        case 'webAppShell/release':
+        case 'shell/subscriptionClose':
           connections.delete(outboundMessage.subscriberId);
           return;
       }

@@ -13,7 +13,7 @@ describe('loggerStep', () => {
       coreContext: initialLoggerCoreContext,
       outboundMessages: [
         {
-          type: 'loggerShell/log',
+          type: 'shell/log',
           fields: { method: 'GET', url: '/api/ping' },
           text: 'request',
         },
@@ -29,7 +29,7 @@ describe('loggerStep', () => {
           type: 'logger/stepped',
           inboundMessage: { type: 'webApp/requestSubscription' },
           outboundMessages: [
-            { type: 'webAppShell/accept', subscriberId: 4 },
+            { type: 'shell/subscriptionOpen', subscriberId: 4 },
             { type: 'counter/historyRequested', subscriberId: 4 },
           ],
         },
@@ -38,7 +38,7 @@ describe('loggerStep', () => {
       coreContext: { subscribers: 2 },
       outboundMessages: [
         {
-          type: 'loggerShell/log',
+          type: 'shell/log',
           fields: { subscriberId: 4, subscribers: 2 },
           text: 'subscriber joined',
         },
@@ -53,17 +53,19 @@ describe('loggerStep', () => {
         {
           type: 'logger/stepped',
           inboundMessage: {
-            type: 'webApp/subscriptionClosed',
+            type: 'webApp/connectionClosed',
             subscriberId: 4,
           },
-          outboundMessages: [{ type: 'webAppShell/release', subscriberId: 4 }],
+          outboundMessages: [
+            { type: 'shell/subscriptionClose', subscriberId: 4 },
+          ],
         },
       ),
     ).toEqual({
       coreContext: { subscribers: 1 },
       outboundMessages: [
         {
-          type: 'loggerShell/log',
+          type: 'shell/log',
           fields: { subscriberId: 4, subscribers: 1 },
           text: 'subscriber left',
         },
@@ -88,7 +90,7 @@ describe('loggerStep', () => {
       coreContext,
       outboundMessages: [
         {
-          type: 'loggerShell/log',
+          type: 'shell/log',
           fields: { counter: 7, subscribers: 3 },
           text: 'counter advanced',
         },
@@ -101,7 +103,7 @@ describe('loggerStep', () => {
       loggerStep(initialLoggerCoreContext, {
         type: 'logger/stepped',
         inboundMessage: { type: 'webApp/ping' },
-        outboundMessages: [{ type: 'webAppShell/pong' }],
+        outboundMessages: [{ type: 'shell/pong' }],
       }),
     ).toEqual({ coreContext: initialLoggerCoreContext, outboundMessages: [] });
   });

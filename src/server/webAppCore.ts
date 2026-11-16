@@ -16,19 +16,19 @@ export type WebAppMessage =
     }
   | { readonly type: 'webApp/fanOutAction'; readonly action: CounterAdvanced }
   | {
-      readonly type: 'webApp/subscriptionClosed';
+      readonly type: 'webApp/connectionClosed';
       readonly subscriberId: number;
     };
 
 export type WebAppShellMessage =
-  | { readonly type: 'webAppShell/pong' }
-  | { readonly type: 'webAppShell/accept'; readonly subscriberId: number }
+  | { readonly type: 'shell/pong' }
+  | { readonly type: 'shell/subscriptionOpen'; readonly subscriberId: number }
   | {
-      readonly type: 'webAppShell/write';
+      readonly type: 'shell/write';
       readonly subscriberId: number;
       readonly actions: readonly CounterAdvanced[];
     }
-  | { readonly type: 'webAppShell/release'; readonly subscriberId: number };
+  | { readonly type: 'shell/subscriptionClose'; readonly subscriberId: number };
 
 export const initialWebAppCoreContext: WebAppCoreContext = {
   nextSubscriberId: 0,
@@ -41,7 +41,7 @@ export function webAppStep(
 ): Step<CounterMessage | WebAppShellMessage, WebAppCoreContext> {
   switch (inboundMessage.type) {
     case 'webApp/ping':
-      return { coreContext, outboundMessages: [{ type: 'webAppShell/pong' }] };
+      return { coreContext, outboundMessages: [{ type: 'shell/pong' }] };
 
     case 'webApp/requestSubscription': {
       const subscriberId = coreContext.nextSubscriberId;
@@ -54,7 +54,7 @@ export function webAppStep(
           ),
         },
         outboundMessages: [
-          { type: 'webAppShell/accept', subscriberId },
+          { type: 'shell/subscriptionOpen', subscriberId },
           { type: 'counter/historyRequested', subscriberId },
         ],
       };
@@ -75,7 +75,7 @@ export function webAppStep(
           ),
         },
         outboundMessages: [
-          { type: 'webAppShell/write', subscriberId, actions: history },
+          { type: 'shell/write', subscriberId, actions: history },
         ],
       };
     }
@@ -87,7 +87,7 @@ export function webAppStep(
       for (const [subscriberId, status] of coreContext.subscribers) {
         if (status === 'active') {
           outboundMessages.push({
-            type: 'webAppShell/write',
+            type: 'shell/write',
             subscriberId,
             actions: [inboundMessage.action],
           });
@@ -96,7 +96,7 @@ export function webAppStep(
       return { coreContext, outboundMessages };
     }
 
-    case 'webApp/subscriptionClosed': {
+    case 'webApp/connectionClosed': {
       const { subscriberId } = inboundMessage;
       if (!coreContext.subscribers.has(subscriberId)) {
         return { coreContext, outboundMessages: [] };
@@ -105,7 +105,7 @@ export function webAppStep(
       subscribers.delete(subscriberId);
       return {
         coreContext: { ...coreContext, subscribers },
-        outboundMessages: [{ type: 'webAppShell/release', subscriberId }],
+        outboundMessages: [{ type: 'shell/subscriptionClose', subscriberId }],
       };
     }
   }
