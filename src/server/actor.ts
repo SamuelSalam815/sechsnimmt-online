@@ -1,3 +1,6 @@
+import type { Logger } from 'pino';
+import { LogLevel, type MessageBase } from '#server/message.ts';
+
 export interface Step<OutboundMessage, CoreContext> {
   readonly coreContext: CoreContext;
   readonly outboundMessages: readonly OutboundMessage[];
@@ -5,7 +8,7 @@ export interface Step<OutboundMessage, CoreContext> {
 
 export interface ActorDefinition<
   InboundMessage,
-  OutboundMessage,
+  OutboundMessage extends MessageBase,
   CoreContext,
   ShellContext,
 > {
@@ -20,10 +23,7 @@ export interface ActorDefinition<
     outboundMessage: OutboundMessage,
     shellContext: ShellContext | undefined,
   ) => void;
-  readonly observe?: (
-    inboundMessage: InboundMessage,
-    outboundMessages: readonly OutboundMessage[],
-  ) => void;
+  readonly logger: Logger;
 }
 
 export interface Actor<InboundMessage, ShellContext = never> {
@@ -32,7 +32,7 @@ export interface Actor<InboundMessage, ShellContext = never> {
 
 export function createActor<
   InboundMessage,
-  OutboundMessage,
+  OutboundMessage extends MessageBase,
   CoreContext,
   ShellContext = never,
 >(
@@ -54,8 +54,8 @@ export function createActor<
   ) {
     const step = definition.step(coreContext, inboundMessage);
     coreContext = step.coreContext;
-    definition.observe?.(inboundMessage, step.outboundMessages);
     for (const outboundMessage of step.outboundMessages) {
+      logAtItsLevel(definition.logger, outboundMessage);
       definition.interpret(outboundMessage, shellContext);
     }
   }
@@ -68,4 +68,18 @@ export function createActor<
       mailboxTail = mailboxTail.then(() => run(inboundMessage, shellContext));
     },
   };
+}
+
+function logAtItsLevel(logger: Logger, message: MessageBase) {
+  switch (message.logLevel) {
+    case LogLevel.Debug:
+      logger.debug(message);
+      return;
+    case LogLevel.Info:
+      logger.info(message);
+      return;
+    case LogLevel.Error:
+      logger.error(message);
+      return;
+  }
 }

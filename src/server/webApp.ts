@@ -1,7 +1,8 @@
 import { type Response, Router } from 'express';
+import type { Logger } from 'pino';
 import { type Actor, createActor } from '#server/actor.ts';
 import type { CounterMessage } from '#server/counterCore.ts';
-import type { LoggerMessage } from '#server/loggerCore.ts';
+import { LogLevel } from '#server/message.ts';
 import {
   initialWebAppCoreContext,
   type WebAppMessage,
@@ -15,17 +16,9 @@ export interface WebApp {
 
 export function webAppActor(
   sendToCounter: (message: CounterMessage) => void,
-  logger: Actor<LoggerMessage>,
+  logger: Logger,
 ): WebApp {
   const connections = new Map<number, Response>();
-
-  function connectionOf(subscriberId: number): Response {
-    const connection = connections.get(subscriberId);
-    if (connection === undefined) {
-      throw new Error(`subscriber ${subscriberId} has no connection`);
-    }
-    return connection;
-  }
 
   const actor = createActor({
     initial: initialWebAppCoreContext,
@@ -54,13 +47,25 @@ export function webAppActor(
           // request. A close needs the event loop, so it cannot fire before
           // this listener exists.
           connection.on('close', () =>
-            actor.send({ type: 'webApp/connectionClosed', subscriberId }),
+            actor.send({
+              type: 'webApp/connectionClosed',
+              logLevel: LogLevel.Debug,
+              subscriberId,
+            }),
           );
           return;
         }
 
         case 'shell/write': {
-          const connection = connectionOf(outboundMessage.subscriberId);
+          const { subscriberId } = outboundMessage;
+          const connection = connections.get(subscriberId);
+          if (connection === undefined) {
+            logger.error(
+              { subscriberId },
+              'a write found no connection for its subscriber',
+            );
+            return;
+          }
           for (const action of outboundMessage.actions) {
             connection.write(`data: ${JSON.stringify(action)}\n\n`);
           }
@@ -72,16 +77,18 @@ export function webAppActor(
           return;
       }
     },
-    observe: (inboundMessage, outboundMessages) =>
-      logger.send({ type: 'logger/stepped', inboundMessage, outboundMessages }),
+    logger,
   });
 
   const router = Router();
   router.get('/ping', (_request, response) => {
-    actor.send({ type: 'webApp/ping' }, response);
+    actor.send({ type: 'webApp/ping', logLevel: LogLevel.Debug }, response);
   });
   router.get('/counter/events', (_request, response) => {
-    actor.send({ type: 'webApp/requestSubscription' }, response);
+    actor.send(
+      { type: 'webApp/requestSubscription', logLevel: LogLevel.Debug },
+      response,
+    );
   });
 
   return { actor, router };

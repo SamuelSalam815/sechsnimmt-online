@@ -1,4 +1,5 @@
 import type { Step } from '#server/actor.ts';
+import { LogLevel, type MessageBase } from '#server/message.ts';
 import type { WebAppMessage } from '#server/webAppCore.ts';
 
 export interface CounterAdvanced {
@@ -10,12 +11,14 @@ export interface CounterCoreContext {
   readonly history: readonly CounterAdvanced[];
 }
 
-export type CounterMessage =
-  | { readonly type: 'counter/tick' }
-  | {
-      readonly type: 'counter/historyRequested';
-      readonly subscriberId: number;
-    };
+export type CounterMessage = MessageBase &
+  (
+    | { readonly type: 'counter/tick' }
+    | {
+        readonly type: 'counter/historyRequested';
+        readonly subscriberId: number;
+      }
+  );
 
 export const initialCounterCoreContext: CounterCoreContext = { history: [] };
 
@@ -35,7 +38,9 @@ export function counterStep(
       };
       return {
         coreContext: { history: [...coreContext.history, action] },
-        outboundMessages: [{ type: 'webApp/fanOutAction', action }],
+        outboundMessages: [
+          { type: 'webApp/fanOutAction', logLevel: LogLevel.Info, action },
+        ],
       };
     }
     case 'counter/historyRequested':
@@ -44,6 +49,7 @@ export function counterStep(
         outboundMessages: [
           {
             type: 'webApp/historyDelivered',
+            logLevel: LogLevel.Debug,
             subscriberId: inboundMessage.subscriberId,
             history: coreContext.history,
           },

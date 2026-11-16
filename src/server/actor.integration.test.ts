@@ -1,27 +1,46 @@
+import pino from 'pino';
 import { describe, expect, test } from 'vitest';
 import { type Actor, createActor } from '#server/actor.ts';
+import { LogLevel } from '#server/message.ts';
+
+interface Reply {
+  readonly logLevel: LogLevel;
+  readonly reply: string;
+}
 
 function settled(): Promise<void> {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
-// Each message is a list of replies that the actor sends to itself.
-function echoActor(trace: string[]): Actor<string[], string> {
-  const actor: Actor<string[], string> = createActor({
+function loggerInto(lines: unknown[]) {
+  return pino(
+    { level: 'debug', base: null, timestamp: false },
+    { write: (line: string) => lines.push(JSON.parse(line)) },
+  );
+}
+
+function replies(...texts: string[]): Reply[] {
+  return texts.map((reply) => ({ logLevel: LogLevel.Debug, reply }));
+}
+
+// Each inbound message is a list of replies that the actor sends to itself.
+function echoActor(trace: string[]): Actor<Reply[], string> {
+  const actor: Actor<Reply[], string> = createActor({
     initial: 0,
-    step: (count: number, replies: string[]) => ({
+    step: (count: number, inboundReplies: Reply[]) => ({
       coreContext: count + 1,
-      outboundMessages: replies,
+      outboundMessages: inboundReplies,
     }),
-    interpret(reply: string, shellContext) {
+    interpret({ reply }: Reply, shellContext) {
       trace.push(
         `${reply}${shellContext === undefined ? '' : `@${shellContext}`}`,
       );
       if (reply.startsWith('again')) {
-        actor.send([reply.slice('again'.length)]);
+        actor.send(replies(reply.slice('again'.length)));
       }
       trace.push(`end ${reply}`);
     },
+    logger: loggerInto([]),
   });
   return actor;
 }
@@ -29,15 +48,15 @@ function echoActor(trace: string[]): Actor<string[], string> {
 describe('createActor', () => {
   test('runs no step during the send', () => {
     const trace: string[] = [];
-    echoActor(trace).send(['a']);
+    echoActor(trace).send(replies('a'));
     expect(trace).toEqual([]);
   });
 
   test('runs the messages in the order of their sends', async () => {
     const trace: string[] = [];
     const actor = echoActor(trace);
-    actor.send(['a']);
-    actor.send(['b']);
+    actor.send(replies('a'));
+    actor.send(replies('b'));
     await settled();
     expect(trace).toEqual(['a', 'end a', 'b', 'end b']);
   });
@@ -45,33 +64,38 @@ describe('createActor', () => {
   test('runs a message that an interpretation sends after the messages already waiting', async () => {
     const trace: string[] = [];
     const actor = echoActor(trace);
-    actor.send(['againc']);
-    actor.send(['b']);
+    actor.send(replies('againc'));
+    actor.send(replies('b'));
     await settled();
     expect(trace).toEqual(['againc', 'end againc', 'b', 'end b', 'c', 'end c']);
   });
 
-  test('hands the shell context of an inbound message to the interpretation of each of its outboundMessages', async () => {
+  test('hands the shell context of an inbound message to the interpretation of each of its outbound messages', async () => {
     const trace: string[] = [];
-    echoActor(trace).send(['a', 'b'], 'h');
+    echoActor(trace).send(replies('a', 'b'), 'h');
     await settled();
     expect(trace).toEqual(['a@h', 'end a', 'b@h', 'end b']);
   });
 
-  test('tells the observer the message and its outboundMessages', async () => {
-    const observed: unknown[] = [];
+  test('logs each outbound message at its log level', async () => {
+    const lines: unknown[] = [];
     const actor = createActor({
       initial: null,
-      step: (coreContext: null, message: string) => ({
+      step: (coreContext: null, outboundMessages: Reply[]) => ({
         coreContext,
-        outboundMessages: [message.toUpperCase()],
+        outboundMessages,
       }),
       interpret() {},
-      observe: (message, outboundMessages) =>
-        observed.push({ message, outboundMessages }),
+      logger: loggerInto(lines),
     });
-    actor.send('a');
+    actor.send([
+      { logLevel: LogLevel.Info, reply: 'a' },
+      { logLevel: LogLevel.Error, reply: 'b' },
+    ]);
     await settled();
-    expect(observed).toEqual([{ message: 'a', outboundMessages: ['A'] }]);
+    expect(lines).toEqual([
+      { level: 30, logLevel: 'info', reply: 'a' },
+      { level: 50, logLevel: 'error', reply: 'b' },
+    ]);
   });
 });

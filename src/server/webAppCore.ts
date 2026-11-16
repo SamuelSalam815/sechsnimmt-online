@@ -1,34 +1,42 @@
 import type { Step } from '#server/actor.ts';
 import type { CounterAdvanced, CounterMessage } from '#server/counterCore.ts';
+import { LogLevel, type MessageBase } from '#server/message.ts';
 
 export interface WebAppCoreContext {
   readonly nextSubscriberId: number;
   readonly subscribers: ReadonlyMap<number, 'pending' | 'active'>;
 }
 
-export type WebAppMessage =
-  | { readonly type: 'webApp/ping' }
-  | { readonly type: 'webApp/requestSubscription' }
-  | {
-      readonly type: 'webApp/historyDelivered';
-      readonly subscriberId: number;
-      readonly history: readonly CounterAdvanced[];
-    }
-  | { readonly type: 'webApp/fanOutAction'; readonly action: CounterAdvanced }
-  | {
-      readonly type: 'webApp/connectionClosed';
-      readonly subscriberId: number;
-    };
+export type WebAppMessage = MessageBase &
+  (
+    | { readonly type: 'webApp/ping' }
+    | { readonly type: 'webApp/requestSubscription' }
+    | {
+        readonly type: 'webApp/historyDelivered';
+        readonly subscriberId: number;
+        readonly history: readonly CounterAdvanced[];
+      }
+    | { readonly type: 'webApp/fanOutAction'; readonly action: CounterAdvanced }
+    | {
+        readonly type: 'webApp/connectionClosed';
+        readonly subscriberId: number;
+      }
+  );
 
-export type WebAppShellMessage =
-  | { readonly type: 'shell/pong' }
-  | { readonly type: 'shell/subscriptionOpen'; readonly subscriberId: number }
-  | {
-      readonly type: 'shell/write';
-      readonly subscriberId: number;
-      readonly actions: readonly CounterAdvanced[];
-    }
-  | { readonly type: 'shell/subscriptionClose'; readonly subscriberId: number };
+export type WebAppShellMessage = MessageBase &
+  (
+    | { readonly type: 'shell/pong' }
+    | { readonly type: 'shell/subscriptionOpen'; readonly subscriberId: number }
+    | {
+        readonly type: 'shell/write';
+        readonly subscriberId: number;
+        readonly actions: readonly CounterAdvanced[];
+      }
+    | {
+        readonly type: 'shell/subscriptionClose';
+        readonly subscriberId: number;
+      }
+  );
 
 export const initialWebAppCoreContext: WebAppCoreContext = {
   nextSubscriberId: 0,
@@ -41,7 +49,10 @@ export function webAppStep(
 ): Step<CounterMessage | WebAppShellMessage, WebAppCoreContext> {
   switch (inboundMessage.type) {
     case 'webApp/ping':
-      return { coreContext, outboundMessages: [{ type: 'shell/pong' }] };
+      return {
+        coreContext,
+        outboundMessages: [{ type: 'shell/pong', logLevel: LogLevel.Debug }],
+      };
 
     case 'webApp/requestSubscription': {
       const subscriberId = coreContext.nextSubscriberId;
@@ -54,8 +65,16 @@ export function webAppStep(
           ),
         },
         outboundMessages: [
-          { type: 'shell/subscriptionOpen', subscriberId },
-          { type: 'counter/historyRequested', subscriberId },
+          {
+            type: 'shell/subscriptionOpen',
+            logLevel: LogLevel.Info,
+            subscriberId,
+          },
+          {
+            type: 'counter/historyRequested',
+            logLevel: LogLevel.Debug,
+            subscriberId,
+          },
         ],
       };
     }
@@ -75,7 +94,12 @@ export function webAppStep(
           ),
         },
         outboundMessages: [
-          { type: 'shell/write', subscriberId, actions: history },
+          {
+            type: 'shell/write',
+            logLevel: LogLevel.Debug,
+            subscriberId,
+            actions: history,
+          },
         ],
       };
     }
@@ -88,6 +112,7 @@ export function webAppStep(
         if (status === 'active') {
           outboundMessages.push({
             type: 'shell/write',
+            logLevel: LogLevel.Debug,
             subscriberId,
             actions: [inboundMessage.action],
           });
@@ -105,7 +130,13 @@ export function webAppStep(
       subscribers.delete(subscriberId);
       return {
         coreContext: { ...coreContext, subscribers },
-        outboundMessages: [{ type: 'shell/subscriptionClose', subscriberId }],
+        outboundMessages: [
+          {
+            type: 'shell/subscriptionClose',
+            logLevel: LogLevel.Info,
+            subscriberId,
+          },
+        ],
       };
     }
   }

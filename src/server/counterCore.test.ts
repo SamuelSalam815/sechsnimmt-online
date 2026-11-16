@@ -5,6 +5,7 @@ import {
   counterValue,
   initialCounterCoreContext,
 } from '#server/counterCore.ts';
+import { LogLevel } from '#server/message.ts';
 
 const one: CounterAdvanced = { type: 'counter/advanced', value: 1 };
 const two: CounterAdvanced = { type: 'counter/advanced', value: 2 };
@@ -21,16 +22,25 @@ describe('counterValue', () => {
 
 describe('counterStep', () => {
   test('a tick appends the next advance and fans it out', () => {
-    expect(counterStep({ history: [one] }, { type: 'counter/tick' })).toEqual({
+    expect(
+      counterStep(
+        { history: [one] },
+        { type: 'counter/tick', logLevel: LogLevel.Debug },
+      ),
+    ).toEqual({
       coreContext: { history: [one, two] },
-      outboundMessages: [{ type: 'webApp/fanOutAction', action: two }],
+      outboundMessages: [
+        { type: 'webApp/fanOutAction', logLevel: LogLevel.Info, action: two },
+      ],
     });
   });
 
   test('the first tick advances to one', () => {
     expect(
-      counterStep(initialCounterCoreContext, { type: 'counter/tick' })
-        .coreContext,
+      counterStep(initialCounterCoreContext, {
+        type: 'counter/tick',
+        logLevel: LogLevel.Debug,
+      }).coreContext,
     ).toEqual({ history: [one] });
   });
 
@@ -39,6 +49,7 @@ describe('counterStep', () => {
     expect(
       counterStep(coreContext, {
         type: 'counter/historyRequested',
+        logLevel: LogLevel.Debug,
         subscriberId: 3,
       }),
     ).toEqual({
@@ -46,6 +57,7 @@ describe('counterStep', () => {
       outboundMessages: [
         {
           type: 'webApp/historyDelivered',
+          logLevel: LogLevel.Debug,
           subscriberId: 3,
           history: [one, two],
         },

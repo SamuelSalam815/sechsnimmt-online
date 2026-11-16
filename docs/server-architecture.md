@@ -1,7 +1,7 @@
 # Server architecture
 
 The server is a functional core in an imperative shell.
-Three actors divide it: the web app, the counter and the logger.
+Two actors divide it: the web app and the counter.
 
 ## Actors
 
@@ -42,6 +42,13 @@ An inbound message can carry a shell context that is not data, for example the r
 The shell context stays in the shell.
 The core never sees it.
 
+## Logging
+
+Each message has a log level.
+The core sets it on each outbound message, because the core knows what the message means.
+The shell logs each outbound message whole at that level, before it delivers the message.
+A log entry therefore needs no code of its own, and the levels are part of what the core tests examine.
+
 ## The actors and their messages
 
 The web app owns the HTTP routes and the subscribers of the event stream.
@@ -55,12 +62,6 @@ Its shell holds the timer, which sends it a tick.
 The core makes the next action on a tick, and it answers a history request.
 The counter stands in for a game room.
 The actions that the request handlers of the engine emit will take the place of its actions.
-
-The logger owns no domain state.
-The other shells send it each inbound message and the outbound messages of its step.
-The tag of the inbound message names the actor that ran the step, so the logger needs no field for the source.
-The core of the logger decides which of them are worth a log entry.
-The logging therefore stays out of the other cores.
 
 ## Wire format
 
