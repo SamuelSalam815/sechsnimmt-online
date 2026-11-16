@@ -50,6 +50,7 @@ The core never sees it.
 Each message has a log level.
 The core sets it on each outbound message, because the core knows what the message means.
 The shell logs each outbound message whole at that level, before it delivers the message.
+Each entry carries the `actorId` of the actor that logs it.
 A log entry therefore needs no code of its own, and the levels are part of what the core tests examine.
 
 ## The actors and their messages

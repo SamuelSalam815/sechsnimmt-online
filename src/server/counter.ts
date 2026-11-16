@@ -17,6 +17,7 @@ export function counterActor(
     initial: initialCounterCoreContext,
     step: counterStep,
     interpret: sendToEventStream,
+    actorId: 'counter',
     logger,
   });
 

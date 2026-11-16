@@ -40,6 +40,7 @@ function echoActor(trace: string[]): Actor<Reply[], string> {
       }
       trace.push(`end ${reply}`);
     },
+    actorId: 'echo',
     logger: loggerInto([]),
   });
   return actor;
@@ -77,7 +78,7 @@ describe('createActor', () => {
     expect(trace).toEqual(['a@h', 'end a', 'b@h', 'end b']);
   });
 
-  test('logs each outbound message at its log level', async () => {
+  test('logs each outbound message at its log level with the actor ID', async () => {
     const lines: unknown[] = [];
     const actor = createActor({
       initial: null,
@@ -86,6 +87,7 @@ describe('createActor', () => {
         outboundMessages,
       }),
       interpret() {},
+      actorId: 'echo',
       logger: loggerInto(lines),
     });
     actor.send([
@@ -94,8 +96,8 @@ describe('createActor', () => {
     ]);
     await settled();
     expect(lines).toEqual([
-      { level: 30, logLevel: 'info', reply: 'a' },
-      { level: 50, logLevel: 'error', reply: 'b' },
+      { level: 30, actorId: 'echo', logLevel: 'info', reply: 'a' },
+      { level: 50, actorId: 'echo', logLevel: 'error', reply: 'b' },
     ]);
   });
 });

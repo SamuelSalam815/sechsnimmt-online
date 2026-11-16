@@ -53,6 +53,7 @@ export function eventStreamActor(
           return;
       }
     },
+    actorId: 'eventStream',
     logger,
   });
 

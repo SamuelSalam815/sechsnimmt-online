@@ -23,6 +23,7 @@ export interface ActorDefinition<
     outboundMessage: OutboundMessage,
     shellContext: ShellContext | undefined,
   ) => void;
+  readonly actorId: string;
   readonly logger: Logger;
 }
 
@@ -43,6 +44,7 @@ export function createActor<
     ShellContext
   >,
 ): Actor<InboundMessage, ShellContext> {
+  const logger = definition.logger.child({ actorId: definition.actorId });
   let coreContext = definition.initial;
   // A throw rejects the mailbox, so the actor runs no further message,
   // and Node ends the process on the unhandled rejection.
@@ -55,7 +57,7 @@ export function createActor<
     const step = definition.step(coreContext, inboundMessage);
     coreContext = step.coreContext;
     for (const outboundMessage of step.outboundMessages) {
-      logAtItsLevel(definition.logger, outboundMessage);
+      logAtItsLevel(logger, outboundMessage);
       definition.interpret(outboundMessage, shellContext);
     }
   }

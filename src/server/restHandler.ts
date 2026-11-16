@@ -24,6 +24,7 @@ export function restHandlerRouter(logger: Logger): Router {
           return;
       }
     },
+    actorId: 'restHandler',
     logger,
   });
 
