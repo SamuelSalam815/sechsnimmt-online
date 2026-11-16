@@ -19,6 +19,12 @@
 - Terminology that the code renames belongs in `docs/rule-clarifications.md`,
   not in a comment.
 
+## Names
+
+- A name carries every word that it needs to be clear away from its
+  declaration. Write `logLevel`, not `level`, and `subscriberId`, not `id`.
+- Do not shorten a word to save characters. Write `message`, not `msg`.
+
 ## Git
 
 - Before deleting a branch, push, fetch, and confirm that the remote holds
