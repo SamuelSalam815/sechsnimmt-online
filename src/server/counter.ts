@@ -6,17 +6,17 @@ import {
   counterStep,
   initialCounterCoreContext,
 } from '#server/counterCore.ts';
+import type { EventStreamMessage } from '#server/eventStreamCore.ts';
 import { LogLevel } from '#server/message.ts';
-import type { WebAppMessage } from '#server/webAppCore.ts';
 
 export function counterActor(
-  sendToWebApp: (message: WebAppMessage) => void,
+  sendToEventStream: (message: EventStreamMessage) => void,
   logger: Logger,
 ): Actor<CounterMessage> {
   const counter = createActor({
     initial: initialCounterCoreContext,
     step: counterStep,
-    interpret: sendToWebApp,
+    interpret: sendToEventStream,
     logger,
   });
 

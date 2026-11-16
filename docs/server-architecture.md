@@ -1,7 +1,7 @@
 # Server architecture
 
 The server is a functional core in an imperative shell.
-Two actors divide it: the web app and the counter.
+Three actors divide it: the REST handler, the event stream and the counter.
 
 ## Actors
 
@@ -33,7 +33,7 @@ Such a message is data that says what the shell must do.
 
 An enum of each actor holds the tags of its messages, for example `CounterMessageType`.
 The prefix of the tag of an actor message names its recipient.
-`counter/tickRequested` goes to the counter, and `webApp/broadcastAction` goes to the web app.
+`counter/tickRequested` goes to the counter, and `eventStream/broadcastAction` goes to the event stream.
 The prefix `shell/` names the shell of the sender.
 The shell therefore routes an outbound message by its tag alone.
 An action of the game is payload inside a message.
@@ -41,6 +41,8 @@ It is never a message itself.
 
 An inbound message can carry a shell context that is not data, for example the response to an HTTP request.
 The shell context stays in the shell.
+An actor never sends it to another actor, because a mutable resource that two actors hold has no single owner.
+The actor that owns a resource therefore takes the request for it directly.
 The core never sees it.
 
 ## Logging
@@ -52,11 +54,13 @@ A log entry therefore needs no code of its own, and the levels are part of what 
 
 ## The actors and their messages
 
-The web app owns the HTTP routes and the event streams.
+The REST handler owns the HTTP routes of plain requests.
 It answers a ping.
-A stream request makes a pending stream, and the web app asks the counter for the history.
+
+The event stream owns the route that opens an event stream, and the open event streams.
+A stream request makes a pending stream, and the event stream asks the counter for the history.
 The history response makes the stream active.
-The counter sends each new action to the web app, which broadcasts it to the active streams.
+The counter sends each new action to the event stream, which broadcasts it to the active streams.
 
 The counter owns the action history.
 Its shell holds the timer, which sends it a tick request.

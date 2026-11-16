@@ -1,6 +1,9 @@
 import type { Step } from '#server/actor.ts';
+import {
+  type EventStreamMessage,
+  EventStreamMessageType,
+} from '#server/eventStreamCore.ts';
 import { LogLevel, type MessageBase } from '#server/message.ts';
-import { type WebAppMessage, WebAppMessageType } from '#server/webAppCore.ts';
 
 export enum CounterMessageType {
   TickRequested = 'counter/tickRequested',
@@ -34,7 +37,7 @@ export function counterValue(history: readonly CounterAction[]): number {
 export function counterStep(
   coreContext: CounterCoreContext,
   inboundMessage: CounterMessage,
-): Step<WebAppMessage, CounterCoreContext> {
+): Step<EventStreamMessage, CounterCoreContext> {
   switch (inboundMessage.type) {
     case CounterMessageType.TickRequested: {
       const action: CounterAction = {
@@ -45,7 +48,7 @@ export function counterStep(
         coreContext: { history: [...coreContext.history, action] },
         outboundMessages: [
           {
-            type: WebAppMessageType.BroadcastAction,
+            type: EventStreamMessageType.BroadcastAction,
             logLevel: LogLevel.Info,
             action,
           },
@@ -57,7 +60,7 @@ export function counterStep(
         coreContext,
         outboundMessages: [
           {
-            type: WebAppMessageType.HistoryResponse,
+            type: EventStreamMessageType.HistoryResponse,
             logLevel: LogLevel.Debug,
             streamId: inboundMessage.streamId,
             history: coreContext.history,

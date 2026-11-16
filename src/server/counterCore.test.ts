@@ -6,8 +6,8 @@ import {
   counterValue,
   initialCounterCoreContext,
 } from '#server/counterCore.ts';
+import { EventStreamMessageType } from '#server/eventStreamCore.ts';
 import { LogLevel } from '#server/message.ts';
-import { WebAppMessageType } from '#server/webAppCore.ts';
 
 const one: CounterAction = { type: 'counter/tick', totalCount: 1 };
 const two: CounterAction = { type: 'counter/tick', totalCount: 2 };
@@ -33,7 +33,7 @@ describe('counterStep', () => {
       coreContext: { history: [one, two] },
       outboundMessages: [
         {
-          type: WebAppMessageType.BroadcastAction,
+          type: EventStreamMessageType.BroadcastAction,
           logLevel: LogLevel.Info,
           action: two,
         },
@@ -62,7 +62,7 @@ describe('counterStep', () => {
       coreContext,
       outboundMessages: [
         {
-          type: WebAppMessageType.HistoryResponse,
+          type: EventStreamMessageType.HistoryResponse,
           logLevel: LogLevel.Debug,
           streamId: 3,
           history: [one, two],

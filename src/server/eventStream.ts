@@ -6,30 +6,30 @@ import {
   type CounterMessage,
   CounterMessageType,
 } from '#server/counterCore.ts';
+import {
+  type EventStreamMessage,
+  EventStreamMessageType,
+  EventStreamShellMessageType,
+  eventStreamStep,
+  initialEventStreamCoreContext,
+} from '#server/eventStreamCore.ts';
 import { LogLevel } from '#server/message.ts';
 import { requireValue } from '#server/requireValue.ts';
-import {
-  initialWebAppCoreContext,
-  type WebAppMessage,
-  WebAppMessageType,
-  WebAppShellMessageType,
-  webAppStep,
-} from '#server/webAppCore.ts';
 
-export interface WebApp {
-  readonly actor: Actor<WebAppMessage, Response>;
+export interface EventStream {
+  readonly actor: Actor<EventStreamMessage, Response>;
   readonly router: Router;
 }
 
-export function webAppActor(
+export function eventStreamActor(
   sendToCounter: (message: CounterMessage) => void,
   logger: Logger,
-): WebApp {
+): EventStream {
   const streams = new Map<number, Response>();
 
   const actor = createActor({
-    initial: initialWebAppCoreContext,
-    step: webAppStep,
+    initial: initialEventStreamCoreContext,
+    step: eventStreamStep,
     interpret(outboundMessage, response: Response | undefined) {
       switch (outboundMessage.type) {
         case CounterMessageType.TickRequested:
@@ -37,19 +37,18 @@ export function webAppActor(
           sendToCounter(outboundMessage);
           return;
 
-        case WebAppShellMessageType.Pong:
-          requireResponse(response).json({ message: 'pong' });
+        case EventStreamShellMessageType.StreamOpen:
+          openStream(
+            outboundMessage.streamId,
+            requireValue(response, 'the inbound message carries no response'),
+          );
           return;
 
-        case WebAppShellMessageType.StreamOpen:
-          openStream(outboundMessage.streamId, requireResponse(response));
-          return;
-
-        case WebAppShellMessageType.StreamWrite:
+        case EventStreamShellMessageType.StreamWrite:
           writeActions(outboundMessage.streamId, outboundMessage.actions);
           return;
 
-        case WebAppShellMessageType.StreamClose:
+        case EventStreamShellMessageType.StreamClose:
           streams.delete(outboundMessage.streamId);
           return;
       }
@@ -60,7 +59,7 @@ export function webAppActor(
   function openStream(streamId: number, stream: Response): void {
     stream.on('close', () =>
       actor.send({
-        type: WebAppMessageType.StreamClosed,
+        type: EventStreamMessageType.StreamClosed,
         logLevel: LogLevel.Debug,
         streamId,
       }),
@@ -85,26 +84,15 @@ export function webAppActor(
     stream.write(`data: ${JSON.stringify(actions)}\n\n`);
   }
 
-  return { actor, router: webAppRouter(actor) };
-}
-
-function webAppRouter(actor: Actor<WebAppMessage, Response>): Router {
   const router = Router();
-  router.get('/ping', (_request, response) => {
-    actor.send(
-      { type: WebAppMessageType.Ping, logLevel: LogLevel.Debug },
-      response,
-    );
-  });
   router.get('/counter/events', (_request, response) => {
     actor.send(
-      { type: WebAppMessageType.StreamRequested, logLevel: LogLevel.Debug },
+      {
+        type: EventStreamMessageType.StreamRequested,
+        logLevel: LogLevel.Debug,
+      },
       response,
     );
   });
-  return router;
-}
-
-function requireResponse(response: Response | undefined): Response {
-  return requireValue(response, 'the inbound message carries no response');
+  return { actor, router };
 }

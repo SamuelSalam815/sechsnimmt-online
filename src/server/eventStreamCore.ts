@@ -6,82 +6,70 @@ import {
 } from '#server/counterCore.ts';
 import { LogLevel, type MessageBase } from '#server/message.ts';
 
-export enum WebAppMessageType {
-  Ping = 'webApp/ping',
-  HistoryResponse = 'webApp/historyResponse',
-  BroadcastAction = 'webApp/broadcastAction',
-  StreamRequested = 'webApp/streamRequested',
-  StreamClosed = 'webApp/streamClosed',
+export enum EventStreamMessageType {
+  StreamRequested = 'eventStream/streamRequested',
+  HistoryResponse = 'eventStream/historyResponse',
+  BroadcastAction = 'eventStream/broadcastAction',
+  StreamClosed = 'eventStream/streamClosed',
 }
 
-export enum WebAppShellMessageType {
-  Pong = 'shell/pong',
-  StreamWrite = 'shell/streamWrite',
+export enum EventStreamShellMessageType {
   StreamOpen = 'shell/streamOpen',
+  StreamWrite = 'shell/streamWrite',
   StreamClose = 'shell/streamClose',
 }
 
-export interface WebAppCoreContext {
+export interface EventStreamCoreContext {
   readonly nextStreamId: number;
   readonly streams: ReadonlyMap<number, 'pending' | 'active'>;
 }
 
-export type WebAppMessage = MessageBase &
+export type EventStreamMessage = MessageBase &
   (
-    | { readonly type: WebAppMessageType.Ping }
-    | { readonly type: WebAppMessageType.StreamRequested }
+    | { readonly type: EventStreamMessageType.StreamRequested }
     | {
-        readonly type: WebAppMessageType.HistoryResponse;
+        readonly type: EventStreamMessageType.HistoryResponse;
         readonly streamId: number;
         readonly history: readonly CounterAction[];
       }
     | {
-        readonly type: WebAppMessageType.BroadcastAction;
+        readonly type: EventStreamMessageType.BroadcastAction;
         readonly action: CounterAction;
       }
     | {
-        readonly type: WebAppMessageType.StreamClosed;
+        readonly type: EventStreamMessageType.StreamClosed;
         readonly streamId: number;
       }
   );
 
-export type WebAppShellMessage = MessageBase &
+export type EventStreamShellMessage = MessageBase &
   (
-    | { readonly type: WebAppShellMessageType.Pong }
     | {
-        readonly type: WebAppShellMessageType.StreamOpen;
+        readonly type: EventStreamShellMessageType.StreamOpen;
         readonly streamId: number;
       }
     | {
-        readonly type: WebAppShellMessageType.StreamWrite;
+        readonly type: EventStreamShellMessageType.StreamWrite;
         readonly streamId: number;
         readonly actions: readonly CounterAction[];
       }
     | {
-        readonly type: WebAppShellMessageType.StreamClose;
+        readonly type: EventStreamShellMessageType.StreamClose;
         readonly streamId: number;
       }
   );
 
-export const initialWebAppCoreContext: WebAppCoreContext = {
+export const initialEventStreamCoreContext: EventStreamCoreContext = {
   nextStreamId: 0,
   streams: new Map(),
 };
 
-export function webAppStep(
-  coreContext: WebAppCoreContext,
-  inboundMessage: WebAppMessage,
-): Step<CounterMessage | WebAppShellMessage, WebAppCoreContext> {
+export function eventStreamStep(
+  coreContext: EventStreamCoreContext,
+  inboundMessage: EventStreamMessage,
+): Step<CounterMessage | EventStreamShellMessage, EventStreamCoreContext> {
   switch (inboundMessage.type) {
-    case WebAppMessageType.Ping:
-      return {
-        coreContext,
-        outboundMessages: [
-          { type: WebAppShellMessageType.Pong, logLevel: LogLevel.Debug },
-        ],
-      };
-
-    case WebAppMessageType.StreamRequested: {
+    case EventStreamMessageType.StreamRequested: {
       const streamId = coreContext.nextStreamId;
       return {
         coreContext: {
@@ -90,7 +78,7 @@ export function webAppStep(
         },
         outboundMessages: [
           {
-            type: WebAppShellMessageType.StreamOpen,
+            type: EventStreamShellMessageType.StreamOpen,
             logLevel: LogLevel.Info,
             streamId,
           },
@@ -103,7 +91,7 @@ export function webAppStep(
       };
     }
 
-    case WebAppMessageType.HistoryResponse: {
+    case EventStreamMessageType.HistoryResponse: {
       const { streamId, history } = inboundMessage;
       // The stream can close before its history arrives.
       if (coreContext.streams.get(streamId) !== 'pending') {
@@ -116,7 +104,7 @@ export function webAppStep(
         },
         outboundMessages: [
           {
-            type: WebAppShellMessageType.StreamWrite,
+            type: EventStreamShellMessageType.StreamWrite,
             logLevel: LogLevel.Debug,
             streamId,
             actions: history,
@@ -125,14 +113,14 @@ export function webAppStep(
       };
     }
 
-    case WebAppMessageType.BroadcastAction: {
+    case EventStreamMessageType.BroadcastAction: {
       // Mailboxes keep their order. An action that reaches a pending
       // stream is therefore already in the history that it waits for.
-      const outboundMessages: WebAppShellMessage[] = [];
+      const outboundMessages: EventStreamShellMessage[] = [];
       for (const [streamId, status] of coreContext.streams) {
         if (status === 'active') {
           outboundMessages.push({
-            type: WebAppShellMessageType.StreamWrite,
+            type: EventStreamShellMessageType.StreamWrite,
             logLevel: LogLevel.Debug,
             streamId,
             actions: [inboundMessage.action],
@@ -142,7 +130,7 @@ export function webAppStep(
       return { coreContext, outboundMessages };
     }
 
-    case WebAppMessageType.StreamClosed: {
+    case EventStreamMessageType.StreamClosed: {
       const { streamId } = inboundMessage;
       if (!coreContext.streams.has(streamId)) {
         return { coreContext, outboundMessages: [] };
@@ -153,7 +141,7 @@ export function webAppStep(
         coreContext: { ...coreContext, streams },
         outboundMessages: [
           {
-            type: WebAppShellMessageType.StreamClose,
+            type: EventStreamShellMessageType.StreamClose,
             logLevel: LogLevel.Info,
             streamId,
           },

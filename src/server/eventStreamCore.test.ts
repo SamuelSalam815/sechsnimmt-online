@@ -1,42 +1,27 @@
 import { describe, expect, test } from 'vitest';
 import { type CounterAction, CounterMessageType } from '#server/counterCore.ts';
-import { LogLevel } from '#server/message.ts';
 import {
-  initialWebAppCoreContext,
-  type WebAppCoreContext,
-  WebAppMessageType,
-  WebAppShellMessageType,
-  webAppStep,
-} from '#server/webAppCore.ts';
+  type EventStreamCoreContext,
+  EventStreamMessageType,
+  EventStreamShellMessageType,
+  eventStreamStep,
+} from '#server/eventStreamCore.ts';
+import { LogLevel } from '#server/message.ts';
 
 const one: CounterAction = { type: 'counter/tick', totalCount: 1 };
 const two: CounterAction = { type: 'counter/tick', totalCount: 2 };
 
 function coreContextWith(
   streams: [number, 'pending' | 'active'][],
-): WebAppCoreContext {
+): EventStreamCoreContext {
   return { nextStreamId: 5, streams: new Map(streams) };
 }
 
-describe('webAppStep', () => {
-  test('a ping gets a pong', () => {
-    expect(
-      webAppStep(initialWebAppCoreContext, {
-        type: WebAppMessageType.Ping,
-        logLevel: LogLevel.Debug,
-      }),
-    ).toEqual({
-      coreContext: initialWebAppCoreContext,
-      outboundMessages: [
-        { type: WebAppShellMessageType.Pong, logLevel: LogLevel.Debug },
-      ],
-    });
-  });
-
+describe('eventStreamStep', () => {
   test('a stream request accepts a pending stream under the next ID and asks the counter for its history', () => {
     expect(
-      webAppStep(coreContextWith([]), {
-        type: WebAppMessageType.StreamRequested,
+      eventStreamStep(coreContextWith([]), {
+        type: EventStreamMessageType.StreamRequested,
         logLevel: LogLevel.Debug,
       }),
     ).toEqual({
@@ -46,7 +31,7 @@ describe('webAppStep', () => {
       },
       outboundMessages: [
         {
-          type: WebAppShellMessageType.StreamOpen,
+          type: EventStreamShellMessageType.StreamOpen,
           logLevel: LogLevel.Info,
           streamId: 5,
         },
@@ -61,8 +46,8 @@ describe('webAppStep', () => {
 
   test('a history response activates the stream and writes the history to it', () => {
     expect(
-      webAppStep(coreContextWith([[1, 'pending']]), {
-        type: WebAppMessageType.HistoryResponse,
+      eventStreamStep(coreContextWith([[1, 'pending']]), {
+        type: EventStreamMessageType.HistoryResponse,
         logLevel: LogLevel.Debug,
         streamId: 1,
         history: [one, two],
@@ -71,7 +56,7 @@ describe('webAppStep', () => {
       coreContext: coreContextWith([[1, 'active']]),
       outboundMessages: [
         {
-          type: WebAppShellMessageType.StreamWrite,
+          type: EventStreamShellMessageType.StreamWrite,
           logLevel: LogLevel.Debug,
           streamId: 1,
           actions: [one, two],
@@ -83,8 +68,8 @@ describe('webAppStep', () => {
   test('a history for a stream that has closed changes nothing', () => {
     const coreContext = coreContextWith([]);
     expect(
-      webAppStep(coreContext, {
-        type: WebAppMessageType.HistoryResponse,
+      eventStreamStep(coreContext, {
+        type: EventStreamMessageType.HistoryResponse,
         logLevel: LogLevel.Debug,
         streamId: 1,
         history: [one],
@@ -99,8 +84,8 @@ describe('webAppStep', () => {
       [3, 'active'],
     ]);
     expect(
-      webAppStep(coreContext, {
-        type: WebAppMessageType.BroadcastAction,
+      eventStreamStep(coreContext, {
+        type: EventStreamMessageType.BroadcastAction,
         logLevel: LogLevel.Info,
         action: two,
       }),
@@ -108,13 +93,13 @@ describe('webAppStep', () => {
       coreContext,
       outboundMessages: [
         {
-          type: WebAppShellMessageType.StreamWrite,
+          type: EventStreamShellMessageType.StreamWrite,
           logLevel: LogLevel.Debug,
           streamId: 1,
           actions: [two],
         },
         {
-          type: WebAppShellMessageType.StreamWrite,
+          type: EventStreamShellMessageType.StreamWrite,
           logLevel: LogLevel.Debug,
           streamId: 3,
           actions: [two],
@@ -125,13 +110,13 @@ describe('webAppStep', () => {
 
   test('a closed stream is removed and released', () => {
     expect(
-      webAppStep(
+      eventStreamStep(
         coreContextWith([
           [1, 'active'],
           [2, 'pending'],
         ]),
         {
-          type: WebAppMessageType.StreamClosed,
+          type: EventStreamMessageType.StreamClosed,
           logLevel: LogLevel.Debug,
           streamId: 1,
         },
@@ -140,7 +125,7 @@ describe('webAppStep', () => {
       coreContext: coreContextWith([[2, 'pending']]),
       outboundMessages: [
         {
-          type: WebAppShellMessageType.StreamClose,
+          type: EventStreamShellMessageType.StreamClose,
           logLevel: LogLevel.Info,
           streamId: 1,
         },
@@ -151,8 +136,8 @@ describe('webAppStep', () => {
   test('a second close of the same stream changes nothing', () => {
     const coreContext = coreContextWith([]);
     expect(
-      webAppStep(coreContext, {
-        type: WebAppMessageType.StreamClosed,
+      eventStreamStep(coreContext, {
+        type: EventStreamMessageType.StreamClosed,
         logLevel: LogLevel.Debug,
         streamId: 1,
       }),
