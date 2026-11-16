@@ -47,3 +47,10 @@
 
 - Accept the changes that the formatter (`npm run format`) makes. Do not revert them.
 - If the formatter changes files that are not related to the current work, commit those changes in a separate commit.
+
+## Logging
+
+- When you add a message that enters the actors from outside, for example
+  from an HTTP request, a stream event or a timer, also log it as received:
+  send it with `sendFromOutside`, not `send`. A message between actors is
+  logged by its sender already, so a second entry for it is a duplicate.
