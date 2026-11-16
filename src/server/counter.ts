@@ -1,23 +1,24 @@
-import { Router } from 'express';
-import { EventStream } from '#server/eventStream.ts';
-import type { Logger } from '#server/logger.ts';
+import { type Actor, createActor } from '#server/actor.ts';
+import {
+  type CounterMessage,
+  counterStep,
+  initialCounterCoreContext,
+} from '#server/counterCore.ts';
+import type { LoggerMessage } from '#server/loggerCore.ts';
+import type { WebAppMessage } from '#server/webAppCore.ts';
 
-export function counterRouter(logger: Logger): Router {
-  let counter = 0;
-  const events = new EventStream(logger);
-
-  setInterval(() => {
-    counter += 1;
-    events.broadcast(String(counter));
-    logger.info(
-      { counter, subscribers: events.subscriberCount },
-      'counter advanced',
-    );
-  }, 10_000);
-
-  const router = Router();
-  router.get('/events', (request, response) => {
-    events.open(request, response, String(counter));
+export function counterActor(
+  sendToWebApp: (message: WebAppMessage) => void,
+  logger: Actor<LoggerMessage>,
+): Actor<CounterMessage> {
+  const counter = createActor({
+    initial: initialCounterCoreContext,
+    step: counterStep,
+    interpret: sendToWebApp,
+    observe: (inboundMessage, outboundMessages) =>
+      logger.send({ type: 'logger/stepped', inboundMessage, outboundMessages }),
   });
-  return router;
+
+  setInterval(() => counter.send({ type: 'counter/tick' }), 10_000);
+  return counter;
 }
