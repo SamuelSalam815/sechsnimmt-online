@@ -2,10 +2,12 @@ import { type Response, Router } from 'express';
 import type { Logger } from 'pino';
 import { type Actor, createActor } from '#server/actor.ts';
 import {
+  type CounterAction,
   type CounterMessage,
   CounterMessageType,
 } from '#server/counterCore.ts';
 import { LogLevel } from '#server/message.ts';
+import { requireValue } from '#server/requireValue.ts';
 import {
   initialWebAppCoreContext,
   type WebAppMessage,
@@ -39,43 +41,16 @@ export function webAppActor(
           requireResponse(response).json({ message: 'pong' });
           return;
 
-        case WebAppShellMessageType.SubscriptionOpen: {
-          const { subscriberId } = outboundMessage;
-          const connection = requireResponse(response);
-          connection.writeHead(200, {
-            'Content-Type': 'text/event-stream',
-            'Cache-Control': 'no-cache',
-            Connection: 'keep-alive',
-          });
-          connections.set(subscriberId, connection);
-          // The acceptance runs in a microtask of the task that received the
-          // request. A close needs the event loop, so it cannot fire before
-          // this listener exists.
-          connection.on('close', () =>
-            actor.send({
-              type: WebAppMessageType.ConnectionClosed,
-              logLevel: LogLevel.Debug,
-              subscriberId,
-            }),
+        case WebAppShellMessageType.SubscriptionOpen:
+          openSubscription(
+            outboundMessage.subscriberId,
+            requireResponse(response),
           );
           return;
-        }
 
-        case WebAppShellMessageType.Write: {
-          const { subscriberId } = outboundMessage;
-          const connection = connections.get(subscriberId);
-          if (connection === undefined) {
-            logger.error(
-              { subscriberId },
-              'a write found no connection for its subscriber',
-            );
-            return;
-          }
-          for (const action of outboundMessage.actions) {
-            connection.write(`data: ${JSON.stringify(action)}\n\n`);
-          }
+        case WebAppShellMessageType.Write:
+          writeActions(outboundMessage.subscriberId, outboundMessage.actions);
           return;
-        }
 
         case WebAppShellMessageType.SubscriptionClose:
           connections.delete(outboundMessage.subscriberId);
@@ -85,6 +60,43 @@ export function webAppActor(
     logger,
   });
 
+  function openSubscription(subscriberId: number, connection: Response): void {
+    connection.on('close', () =>
+      actor.send({
+        type: WebAppMessageType.ConnectionClosed,
+        logLevel: LogLevel.Debug,
+        subscriberId,
+      }),
+    );
+    connections.set(subscriberId, connection);
+    connection.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    });
+  }
+
+  function writeActions(
+    subscriberId: number,
+    actions: readonly CounterAction[],
+  ): void {
+    const connection = connections.get(subscriberId);
+    if (connection === undefined) {
+      logger.error(
+        { subscriberId },
+        'a write found no connection for its subscriber',
+      );
+      return;
+    }
+    for (const action of actions) {
+      connection.write(`data: ${JSON.stringify(action)}\n\n`);
+    }
+  }
+
+  return { actor, router: webAppRouter(actor) };
+}
+
+function webAppRouter(actor: Actor<WebAppMessage, Response>): Router {
   const router = Router();
   router.get('/ping', (_request, response) => {
     actor.send(
@@ -98,13 +110,9 @@ export function webAppActor(
       response,
     );
   });
-
-  return { actor, router };
+  return router;
 }
 
 function requireResponse(response: Response | undefined): Response {
-  if (response === undefined) {
-    throw new Error('the inbound message carries no response');
-  }
-  return response;
+  return requireValue(response, 'the inbound message carries no response');
 }
