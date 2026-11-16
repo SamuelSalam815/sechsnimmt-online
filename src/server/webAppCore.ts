@@ -1,6 +1,25 @@
 import type { Step } from '#server/actor.ts';
-import type { CounterAdvanced, CounterMessage } from '#server/counterCore.ts';
+import {
+  type CounterAction,
+  type CounterMessage,
+  CounterMessageType,
+} from '#server/counterCore.ts';
 import { LogLevel, type MessageBase } from '#server/message.ts';
+
+export enum WebAppMessageType {
+  Ping = 'webApp/ping',
+  HistoryResponse = 'webApp/historyResponse',
+  BroadcastAction = 'webApp/broadcastAction',
+  ConnectionRequested = 'webApp/connectionRequested',
+  ConnectionClosed = 'webApp/connectionClosed',
+}
+
+export enum WebAppShellMessageType {
+  Pong = 'shell/pong',
+  Write = 'shell/write',
+  SubscriptionOpen = 'shell/subscriptionOpen',
+  SubscriptionClose = 'shell/subscriptionClose',
+}
 
 export interface WebAppCoreContext {
   readonly nextSubscriberId: number;
@@ -9,31 +28,37 @@ export interface WebAppCoreContext {
 
 export type WebAppMessage = MessageBase &
   (
-    | { readonly type: 'webApp/ping' }
-    | { readonly type: 'webApp/requestSubscription' }
+    | { readonly type: WebAppMessageType.Ping }
+    | { readonly type: WebAppMessageType.ConnectionRequested }
     | {
-        readonly type: 'webApp/historyDelivered';
+        readonly type: WebAppMessageType.HistoryResponse;
         readonly subscriberId: number;
-        readonly history: readonly CounterAdvanced[];
+        readonly history: readonly CounterAction[];
       }
-    | { readonly type: 'webApp/fanOutAction'; readonly action: CounterAdvanced }
     | {
-        readonly type: 'webApp/connectionClosed';
+        readonly type: WebAppMessageType.BroadcastAction;
+        readonly action: CounterAction;
+      }
+    | {
+        readonly type: WebAppMessageType.ConnectionClosed;
         readonly subscriberId: number;
       }
   );
 
 export type WebAppShellMessage = MessageBase &
   (
-    | { readonly type: 'shell/pong' }
-    | { readonly type: 'shell/subscriptionOpen'; readonly subscriberId: number }
+    | { readonly type: WebAppShellMessageType.Pong }
     | {
-        readonly type: 'shell/write';
+        readonly type: WebAppShellMessageType.SubscriptionOpen;
         readonly subscriberId: number;
-        readonly actions: readonly CounterAdvanced[];
       }
     | {
-        readonly type: 'shell/subscriptionClose';
+        readonly type: WebAppShellMessageType.Write;
+        readonly subscriberId: number;
+        readonly actions: readonly CounterAction[];
+      }
+    | {
+        readonly type: WebAppShellMessageType.SubscriptionClose;
         readonly subscriberId: number;
       }
   );
@@ -48,13 +73,15 @@ export function webAppStep(
   inboundMessage: WebAppMessage,
 ): Step<CounterMessage | WebAppShellMessage, WebAppCoreContext> {
   switch (inboundMessage.type) {
-    case 'webApp/ping':
+    case WebAppMessageType.Ping:
       return {
         coreContext,
-        outboundMessages: [{ type: 'shell/pong', logLevel: LogLevel.Debug }],
+        outboundMessages: [
+          { type: WebAppShellMessageType.Pong, logLevel: LogLevel.Debug },
+        ],
       };
 
-    case 'webApp/requestSubscription': {
+    case WebAppMessageType.ConnectionRequested: {
       const subscriberId = coreContext.nextSubscriberId;
       return {
         coreContext: {
@@ -66,12 +93,12 @@ export function webAppStep(
         },
         outboundMessages: [
           {
-            type: 'shell/subscriptionOpen',
+            type: WebAppShellMessageType.SubscriptionOpen,
             logLevel: LogLevel.Info,
             subscriberId,
           },
           {
-            type: 'counter/historyRequested',
+            type: CounterMessageType.HistoryRequested,
             logLevel: LogLevel.Debug,
             subscriberId,
           },
@@ -79,7 +106,7 @@ export function webAppStep(
       };
     }
 
-    case 'webApp/historyDelivered': {
+    case WebAppMessageType.HistoryResponse: {
       const { subscriberId, history } = inboundMessage;
       // The subscriber can close before its history arrives.
       if (coreContext.subscribers.get(subscriberId) !== 'pending') {
@@ -95,7 +122,7 @@ export function webAppStep(
         },
         outboundMessages: [
           {
-            type: 'shell/write',
+            type: WebAppShellMessageType.Write,
             logLevel: LogLevel.Debug,
             subscriberId,
             actions: history,
@@ -104,14 +131,14 @@ export function webAppStep(
       };
     }
 
-    case 'webApp/fanOutAction': {
+    case WebAppMessageType.BroadcastAction: {
       // Mailboxes keep their order. An action that reaches a pending
       // subscriber is therefore already in the history that it waits for.
       const outboundMessages: WebAppShellMessage[] = [];
       for (const [subscriberId, status] of coreContext.subscribers) {
         if (status === 'active') {
           outboundMessages.push({
-            type: 'shell/write',
+            type: WebAppShellMessageType.Write,
             logLevel: LogLevel.Debug,
             subscriberId,
             actions: [inboundMessage.action],
@@ -121,7 +148,7 @@ export function webAppStep(
       return { coreContext, outboundMessages };
     }
 
-    case 'webApp/connectionClosed': {
+    case WebAppMessageType.ConnectionClosed: {
       const { subscriberId } = inboundMessage;
       if (!coreContext.subscribers.has(subscriberId)) {
         return { coreContext, outboundMessages: [] };
@@ -132,7 +159,7 @@ export function webAppStep(
         coreContext: { ...coreContext, subscribers },
         outboundMessages: [
           {
-            type: 'shell/subscriptionClose',
+            type: WebAppShellMessageType.SubscriptionClose,
             logLevel: LogLevel.Info,
             subscriberId,
           },

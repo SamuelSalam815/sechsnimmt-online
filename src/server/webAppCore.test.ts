@@ -1,14 +1,16 @@
 import { describe, expect, test } from 'vitest';
-import type { CounterAdvanced } from '#server/counterCore.ts';
+import { type CounterAction, CounterMessageType } from '#server/counterCore.ts';
 import { LogLevel } from '#server/message.ts';
 import {
   initialWebAppCoreContext,
   type WebAppCoreContext,
+  WebAppMessageType,
+  WebAppShellMessageType,
   webAppStep,
 } from '#server/webAppCore.ts';
 
-const one: CounterAdvanced = { type: 'counter/advanced', value: 1 };
-const two: CounterAdvanced = { type: 'counter/advanced', value: 2 };
+const one: CounterAction = { type: 'counter/tick', totalCount: 1 };
+const two: CounterAction = { type: 'counter/tick', totalCount: 2 };
 
 function coreContextWith(
   subscribers: [number, 'pending' | 'active'][],
@@ -20,19 +22,21 @@ describe('webAppStep', () => {
   test('a ping gets a pong', () => {
     expect(
       webAppStep(initialWebAppCoreContext, {
-        type: 'webApp/ping',
+        type: WebAppMessageType.Ping,
         logLevel: LogLevel.Debug,
       }),
     ).toEqual({
       coreContext: initialWebAppCoreContext,
-      outboundMessages: [{ type: 'shell/pong', logLevel: LogLevel.Debug }],
+      outboundMessages: [
+        { type: WebAppShellMessageType.Pong, logLevel: LogLevel.Debug },
+      ],
     });
   });
 
-  test('a subscription request accepts a pending subscriber under the next ID and asks the counter for its history', () => {
+  test('a connection request accepts a pending subscriber under the next ID and asks the counter for its history', () => {
     expect(
       webAppStep(coreContextWith([]), {
-        type: 'webApp/requestSubscription',
+        type: WebAppMessageType.ConnectionRequested,
         logLevel: LogLevel.Debug,
       }),
     ).toEqual({
@@ -42,12 +46,12 @@ describe('webAppStep', () => {
       },
       outboundMessages: [
         {
-          type: 'shell/subscriptionOpen',
+          type: WebAppShellMessageType.SubscriptionOpen,
           logLevel: LogLevel.Info,
           subscriberId: 5,
         },
         {
-          type: 'counter/historyRequested',
+          type: CounterMessageType.HistoryRequested,
           logLevel: LogLevel.Debug,
           subscriberId: 5,
         },
@@ -55,10 +59,10 @@ describe('webAppStep', () => {
     });
   });
 
-  test('a delivered history activates the subscriber and writes the history to it', () => {
+  test('a history response activates the subscriber and writes the history to it', () => {
     expect(
       webAppStep(coreContextWith([[1, 'pending']]), {
-        type: 'webApp/historyDelivered',
+        type: WebAppMessageType.HistoryResponse,
         logLevel: LogLevel.Debug,
         subscriberId: 1,
         history: [one, two],
@@ -67,7 +71,7 @@ describe('webAppStep', () => {
       coreContext: coreContextWith([[1, 'active']]),
       outboundMessages: [
         {
-          type: 'shell/write',
+          type: WebAppShellMessageType.Write,
           logLevel: LogLevel.Debug,
           subscriberId: 1,
           actions: [one, two],
@@ -80,7 +84,7 @@ describe('webAppStep', () => {
     const coreContext = coreContextWith([]);
     expect(
       webAppStep(coreContext, {
-        type: 'webApp/historyDelivered',
+        type: WebAppMessageType.HistoryResponse,
         logLevel: LogLevel.Debug,
         subscriberId: 1,
         history: [one],
@@ -88,7 +92,7 @@ describe('webAppStep', () => {
     ).toEqual({ coreContext, outboundMessages: [] });
   });
 
-  test('a fanned out action goes to the active subscribers only', () => {
+  test('a broadcast action goes to the active subscribers only', () => {
     const coreContext = coreContextWith([
       [1, 'active'],
       [2, 'pending'],
@@ -96,7 +100,7 @@ describe('webAppStep', () => {
     ]);
     expect(
       webAppStep(coreContext, {
-        type: 'webApp/fanOutAction',
+        type: WebAppMessageType.BroadcastAction,
         logLevel: LogLevel.Info,
         action: two,
       }),
@@ -104,13 +108,13 @@ describe('webAppStep', () => {
       coreContext,
       outboundMessages: [
         {
-          type: 'shell/write',
+          type: WebAppShellMessageType.Write,
           logLevel: LogLevel.Debug,
           subscriberId: 1,
           actions: [two],
         },
         {
-          type: 'shell/write',
+          type: WebAppShellMessageType.Write,
           logLevel: LogLevel.Debug,
           subscriberId: 3,
           actions: [two],
@@ -127,7 +131,7 @@ describe('webAppStep', () => {
           [2, 'pending'],
         ]),
         {
-          type: 'webApp/connectionClosed',
+          type: WebAppMessageType.ConnectionClosed,
           logLevel: LogLevel.Debug,
           subscriberId: 1,
         },
@@ -136,7 +140,7 @@ describe('webAppStep', () => {
       coreContext: coreContextWith([[2, 'pending']]),
       outboundMessages: [
         {
-          type: 'shell/subscriptionClose',
+          type: WebAppShellMessageType.SubscriptionClose,
           logLevel: LogLevel.Info,
           subscriberId: 1,
         },
@@ -148,7 +152,7 @@ describe('webAppStep', () => {
     const coreContext = coreContextWith([]);
     expect(
       webAppStep(coreContext, {
-        type: 'webApp/connectionClosed',
+        type: WebAppMessageType.ConnectionClosed,
         logLevel: LogLevel.Debug,
         subscriberId: 1,
       }),

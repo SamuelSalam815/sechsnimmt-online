@@ -2,6 +2,7 @@ import type { Logger } from 'pino';
 import { type Actor, createActor } from '#server/actor.ts';
 import {
   type CounterMessage,
+  CounterMessageType,
   counterStep,
   initialCounterCoreContext,
 } from '#server/counterCore.ts';
@@ -20,7 +21,11 @@ export function counterActor(
   });
 
   setInterval(
-    () => counter.send({ type: 'counter/tick', logLevel: LogLevel.Debug }),
+    () =>
+      counter.send({
+        type: CounterMessageType.TickRequested,
+        logLevel: LogLevel.Debug,
+      }),
     10_000,
   );
   return counter;

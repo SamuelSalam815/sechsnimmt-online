@@ -1,11 +1,16 @@
 import { type Response, Router } from 'express';
 import type { Logger } from 'pino';
 import { type Actor, createActor } from '#server/actor.ts';
-import type { CounterMessage } from '#server/counterCore.ts';
+import {
+  type CounterMessage,
+  CounterMessageType,
+} from '#server/counterCore.ts';
 import { LogLevel } from '#server/message.ts';
 import {
   initialWebAppCoreContext,
   type WebAppMessage,
+  WebAppMessageType,
+  WebAppShellMessageType,
   webAppStep,
 } from '#server/webAppCore.ts';
 
@@ -25,16 +30,16 @@ export function webAppActor(
     step: webAppStep,
     interpret(outboundMessage, response: Response | undefined) {
       switch (outboundMessage.type) {
-        case 'counter/tick':
-        case 'counter/historyRequested':
+        case CounterMessageType.TickRequested:
+        case CounterMessageType.HistoryRequested:
           sendToCounter(outboundMessage);
           return;
 
-        case 'shell/pong':
+        case WebAppShellMessageType.Pong:
           requireResponse(response).json({ message: 'pong' });
           return;
 
-        case 'shell/subscriptionOpen': {
+        case WebAppShellMessageType.SubscriptionOpen: {
           const { subscriberId } = outboundMessage;
           const connection = requireResponse(response);
           connection.writeHead(200, {
@@ -48,7 +53,7 @@ export function webAppActor(
           // this listener exists.
           connection.on('close', () =>
             actor.send({
-              type: 'webApp/connectionClosed',
+              type: WebAppMessageType.ConnectionClosed,
               logLevel: LogLevel.Debug,
               subscriberId,
             }),
@@ -56,7 +61,7 @@ export function webAppActor(
           return;
         }
 
-        case 'shell/write': {
+        case WebAppShellMessageType.Write: {
           const { subscriberId } = outboundMessage;
           const connection = connections.get(subscriberId);
           if (connection === undefined) {
@@ -72,7 +77,7 @@ export function webAppActor(
           return;
         }
 
-        case 'shell/subscriptionClose':
+        case WebAppShellMessageType.SubscriptionClose:
           connections.delete(outboundMessage.subscriberId);
           return;
       }
@@ -82,11 +87,14 @@ export function webAppActor(
 
   const router = Router();
   router.get('/ping', (_request, response) => {
-    actor.send({ type: 'webApp/ping', logLevel: LogLevel.Debug }, response);
+    actor.send(
+      { type: WebAppMessageType.Ping, logLevel: LogLevel.Debug },
+      response,
+    );
   });
   router.get('/counter/events', (_request, response) => {
     actor.send(
-      { type: 'webApp/requestSubscription', logLevel: LogLevel.Debug },
+      { type: WebAppMessageType.ConnectionRequested, logLevel: LogLevel.Debug },
       response,
     );
   });

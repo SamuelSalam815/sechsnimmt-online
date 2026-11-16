@@ -31,8 +31,9 @@ The I/O of an actor is the work of its shell.
 The shell is therefore one more recipient, with messages of its own, for example `shell/write`.
 Such a message is data that says what the shell must do.
 
-The prefix of a tag names its recipient.
-`counter/tick` goes to the counter, and `webApp/fanOutAction` goes to the web app.
+An enum of each actor holds the tags of its messages, for example `CounterMessageType`.
+The prefix of the tag of an actor message names its recipient.
+`counter/tickRequested` goes to the counter, and `webApp/broadcastAction` goes to the web app.
 The prefix `shell/` names the shell of the sender.
 The shell therefore routes an outbound message by its tag alone.
 An action of the game is payload inside a message.
@@ -53,13 +54,13 @@ A log entry therefore needs no code of its own, and the levels are part of what 
 
 The web app owns the HTTP routes and the subscribers of the event stream.
 It answers a ping.
-A subscription request makes a pending subscriber, and the web app asks the counter for the history.
-The history makes the subscriber active.
-The counter sends each new action to the web app, which fans it out to the active subscribers.
+A connection request makes a pending subscriber, and the web app asks the counter for the history.
+The history response makes the subscriber active.
+The counter sends each new action to the web app, which broadcasts it to the active subscribers.
 
 The counter owns the action history.
-Its shell holds the timer, which sends it a tick.
-The core makes the next action on a tick, and it answers a history request.
+Its shell holds the timer, which sends it a tick request.
+The core makes the next action on a tick request, and it answers a history request.
 The counter stands in for a game room.
 The actions that the request handlers of the engine emit will take the place of its actions.
 

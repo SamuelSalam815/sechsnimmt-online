@@ -1,14 +1,16 @@
 import { describe, expect, test } from 'vitest';
 import {
-  type CounterAdvanced,
+  type CounterAction,
+  CounterMessageType,
   counterStep,
   counterValue,
   initialCounterCoreContext,
 } from '#server/counterCore.ts';
 import { LogLevel } from '#server/message.ts';
+import { WebAppMessageType } from '#server/webAppCore.ts';
 
-const one: CounterAdvanced = { type: 'counter/advanced', value: 1 };
-const two: CounterAdvanced = { type: 'counter/advanced', value: 2 };
+const one: CounterAction = { type: 'counter/tick', totalCount: 1 };
+const two: CounterAction = { type: 'counter/tick', totalCount: 2 };
 
 describe('counterValue', () => {
   test('is zero before the first advance', () => {
@@ -21,24 +23,28 @@ describe('counterValue', () => {
 });
 
 describe('counterStep', () => {
-  test('a tick appends the next advance and fans it out', () => {
+  test('a tick request appends the next tick and broadcasts it', () => {
     expect(
       counterStep(
         { history: [one] },
-        { type: 'counter/tick', logLevel: LogLevel.Debug },
+        { type: CounterMessageType.TickRequested, logLevel: LogLevel.Debug },
       ),
     ).toEqual({
       coreContext: { history: [one, two] },
       outboundMessages: [
-        { type: 'webApp/fanOutAction', logLevel: LogLevel.Info, action: two },
+        {
+          type: WebAppMessageType.BroadcastAction,
+          logLevel: LogLevel.Info,
+          action: two,
+        },
       ],
     });
   });
 
-  test('the first tick advances to one', () => {
+  test('the first tick request counts to one', () => {
     expect(
       counterStep(initialCounterCoreContext, {
-        type: 'counter/tick',
+        type: CounterMessageType.TickRequested,
         logLevel: LogLevel.Debug,
       }).coreContext,
     ).toEqual({ history: [one] });
@@ -48,7 +54,7 @@ describe('counterStep', () => {
     const coreContext = { history: [one, two] };
     expect(
       counterStep(coreContext, {
-        type: 'counter/historyRequested',
+        type: CounterMessageType.HistoryRequested,
         logLevel: LogLevel.Debug,
         subscriberId: 3,
       }),
@@ -56,7 +62,7 @@ describe('counterStep', () => {
       coreContext,
       outboundMessages: [
         {
-          type: 'webApp/historyDelivered',
+          type: WebAppMessageType.HistoryResponse,
           logLevel: LogLevel.Debug,
           subscriberId: 3,
           history: [one, two],

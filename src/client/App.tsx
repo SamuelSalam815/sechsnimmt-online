@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { type CounterAdvanced, counterValue } from '#server/counterCore.ts';
+import { type CounterAction, counterValue } from '#server/counterCore.ts';
 
 export default function App() {
-  const [history, setHistory] = useState<CounterAdvanced[] | null>(null);
+  const [history, setHistory] = useState<CounterAction[] | null>(null);
 
   useEffect(() => {
     fetch('/api/ping');
@@ -14,7 +14,7 @@ export default function App() {
     // included. The replay therefore starts again from nothing.
     events.onopen = () => setHistory([]);
     events.onmessage = (event) => {
-      const action: CounterAdvanced = JSON.parse(event.data);
+      const action: CounterAction = JSON.parse(event.data);
       setHistory((earlier) => [...(earlier ?? []), action]);
     };
     return () => events.close();
