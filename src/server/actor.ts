@@ -7,7 +7,7 @@ export interface Step<OutboundMessage, CoreContext> {
 }
 
 export interface ActorDefinition<
-  InboundMessage,
+  InboundMessage extends MessageBase,
   OutboundMessage extends MessageBase,
   CoreContext,
   ShellContext,
@@ -29,10 +29,16 @@ export interface ActorDefinition<
 
 export interface Actor<InboundMessage, ShellContext = never> {
   send(inboundMessage: InboundMessage, shellContext?: ShellContext): void;
+  // The sending actor logs a message between actors, so only a message from
+  // outside the actors needs a log entry on its arrival.
+  sendFromOutside(
+    inboundMessage: InboundMessage,
+    shellContext?: ShellContext,
+  ): void;
 }
 
 export function createActor<
-  InboundMessage,
+  InboundMessage extends MessageBase,
   OutboundMessage extends MessageBase,
   CoreContext,
   ShellContext = never,
@@ -62,26 +68,39 @@ export function createActor<
     }
   }
 
+  function send(
+    inboundMessage: InboundMessage,
+    shellContext: ShellContext | undefined,
+  ) {
+    // A synchronous run would run the step of the receiver inside the
+    // interpretation of the sender. A message that the receiver sends back
+    // could then overtake one that the sender has yet to send.
+    mailboxTail = mailboxTail.then(() => run(inboundMessage, shellContext));
+  }
+
   return {
-    send(inboundMessage, shellContext) {
-      // A synchronous run would run the step of the receiver inside the
-      // interpretation of the sender. A message that the receiver sends back
-      // could then overtake one that the sender has yet to send.
-      mailboxTail = mailboxTail.then(() => run(inboundMessage, shellContext));
+    send,
+    sendFromOutside(inboundMessage, shellContext) {
+      logAtItsLevel(logger, inboundMessage, 'received');
+      send(inboundMessage, shellContext);
     },
   };
 }
 
-function logAtItsLevel(logger: Logger, message: MessageBase) {
+function logAtItsLevel(
+  logger: Logger,
+  message: MessageBase,
+  logMessage?: string,
+) {
   switch (message.logLevel) {
     case LogLevel.Debug:
-      logger.debug(message);
+      logger.debug(message, logMessage);
       return;
     case LogLevel.Info:
-      logger.info(message);
+      logger.info(message, logMessage);
       return;
     case LogLevel.Error:
-      logger.error(message);
+      logger.error(message, logMessage);
       return;
   }
 }

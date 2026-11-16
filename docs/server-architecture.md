@@ -50,6 +50,9 @@ The core never sees it.
 Each message has a log level.
 The core sets it on each outbound message, because the core knows what the message means.
 The shell logs each outbound message whole at that level, before it delivers the message.
+A message between actors therefore has its log entry from the actor that sends it.
+A message from outside the actors, such as an HTTP request, the close of a stream or a timer tick, enters through `sendFromOutside`.
+That logs it whole at its level, with the text `received`, so each message has exactly one log entry.
 Each entry carries the `actorId` of the actor that logs it.
 A log entry therefore needs no code of its own, and the levels are part of what the core tests examine.
 

@@ -19,17 +19,25 @@ function loggerInto(lines: unknown[]) {
   );
 }
 
-function replies(...texts: string[]): Reply[] {
-  return texts.map((reply) => ({ logLevel: LogLevel.Debug, reply }));
+interface Replies {
+  readonly logLevel: LogLevel;
+  readonly replies: Reply[];
 }
 
-// Each inbound message is a list of replies that the actor sends to itself.
-function echoActor(trace: string[]): Actor<Reply[], string> {
-  const actor: Actor<Reply[], string> = createActor({
+function replies(...texts: string[]): Replies {
+  return {
+    logLevel: LogLevel.Debug,
+    replies: texts.map((reply) => ({ logLevel: LogLevel.Debug, reply })),
+  };
+}
+
+// Each inbound message holds the replies that the actor sends to itself.
+function echoActor(trace: string[]): Actor<Replies, string> {
+  const actor: Actor<Replies, string> = createActor({
     initial: 0,
-    step: (count: number, inboundReplies: Reply[]) => ({
+    step: (count: number, inboundMessage: Replies) => ({
       coreContext: count + 1,
-      outboundMessages: inboundReplies,
+      outboundMessages: inboundMessage.replies,
     }),
     interpret({ reply }: Reply, shellContext) {
       trace.push(
@@ -45,6 +53,32 @@ function echoActor(trace: string[]): Actor<Reply[], string> {
   });
   return actor;
 }
+
+function loggingActor(lines: unknown[]): Actor<Replies> {
+  return createActor({
+    initial: null,
+    step: (coreContext: null, inboundMessage: Replies) => ({
+      coreContext,
+      outboundMessages: inboundMessage.replies,
+    }),
+    interpret() {},
+    actorId: 'echo',
+    logger: loggerInto(lines),
+  });
+}
+
+const infoReplies: Replies = {
+  logLevel: LogLevel.Info,
+  replies: [
+    { logLevel: LogLevel.Debug, reply: 'a' },
+    { logLevel: LogLevel.Error, reply: 'b' },
+  ],
+};
+
+const outboundLines = [
+  { level: 20, actorId: 'echo', logLevel: 'debug', reply: 'a' },
+  { level: 50, actorId: 'echo', logLevel: 'error', reply: 'b' },
+];
 
 describe('createActor', () => {
   test('runs no step during the send', () => {
@@ -80,24 +114,27 @@ describe('createActor', () => {
 
   test('logs each outbound message at its log level with the actor ID', async () => {
     const lines: unknown[] = [];
-    const actor = createActor({
-      initial: null,
-      step: (coreContext: null, outboundMessages: Reply[]) => ({
-        coreContext,
-        outboundMessages,
-      }),
-      interpret() {},
-      actorId: 'echo',
-      logger: loggerInto(lines),
-    });
-    actor.send([
-      { logLevel: LogLevel.Info, reply: 'a' },
-      { logLevel: LogLevel.Error, reply: 'b' },
-    ]);
+    loggingActor(lines).send(infoReplies);
+    await settled();
+    expect(lines).toEqual(outboundLines);
+  });
+
+  test('logs a message from outside as received before its outbound messages', async () => {
+    const lines: unknown[] = [];
+    loggingActor(lines).sendFromOutside(infoReplies);
     await settled();
     expect(lines).toEqual([
-      { level: 30, actorId: 'echo', logLevel: 'info', reply: 'a' },
-      { level: 50, actorId: 'echo', logLevel: 'error', reply: 'b' },
+      {
+        level: 30,
+        actorId: 'echo',
+        logLevel: 'info',
+        replies: [
+          { logLevel: 'debug', reply: 'a' },
+          { logLevel: 'error', reply: 'b' },
+        ],
+        msg: 'received',
+      },
+      ...outboundLines,
     ]);
   });
 });

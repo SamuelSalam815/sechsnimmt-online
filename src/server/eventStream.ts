@@ -59,7 +59,7 @@ export function eventStreamActor(
 
   function openStream(streamId: number, stream: Response): void {
     stream.on('close', () =>
-      actor.send({
+      actor.sendFromOutside({
         type: EventStreamMessageType.StreamClosed,
         logLevel: LogLevel.Debug,
         streamId,
@@ -87,7 +87,7 @@ export function eventStreamActor(
 
   const router = Router();
   router.get('/counter/events', (_request, response) => {
-    actor.send(
+    actor.sendFromOutside(
       {
         type: EventStreamMessageType.StreamRequested,
         logLevel: LogLevel.Debug,
