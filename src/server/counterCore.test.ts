@@ -50,13 +50,13 @@ describe('counterStep', () => {
     ).toEqual({ history: [one] });
   });
 
-  test('a history request delivers the full history to the subscriber', () => {
+  test('a history request delivers the full history to the requesting stream', () => {
     const coreContext = { history: [one, two] };
     expect(
       counterStep(coreContext, {
         type: CounterMessageType.HistoryRequested,
         logLevel: LogLevel.Debug,
-        subscriberId: 3,
+        streamId: 3,
       }),
     ).toEqual({
       coreContext,
@@ -64,7 +64,7 @@ describe('counterStep', () => {
         {
           type: WebAppMessageType.HistoryResponse,
           logLevel: LogLevel.Debug,
-          subscriberId: 3,
+          streamId: 3,
           history: [one, two],
         },
       ],

@@ -28,7 +28,7 @@ Its outbound messages are therefore messages that other actors define.
 An outbound message has no type of its own.
 
 The I/O of an actor is the work of its shell.
-The shell is therefore one more recipient, with messages of its own, for example `shell/write`.
+The shell is therefore one more recipient, with messages of its own, for example `shell/streamWrite`.
 Such a message is data that says what the shell must do.
 
 An enum of each actor holds the tags of its messages, for example `CounterMessageType`.
@@ -52,11 +52,11 @@ A log entry therefore needs no code of its own, and the levels are part of what 
 
 ## The actors and their messages
 
-The web app owns the HTTP routes and the subscribers of the event stream.
+The web app owns the HTTP routes and the event streams.
 It answers a ping.
-A connection request makes a pending subscriber, and the web app asks the counter for the history.
-The history response makes the subscriber active.
-The counter sends each new action to the web app, which broadcasts it to the active subscribers.
+A stream request makes a pending stream, and the web app asks the counter for the history.
+The history response makes the stream active.
+The counter sends each new action to the web app, which broadcasts it to the active streams.
 
 The counter owns the action history.
 Its shell holds the timer, which sends it a tick request.
@@ -67,5 +67,5 @@ The actions that the request handlers of the engine emit will take the place of 
 ## Wire format
 
 Each event of the stream carries a JSON array of actions.
-A new subscriber first gets the full history, then each new action.
+A new stream first gets the full history, then each new action.
 The client replays the actions to get the state.

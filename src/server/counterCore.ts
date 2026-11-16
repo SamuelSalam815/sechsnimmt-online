@@ -21,7 +21,7 @@ export type CounterMessage = MessageBase &
     | { readonly type: CounterMessageType.TickRequested }
     | {
         readonly type: CounterMessageType.HistoryRequested;
-        readonly subscriberId: number;
+        readonly streamId: number;
       }
   );
 
@@ -59,7 +59,7 @@ export function counterStep(
           {
             type: WebAppMessageType.HistoryResponse,
             logLevel: LogLevel.Debug,
-            subscriberId: inboundMessage.subscriberId,
+            streamId: inboundMessage.streamId,
             history: coreContext.history,
           },
         ],

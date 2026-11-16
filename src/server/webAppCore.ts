@@ -10,29 +10,29 @@ export enum WebAppMessageType {
   Ping = 'webApp/ping',
   HistoryResponse = 'webApp/historyResponse',
   BroadcastAction = 'webApp/broadcastAction',
-  ConnectionRequested = 'webApp/connectionRequested',
-  ConnectionClosed = 'webApp/connectionClosed',
+  StreamRequested = 'webApp/streamRequested',
+  StreamClosed = 'webApp/streamClosed',
 }
 
 export enum WebAppShellMessageType {
   Pong = 'shell/pong',
-  Write = 'shell/write',
-  SubscriptionOpen = 'shell/subscriptionOpen',
-  SubscriptionClose = 'shell/subscriptionClose',
+  StreamWrite = 'shell/streamWrite',
+  StreamOpen = 'shell/streamOpen',
+  StreamClose = 'shell/streamClose',
 }
 
 export interface WebAppCoreContext {
-  readonly nextSubscriberId: number;
-  readonly subscribers: ReadonlyMap<number, 'pending' | 'active'>;
+  readonly nextStreamId: number;
+  readonly streams: ReadonlyMap<number, 'pending' | 'active'>;
 }
 
 export type WebAppMessage = MessageBase &
   (
     | { readonly type: WebAppMessageType.Ping }
-    | { readonly type: WebAppMessageType.ConnectionRequested }
+    | { readonly type: WebAppMessageType.StreamRequested }
     | {
         readonly type: WebAppMessageType.HistoryResponse;
-        readonly subscriberId: number;
+        readonly streamId: number;
         readonly history: readonly CounterAction[];
       }
     | {
@@ -40,8 +40,8 @@ export type WebAppMessage = MessageBase &
         readonly action: CounterAction;
       }
     | {
-        readonly type: WebAppMessageType.ConnectionClosed;
-        readonly subscriberId: number;
+        readonly type: WebAppMessageType.StreamClosed;
+        readonly streamId: number;
       }
   );
 
@@ -49,23 +49,23 @@ export type WebAppShellMessage = MessageBase &
   (
     | { readonly type: WebAppShellMessageType.Pong }
     | {
-        readonly type: WebAppShellMessageType.SubscriptionOpen;
-        readonly subscriberId: number;
+        readonly type: WebAppShellMessageType.StreamOpen;
+        readonly streamId: number;
       }
     | {
-        readonly type: WebAppShellMessageType.Write;
-        readonly subscriberId: number;
+        readonly type: WebAppShellMessageType.StreamWrite;
+        readonly streamId: number;
         readonly actions: readonly CounterAction[];
       }
     | {
-        readonly type: WebAppShellMessageType.SubscriptionClose;
-        readonly subscriberId: number;
+        readonly type: WebAppShellMessageType.StreamClose;
+        readonly streamId: number;
       }
   );
 
 export const initialWebAppCoreContext: WebAppCoreContext = {
-  nextSubscriberId: 0,
-  subscribers: new Map(),
+  nextStreamId: 0,
+  streams: new Map(),
 };
 
 export function webAppStep(
@@ -81,50 +81,44 @@ export function webAppStep(
         ],
       };
 
-    case WebAppMessageType.ConnectionRequested: {
-      const subscriberId = coreContext.nextSubscriberId;
+    case WebAppMessageType.StreamRequested: {
+      const streamId = coreContext.nextStreamId;
       return {
         coreContext: {
-          nextSubscriberId: subscriberId + 1,
-          subscribers: new Map(coreContext.subscribers).set(
-            subscriberId,
-            'pending',
-          ),
+          nextStreamId: streamId + 1,
+          streams: new Map(coreContext.streams).set(streamId, 'pending'),
         },
         outboundMessages: [
           {
-            type: WebAppShellMessageType.SubscriptionOpen,
+            type: WebAppShellMessageType.StreamOpen,
             logLevel: LogLevel.Info,
-            subscriberId,
+            streamId,
           },
           {
             type: CounterMessageType.HistoryRequested,
             logLevel: LogLevel.Debug,
-            subscriberId,
+            streamId,
           },
         ],
       };
     }
 
     case WebAppMessageType.HistoryResponse: {
-      const { subscriberId, history } = inboundMessage;
-      // The subscriber can close before its history arrives.
-      if (coreContext.subscribers.get(subscriberId) !== 'pending') {
+      const { streamId, history } = inboundMessage;
+      // The stream can close before its history arrives.
+      if (coreContext.streams.get(streamId) !== 'pending') {
         return { coreContext, outboundMessages: [] };
       }
       return {
         coreContext: {
           ...coreContext,
-          subscribers: new Map(coreContext.subscribers).set(
-            subscriberId,
-            'active',
-          ),
+          streams: new Map(coreContext.streams).set(streamId, 'active'),
         },
         outboundMessages: [
           {
-            type: WebAppShellMessageType.Write,
+            type: WebAppShellMessageType.StreamWrite,
             logLevel: LogLevel.Debug,
-            subscriberId,
+            streamId,
             actions: history,
           },
         ],
@@ -133,14 +127,14 @@ export function webAppStep(
 
     case WebAppMessageType.BroadcastAction: {
       // Mailboxes keep their order. An action that reaches a pending
-      // subscriber is therefore already in the history that it waits for.
+      // stream is therefore already in the history that it waits for.
       const outboundMessages: WebAppShellMessage[] = [];
-      for (const [subscriberId, status] of coreContext.subscribers) {
+      for (const [streamId, status] of coreContext.streams) {
         if (status === 'active') {
           outboundMessages.push({
-            type: WebAppShellMessageType.Write,
+            type: WebAppShellMessageType.StreamWrite,
             logLevel: LogLevel.Debug,
-            subscriberId,
+            streamId,
             actions: [inboundMessage.action],
           });
         }
@@ -148,20 +142,20 @@ export function webAppStep(
       return { coreContext, outboundMessages };
     }
 
-    case WebAppMessageType.ConnectionClosed: {
-      const { subscriberId } = inboundMessage;
-      if (!coreContext.subscribers.has(subscriberId)) {
+    case WebAppMessageType.StreamClosed: {
+      const { streamId } = inboundMessage;
+      if (!coreContext.streams.has(streamId)) {
         return { coreContext, outboundMessages: [] };
       }
-      const subscribers = new Map(coreContext.subscribers);
-      subscribers.delete(subscriberId);
+      const streams = new Map(coreContext.streams);
+      streams.delete(streamId);
       return {
-        coreContext: { ...coreContext, subscribers },
+        coreContext: { ...coreContext, streams },
         outboundMessages: [
           {
-            type: WebAppShellMessageType.SubscriptionClose,
+            type: WebAppShellMessageType.StreamClose,
             logLevel: LogLevel.Info,
-            subscriberId,
+            streamId,
           },
         ],
       };

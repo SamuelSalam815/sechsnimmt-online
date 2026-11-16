@@ -25,7 +25,7 @@ export function webAppActor(
   sendToCounter: (message: CounterMessage) => void,
   logger: Logger,
 ): WebApp {
-  const connections = new Map<number, Response>();
+  const streams = new Map<number, Response>();
 
   const actor = createActor({
     initial: initialWebAppCoreContext,
@@ -41,35 +41,32 @@ export function webAppActor(
           requireResponse(response).json({ message: 'pong' });
           return;
 
-        case WebAppShellMessageType.SubscriptionOpen:
-          openSubscription(
-            outboundMessage.subscriberId,
-            requireResponse(response),
-          );
+        case WebAppShellMessageType.StreamOpen:
+          openStream(outboundMessage.streamId, requireResponse(response));
           return;
 
-        case WebAppShellMessageType.Write:
-          writeActions(outboundMessage.subscriberId, outboundMessage.actions);
+        case WebAppShellMessageType.StreamWrite:
+          writeActions(outboundMessage.streamId, outboundMessage.actions);
           return;
 
-        case WebAppShellMessageType.SubscriptionClose:
-          connections.delete(outboundMessage.subscriberId);
+        case WebAppShellMessageType.StreamClose:
+          streams.delete(outboundMessage.streamId);
           return;
       }
     },
     logger,
   });
 
-  function openSubscription(subscriberId: number, connection: Response): void {
-    connection.on('close', () =>
+  function openStream(streamId: number, stream: Response): void {
+    stream.on('close', () =>
       actor.send({
-        type: WebAppMessageType.ConnectionClosed,
+        type: WebAppMessageType.StreamClosed,
         logLevel: LogLevel.Debug,
-        subscriberId,
+        streamId,
       }),
     );
-    connections.set(subscriberId, connection);
-    connection.writeHead(200, {
+    streams.set(streamId, stream);
+    stream.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
@@ -77,18 +74,15 @@ export function webAppActor(
   }
 
   function writeActions(
-    subscriberId: number,
+    streamId: number,
     actions: readonly CounterAction[],
   ): void {
-    const connection = connections.get(subscriberId);
-    if (connection === undefined) {
-      logger.error(
-        { subscriberId },
-        'a write found no connection for its subscriber',
-      );
+    const stream = streams.get(streamId);
+    if (stream === undefined) {
+      logger.error({ streamId }, 'a write found no open stream for its ID');
       return;
     }
-    connection.write(`data: ${JSON.stringify(actions)}\n\n`);
+    stream.write(`data: ${JSON.stringify(actions)}\n\n`);
   }
 
   return { actor, router: webAppRouter(actor) };
@@ -104,7 +98,7 @@ function webAppRouter(actor: Actor<WebAppMessage, Response>): Router {
   });
   router.get('/counter/events', (_request, response) => {
     actor.send(
-      { type: WebAppMessageType.ConnectionRequested, logLevel: LogLevel.Debug },
+      { type: WebAppMessageType.StreamRequested, logLevel: LogLevel.Debug },
       response,
     );
   });

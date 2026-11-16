@@ -22,7 +22,7 @@
 ## Names
 
 - A name carries every word that it needs to be clear away from its
-  declaration. Write `logLevel`, not `level`, and `subscriberId`, not `id`.
+  declaration. Write `logLevel`, not `level`, and `streamId`, not `id`.
 - Do not shorten a word to save characters. Write `message`, not `msg`.
 
 ## Git

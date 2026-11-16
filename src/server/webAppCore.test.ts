@@ -13,9 +13,9 @@ const one: CounterAction = { type: 'counter/tick', totalCount: 1 };
 const two: CounterAction = { type: 'counter/tick', totalCount: 2 };
 
 function coreContextWith(
-  subscribers: [number, 'pending' | 'active'][],
+  streams: [number, 'pending' | 'active'][],
 ): WebAppCoreContext {
-  return { nextSubscriberId: 5, subscribers: new Map(subscribers) };
+  return { nextStreamId: 5, streams: new Map(streams) };
 }
 
 describe('webAppStep', () => {
@@ -33,66 +33,66 @@ describe('webAppStep', () => {
     });
   });
 
-  test('a connection request accepts a pending subscriber under the next ID and asks the counter for its history', () => {
+  test('a stream request accepts a pending stream under the next ID and asks the counter for its history', () => {
     expect(
       webAppStep(coreContextWith([]), {
-        type: WebAppMessageType.ConnectionRequested,
+        type: WebAppMessageType.StreamRequested,
         logLevel: LogLevel.Debug,
       }),
     ).toEqual({
       coreContext: {
-        nextSubscriberId: 6,
-        subscribers: new Map([[5, 'pending']]),
+        nextStreamId: 6,
+        streams: new Map([[5, 'pending']]),
       },
       outboundMessages: [
         {
-          type: WebAppShellMessageType.SubscriptionOpen,
+          type: WebAppShellMessageType.StreamOpen,
           logLevel: LogLevel.Info,
-          subscriberId: 5,
+          streamId: 5,
         },
         {
           type: CounterMessageType.HistoryRequested,
           logLevel: LogLevel.Debug,
-          subscriberId: 5,
+          streamId: 5,
         },
       ],
     });
   });
 
-  test('a history response activates the subscriber and writes the history to it', () => {
+  test('a history response activates the stream and writes the history to it', () => {
     expect(
       webAppStep(coreContextWith([[1, 'pending']]), {
         type: WebAppMessageType.HistoryResponse,
         logLevel: LogLevel.Debug,
-        subscriberId: 1,
+        streamId: 1,
         history: [one, two],
       }),
     ).toEqual({
       coreContext: coreContextWith([[1, 'active']]),
       outboundMessages: [
         {
-          type: WebAppShellMessageType.Write,
+          type: WebAppShellMessageType.StreamWrite,
           logLevel: LogLevel.Debug,
-          subscriberId: 1,
+          streamId: 1,
           actions: [one, two],
         },
       ],
     });
   });
 
-  test('a history for a subscriber that has closed changes nothing', () => {
+  test('a history for a stream that has closed changes nothing', () => {
     const coreContext = coreContextWith([]);
     expect(
       webAppStep(coreContext, {
         type: WebAppMessageType.HistoryResponse,
         logLevel: LogLevel.Debug,
-        subscriberId: 1,
+        streamId: 1,
         history: [one],
       }),
     ).toEqual({ coreContext, outboundMessages: [] });
   });
 
-  test('a broadcast action goes to the active subscribers only', () => {
+  test('a broadcast action goes to the active streams only', () => {
     const coreContext = coreContextWith([
       [1, 'active'],
       [2, 'pending'],
@@ -108,22 +108,22 @@ describe('webAppStep', () => {
       coreContext,
       outboundMessages: [
         {
-          type: WebAppShellMessageType.Write,
+          type: WebAppShellMessageType.StreamWrite,
           logLevel: LogLevel.Debug,
-          subscriberId: 1,
+          streamId: 1,
           actions: [two],
         },
         {
-          type: WebAppShellMessageType.Write,
+          type: WebAppShellMessageType.StreamWrite,
           logLevel: LogLevel.Debug,
-          subscriberId: 3,
+          streamId: 3,
           actions: [two],
         },
       ],
     });
   });
 
-  test('a closed connection removes the subscriber and releases it', () => {
+  test('a closed stream is removed and released', () => {
     expect(
       webAppStep(
         coreContextWith([
@@ -131,30 +131,30 @@ describe('webAppStep', () => {
           [2, 'pending'],
         ]),
         {
-          type: WebAppMessageType.ConnectionClosed,
+          type: WebAppMessageType.StreamClosed,
           logLevel: LogLevel.Debug,
-          subscriberId: 1,
+          streamId: 1,
         },
       ),
     ).toEqual({
       coreContext: coreContextWith([[2, 'pending']]),
       outboundMessages: [
         {
-          type: WebAppShellMessageType.SubscriptionClose,
+          type: WebAppShellMessageType.StreamClose,
           logLevel: LogLevel.Info,
-          subscriberId: 1,
+          streamId: 1,
         },
       ],
     });
   });
 
-  test('a second close of the same connection changes nothing', () => {
+  test('a second close of the same stream changes nothing', () => {
     const coreContext = coreContextWith([]);
     expect(
       webAppStep(coreContext, {
-        type: WebAppMessageType.ConnectionClosed,
+        type: WebAppMessageType.StreamClosed,
         logLevel: LogLevel.Debug,
-        subscriberId: 1,
+        streamId: 1,
       }),
     ).toEqual({ coreContext, outboundMessages: [] });
   });
