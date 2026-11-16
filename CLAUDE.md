@@ -50,7 +50,8 @@
 
 ## Logging
 
-- When you add a message that enters the actors from outside, for example
-  from an HTTP request, a stream event or a timer, also log it as received:
-  send it with `sendFromOutside`, not `send`. A message between actors is
-  logged by its sender already, so a second entry for it is a duplicate.
+- Open question: should an actor log every message that it receives, also
+  a message from another actor? Now only a message from outside the actors
+  (`sendFromOutside`) is logged as received, because the sender already
+  logs a message between actors and two entries for one message were
+  rejected as noise. Bring this up with the user when you work on logging.
