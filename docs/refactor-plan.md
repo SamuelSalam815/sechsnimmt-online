@@ -25,23 +25,23 @@ The moves come first, so later edits land in the final paths.
 - [ ] Move `src/engine/dataTypes/result.ts` to `src/engine/result.ts`. Make an `infrastructure` folder only when a second type of its kind comes.
 - [ ] Put the data types into folders under `src/engine/dataTypes`:
 
-| Folder | Modules |
-| --- | --- |
+| Folder        | Modules                                         |
+| ------------- | ----------------------------------------------- |
 | `playerState` | `hand`, `penaltyTotal`, `penaltyPile`, `player` |
-| `cards` | `card`, `deck` |
-| `table` | `row`, the modules from the round split |
-| `game` | `gameState`, `gameStateVersion`, `gameRules` |
+| `cards`       | `card`, `deck`                                  |
+| `table`       | `row`, the modules from the round split         |
+| `game`        | `gameState`, `gameStateVersion`, `gameRules`    |
 
 ### Round split
 
 - [ ] Split `round.ts` into three modules in the `table` folder.
-  The third module is an experiment: keep it if it reads well, else fold it back into the others.
+      The third module is an experiment: keep it if it reads well, else fold it back into the others.
 
-| Draft module | Concern | Functions and types now in `round.ts` |
-| --- | --- | --- |
-| `revealResolution` | Place the revealed cards | `resolveReveal`, `revealedCardsLowestFirst`, `placeRevealedCard`, `placeCardInRows`, `findRowForCard`, `takeCardsIntoPenaltyPile`, `reachesPenaltyLimit`, `RevealOutcome`, `RevealedCard`, `CardPlacement` |
-| `playerChoices` | Card pick, row pick, abandon | `pickCardInRound`, `unpickCardInRound`, `findPick`, `findPickedCardId`, `picksWithout`, `CardPicks`, `RowPick`, `resolveRowPick`, `findCardForRowPick`, `findRowIndexOfLargestPenalty`, `removePlayerFromRound` |
-| `roundLifecycle` | Deal, cleanup, shared lookups | `Round`, `brandAsRound`, `createRound`, `dealRound`, `everyHandIsEmpty`, `ROW_COUNT`, `findHand`, `findRow`, `findPileOfPlayer`, `handsWith`, `pilesWith` |
+| Draft module       | Concern                       | Functions and types now in `round.ts`                                                                                                                                                                           |
+| ------------------ | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `revealResolution` | Place the revealed cards      | `resolveReveal`, `revealedCardsLowestFirst`, `placeRevealedCard`, `placeCardInRows`, `findRowForCard`, `takeCardsIntoPenaltyPile`, `reachesPenaltyLimit`, `RevealOutcome`, `RevealedCard`, `CardPlacement`      |
+| `playerChoices`    | Card pick, row pick, abandon  | `pickCardInRound`, `unpickCardInRound`, `findPick`, `findPickedCardId`, `picksWithout`, `CardPicks`, `RowPick`, `resolveRowPick`, `findCardForRowPick`, `findRowIndexOfLargestPenalty`, `removePlayerFromRound` |
+| `roundLifecycle`   | Deal, cleanup, shared lookups | `Round`, `brandAsRound`, `createRound`, `dealRound`, `everyHandIsEmpty`, `ROW_COUNT`, `findHand`, `findRow`, `findPileOfPlayer`, `handsWith`, `pilesWith`                                                       |
 
 The module names and the place of each function are a draft.
 
@@ -53,13 +53,13 @@ The module names and the place of each function are a draft.
 
 The comments below name "Layer 2" without context, or explain code that their module does not own.
 
-| Location | Now | Change |
-| --- | --- | --- |
-| `gameSlice.ts:41` | Layer 2 found the card in the hand of the player. | Remove the comment. |
-| `gameSlice.ts:48` | which layer 2 confirmed is | Say why the pick is found by player ID alone: a player has at most one card picked at a time. |
-| `gameSlice.test.ts:260` | Layer 2 rejects such a request | Say that an action that does not fit the state means a bug in the request handling, which only makes actions valid for the current state. |
-| `result.ts:0` | Layer 2 checks the staleness of a request | Remove the comment. |
-| `result.ts:12` | Layer 2 returns it as the rejection | Say only that expected cases, such as bad requests, use structured errors, whose kinds the error codes list. |
+| Location                | Now                                               | Change                                                                                                                                    |
+| ----------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `gameSlice.ts:41`       | Layer 2 found the card in the hand of the player. | Remove the comment.                                                                                                                       |
+| `gameSlice.ts:48`       | which layer 2 confirmed is                        | Say why the pick is found by player ID alone: a player has at most one card picked at a time.                                             |
+| `gameSlice.test.ts:260` | Layer 2 rejects such a request                    | Say that an action that does not fit the state means a bug in the request handling, which only makes actions valid for the current state. |
+| `result.ts:0`           | Layer 2 checks the staleness of a request         | Remove the comment.                                                                                                                       |
+| `result.ts:12`          | Layer 2 returns it as the rejection               | Say only that expected cases, such as bad requests, use structured errors, whose kinds the error codes list.                              |
 
 The line numbers are from before the moves.
 
@@ -94,14 +94,14 @@ The rule: assert that an error occurs and, at most, its error code. Test each ru
 
 - [ ] Put the files of `src/server` into folders. Tests move with their modules. Update `docs/server-architecture.md` if it names paths.
 
-| Folder | Files |
-| --- | --- |
-| `infrastructure` | `actor`, `logger`, `message`, `requestBody`, `requireValue` |
-| `eventStream` | `eventStream`, `eventStreamCore` |
-| `gameRunner` | `gameRunner`, `gameRunnerCore` |
-| `room` | `room`, `roomCore` |
-| `restHandler` | `restHandler`, `restHandlerCore` |
-| `src/server` (stays) | `main`, `clientServing` |
+| Folder               | Files                                                       |
+| -------------------- | ----------------------------------------------------------- |
+| `infrastructure`     | `actor`, `logger`, `message`, `requestBody`, `requireValue` |
+| `eventStream`        | `eventStream`, `eventStreamCore`                            |
+| `gameRunner`         | `gameRunner`, `gameRunnerCore`                              |
+| `room`               | `room`, `roomCore`                                          |
+| `restHandler`        | `restHandler`, `restHandlerCore`                            |
+| `src/server` (stays) | `main`, `clientServing`                                     |
 
 ### Request body parsing
 
