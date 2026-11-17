@@ -73,7 +73,7 @@ The line numbers are from before the moves.
 
 - [x] In `src/engine/reducers/gameSlice.ts`, move the body of each of the 7 reducers into a local function, so the `reducers` object reads as a list. Export nothing new.
 - [x] Keep the name `doesGameHaveEnoughPlayers` (`player.ts`). Rename its test block in `player.test.ts`, which is still named `hasEnoughPlayers`, to match.
-- [ ] In `src/engine/requestHandling/handleRequest.ts`, replace `staleMaker` and the comment over `checkRequestStillGood`. Query the last major change in the history. Then set `isRequestStale` to whether its version is greater than `request.lastVersionSeen`. `isRequestStale` in `gameStateVersion.ts` may then be unused.
+- [x] In `src/engine/requestHandling/handleRequest.ts`, replace `staleMaker` and the comment over `checkRequestStillGood`. Query the last major change in the history. Then set `isRequestStale` to whether its version is greater than `request.lastVersionSeen`. `isRequestStale` in `gameStateVersion.ts` may then be unused.
 
 Immer: no change. Every reducer returns a new `GameState`, so immer does no work, as `docs/data-type-design.md` (Immutable collections) requires.
 Keep Redux Toolkit. Revisit only in a later performance evaluation.

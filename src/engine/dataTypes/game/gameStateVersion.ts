@@ -21,10 +21,3 @@ export function minorVersionBump(version: GameStateVersion): GameStateVersion {
 export function majorVersionBump(version: GameStateVersion): GameStateVersion {
   return { sequence: version.sequence + 1, major: true };
 }
-
-export function isRequestStale(
-  request: { lastVersionSeen: GameStateVersion['sequence'] },
-  version: GameStateVersion,
-): boolean {
-  return version.major && version.sequence > request.lastVersionSeen;
-}

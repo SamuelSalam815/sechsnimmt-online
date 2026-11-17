@@ -1,5 +1,4 @@
 import { GamePhase, type GameState } from '#engine/dataTypes/game/gameState.ts';
-import { isRequestStale } from '#engine/dataTypes/game/gameStateVersion.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
 import { handleCardPickPhase } from '#engine/requestHandling/handleCardPickPhase.ts';
 import { handleEndOfRoundPhase } from '#engine/requestHandling/handleEndOfRoundPhase.ts';
@@ -22,21 +21,24 @@ export function handleRequest(
   );
 }
 
-// A request is up to date as long as no major change followed the version that
-// it saw. It then works off stale state, which is still valid for it.
+// A request that saw a version after the last major change works off stale
+// state, which is still valid for it.
 function checkRequestStillGood(
   request: GameRequest,
   history: readonly AppliedAction[],
 ): Result<GameRequest> {
-  const staleMaker = history.find((appliedAction) =>
-    isRequestStale(request, appliedAction.newVersion),
-  );
-  if (staleMaker === undefined) {
+  const lastMajorChange = history
+    .filter((appliedAction) => appliedAction.newVersion.major)
+    .at(-1);
+  const isRequestStale =
+    lastMajorChange !== undefined &&
+    lastMajorChange.newVersion.sequence > request.lastVersionSeen;
+  if (!isRequestStale) {
     return success(request);
   }
   return fail(
     ErrorCode.StaleRequest,
-    `The ${request.type} request saw the version ${request.lastVersionSeen}, which the major change to the version ${staleMaker.newVersion.sequence} has outdated`,
+    `The ${request.type} request saw the version ${request.lastVersionSeen}, which the major change to the version ${lastMajorChange.newVersion.sequence} has outdated`,
   );
 }
 
