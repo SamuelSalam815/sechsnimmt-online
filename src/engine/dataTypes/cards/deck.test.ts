@@ -3,7 +3,7 @@ import {
   createDeck,
   drawCardsFromDeck,
   getDeckFaceValues,
-} from '#engine/dataTypes/deck.ts';
+} from '#engine/dataTypes/cards/deck.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
 describe('getDeckFaceValues', () => {

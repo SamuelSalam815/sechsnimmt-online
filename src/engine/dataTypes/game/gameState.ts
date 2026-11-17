@@ -1,10 +1,10 @@
-import type { GameRules } from '#engine/dataTypes/gameRules.ts';
+import type { GameRules } from '#engine/dataTypes/game/gameRules.ts';
 import {
   type GameStateVersion,
   INITIAL_GAME_STATE_VERSION,
-} from '#engine/dataTypes/gameStateVersion.ts';
-import type { Player } from '#engine/dataTypes/player.ts';
-import type { Round } from '#engine/dataTypes/round.ts';
+} from '#engine/dataTypes/game/gameStateVersion.ts';
+import type { Player } from '#engine/dataTypes/playerState/player.ts';
+import type { Round } from '#engine/dataTypes/table/round.ts';
 
 export enum GamePhase {
   PreStart = 'preStart',

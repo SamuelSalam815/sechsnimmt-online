@@ -1,5 +1,5 @@
 import { configureStore, type UnknownAction } from '@reduxjs/toolkit';
-import type { GameState } from '#engine/dataTypes/gameState.ts';
+import type { GameState } from '#engine/dataTypes/game/gameState.ts';
 import { gameSlice } from '#engine/reducers/gameSlice.ts';
 import {
   type AppliedAction,

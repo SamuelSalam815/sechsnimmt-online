@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { GameStateVersion } from '#engine/dataTypes/gameStateVersion.ts';
+import type { GameStateVersion } from '#engine/dataTypes/game/gameStateVersion.ts';
 import { pickCard } from '#engine/reducers/gameSlice.ts';
 import {
   type AppliedAction,

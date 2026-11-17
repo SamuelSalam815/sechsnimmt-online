@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { GamePhase } from '#engine/dataTypes/gameState.ts';
-import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
+import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
+import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
 import { store } from '#engine/store.ts';
 
 test('the store starts in the pre-start phase with no state', () => {

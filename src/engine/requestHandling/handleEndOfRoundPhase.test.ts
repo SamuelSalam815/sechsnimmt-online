@@ -1,14 +1,14 @@
 import { expect, test } from 'vitest';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
   assertRoundInProgress,
   createGameState,
   GamePhase,
   type RoundGameState,
-} from '#engine/dataTypes/gameState.ts';
-import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
-import { createPlayer } from '#engine/dataTypes/player.ts';
-import { createRound, dealRound } from '#engine/dataTypes/round.ts';
+} from '#engine/dataTypes/game/gameState.ts';
+import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
+import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
+import { createRound, dealRound } from '#engine/dataTypes/table/round.ts';
 import { abandonGame, startRound } from '#engine/reducers/gameSlice.ts';
 import { handleEndOfRoundPhase } from '#engine/requestHandling/handleEndOfRoundPhase.ts';
 import { RequestType } from '#engine/requests/requestType.ts';

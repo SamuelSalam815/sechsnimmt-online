@@ -2,7 +2,7 @@ import {
   MAX_PLAYER_COUNT,
   MIN_PLAYER_COUNT,
   type PlayerId,
-} from '#engine/dataTypes/player.ts';
+} from '#engine/dataTypes/playerState/player.ts';
 import type { Step } from '#server/actor.ts';
 import {
   type EventStreamMessage,

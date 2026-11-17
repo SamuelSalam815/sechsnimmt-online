@@ -1,8 +1,11 @@
 import { advanceGame } from '#engine/advanceGame.ts';
-import type { Deck } from '#engine/dataTypes/deck.ts';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
-import { GamePhase } from '#engine/dataTypes/gameState.ts';
-import type { PlayerId, PlayerProfile } from '#engine/dataTypes/player.ts';
+import type { Deck } from '#engine/dataTypes/cards/deck.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
+import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
+import type {
+  PlayerId,
+  PlayerProfile,
+} from '#engine/dataTypes/playerState/player.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { initialRootState, type RootState } from '#engine/store.ts';

@@ -1,4 +1,4 @@
-import type { PenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
+import type { PenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
 import { ErrorCode, lookup, type Result } from '#engine/result.ts';
 
 // 6 nimmt! is a game for 2 players or more.

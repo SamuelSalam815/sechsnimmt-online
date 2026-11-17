@@ -1,10 +1,10 @@
-import type { Deck } from '#engine/dataTypes/deck.ts';
+import type { Deck } from '#engine/dataTypes/cards/deck.ts';
 import {
   MAX_PLAYER_COUNT,
   MIN_PLAYER_COUNT,
   type PlayerProfile,
-} from '#engine/dataTypes/player.ts';
-import { ROW_COUNT } from '#engine/dataTypes/round.ts';
+} from '#engine/dataTypes/playerState/player.ts';
+import { ROW_COUNT } from '#engine/dataTypes/table/round.ts';
 import { ErrorCode, fail, type Result, success } from '#engine/result.ts';
 
 // The values that the rules fix and that a game can vary. A small game in a

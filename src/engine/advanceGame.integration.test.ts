@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest';
 import { advanceGame } from '#engine/advanceGame.ts';
-import { createDeck, type Deck } from '#engine/dataTypes/deck.ts';
-import type { GameRules } from '#engine/dataTypes/gameRules.ts';
-import { GamePhase } from '#engine/dataTypes/gameState.ts';
-import type { PlayerId } from '#engine/dataTypes/player.ts';
+import { createDeck, type Deck } from '#engine/dataTypes/cards/deck.ts';
+import type { GameRules } from '#engine/dataTypes/game/gameRules.ts';
+import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
+import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { initialRootState, type RootState } from '#engine/store.ts';

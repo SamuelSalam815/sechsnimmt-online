@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { getDeckFaceValues } from '#engine/dataTypes/deck.ts';
+import { getDeckFaceValues } from '#engine/dataTypes/cards/deck.ts';
 import { buildShuffledDeck } from '#engine/shuffledDeck.ts';
 
 test('a shuffled deck holds every face value once', () => {

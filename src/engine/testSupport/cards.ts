@@ -1,12 +1,16 @@
 // Test support. It builds cards and rows through their constructors, so a test
 // needs no cast to hold one.
-import { type Card, createCards } from '#engine/dataTypes/card.ts';
+import { type Card, createCards } from '#engine/dataTypes/cards/card.ts';
 import {
   createDeck,
   type Deck,
   getDeckFaceValues,
-} from '#engine/dataTypes/deck.ts';
-import { addCardToRow, createRow, type Row } from '#engine/dataTypes/row.ts';
+} from '#engine/dataTypes/cards/deck.ts';
+import {
+  addCardToRow,
+  createRow,
+  type Row,
+} from '#engine/dataTypes/table/row.ts';
 
 const standardDeck = new Map(
   createCards(getDeckFaceValues()).map((card) => [card.faceValue, card]),

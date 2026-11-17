@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'vitest';
-import { createDeck } from '#engine/dataTypes/deck.ts';
+import { createDeck } from '#engine/dataTypes/cards/deck.ts';
 import {
   checkGameStart,
   STANDARD_GAME_RULES,
-} from '#engine/dataTypes/gameRules.ts';
+} from '#engine/dataTypes/game/gameRules.ts';
 import { ErrorCode } from '#engine/result.ts';
 import { orderedDeck } from '#testSupport/cards.ts';
 

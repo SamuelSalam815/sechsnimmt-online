@@ -2,41 +2,44 @@ import {
   type Card,
   type CardId,
   getPenaltyTotal,
-} from '#engine/dataTypes/card.ts';
+} from '#engine/dataTypes/cards/card.ts';
 import {
   type Deck,
   drawCardsFromDeck as drawCards,
-} from '#engine/dataTypes/deck.ts';
-import { GamePhase, type RoundPhase } from '#engine/dataTypes/gameState.ts';
+} from '#engine/dataTypes/cards/deck.ts';
+import {
+  GamePhase,
+  type RoundPhase,
+} from '#engine/dataTypes/game/gameState.ts';
 import {
   createHand,
   findCardInHand,
   type Hand,
   isHandEmpty,
   removeCardFromHand,
-} from '#engine/dataTypes/hand.ts';
+} from '#engine/dataTypes/playerState/hand.ts';
 import {
   addCardsToPenaltyPile,
   createPenaltyPile,
   type PenaltyPile,
-} from '#engine/dataTypes/penaltyPile.ts';
+} from '#engine/dataTypes/playerState/penaltyPile.ts';
 import {
   createPenaltyTotal,
   type PenaltyTotal,
-} from '#engine/dataTypes/penaltyTotal.ts';
+} from '#engine/dataTypes/playerState/penaltyTotal.ts';
 import {
   addPenaltyToPlayer,
   findPlayer,
   hasReachedPenaltyLimit,
   type Player,
   type PlayerId,
-} from '#engine/dataTypes/player.ts';
+} from '#engine/dataTypes/playerState/player.ts';
 import {
   addCardToRow,
   createRow,
   getLastCardOfRow,
   type Row,
-} from '#engine/dataTypes/row.ts';
+} from '#engine/dataTypes/table/row.ts';
 import { ErrorCode, lookup, type Result } from '#engine/result.ts';
 
 export const ROW_COUNT = 4;

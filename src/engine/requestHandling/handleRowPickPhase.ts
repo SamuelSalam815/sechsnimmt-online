@@ -1,11 +1,17 @@
-import { GamePhase, type RoundGameState } from '#engine/dataTypes/gameState.ts';
-import { findPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
+import {
+  GamePhase,
+  type RoundGameState,
+} from '#engine/dataTypes/game/gameState.ts';
+import {
+  findPlayer,
+  type PlayerId,
+} from '#engine/dataTypes/playerState/player.ts';
 import {
   findCardForRowPick,
   findRow,
   findRowIndexOfLargestPenalty,
   resolveRowPick,
-} from '#engine/dataTypes/round.ts';
+} from '#engine/dataTypes/table/round.ts';
 import {
   abandonGame,
   type GameAction,

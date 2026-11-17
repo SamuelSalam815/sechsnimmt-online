@@ -1,24 +1,24 @@
 import { expect, test } from 'vitest';
-import type { Card, CardId } from '#engine/dataTypes/card.ts';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
+import type { Card, CardId } from '#engine/dataTypes/cards/card.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
   assertRoundInProgress,
   createGameState,
   GamePhase,
   type RoundGameState,
-} from '#engine/dataTypes/gameState.ts';
-import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
-import { createHand } from '#engine/dataTypes/hand.ts';
+} from '#engine/dataTypes/game/gameState.ts';
+import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
+import { createHand } from '#engine/dataTypes/playerState/hand.ts';
 import {
   createPlayer,
   type Player,
   type PlayerId,
-} from '#engine/dataTypes/player.ts';
+} from '#engine/dataTypes/playerState/player.ts';
 import {
   createRound,
   pickCardInRound,
   type Round,
-} from '#engine/dataTypes/round.ts';
+} from '#engine/dataTypes/table/round.ts';
 import {
   abandonGame,
   pickCard,

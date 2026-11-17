@@ -1,4 +1,4 @@
-import { type Card, DECK_SIZE } from '#engine/dataTypes/card.ts';
+import { type Card, DECK_SIZE } from '#engine/dataTypes/cards/card.ts';
 
 declare const deckBrand: unique symbol;
 

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
-import { createPenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
+import { createPenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
 import {
   addPenaltiesToPlayers,
   addPenaltyToPlayer,
@@ -9,7 +9,7 @@ import {
   findPlayer,
   hasReachedPenaltyLimit,
   removePlayer,
-} from '#engine/dataTypes/player.ts';
+} from '#engine/dataTypes/playerState/player.ts';
 import { ErrorCode } from '#engine/result.ts';
 import { cardOf } from '#testSupport/cards.ts';
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { createPenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
+import { createPenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
 describe('createPenaltyTotal', () => {

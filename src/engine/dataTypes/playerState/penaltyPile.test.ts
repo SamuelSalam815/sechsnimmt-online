@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import {
   addCardsToPenaltyPile,
   createPenaltyPile,
-} from '#engine/dataTypes/penaltyPile.ts';
+} from '#engine/dataTypes/playerState/penaltyPile.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
 describe('createPenaltyPile', () => {

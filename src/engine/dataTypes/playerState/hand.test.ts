@@ -5,7 +5,7 @@ import {
   findCardInHand,
   isHandEmpty,
   removeCardFromHand,
-} from '#engine/dataTypes/hand.ts';
+} from '#engine/dataTypes/playerState/hand.ts';
 import { ErrorCode } from '#engine/result.ts';
 import { cardOf } from '#testSupport/cards.ts';
 

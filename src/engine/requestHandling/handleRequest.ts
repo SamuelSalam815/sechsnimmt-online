@@ -1,5 +1,5 @@
-import { GamePhase, type GameState } from '#engine/dataTypes/gameState.ts';
-import { isRequestStale } from '#engine/dataTypes/gameStateVersion.ts';
+import { GamePhase, type GameState } from '#engine/dataTypes/game/gameState.ts';
+import { isRequestStale } from '#engine/dataTypes/game/gameStateVersion.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
 import { handleCardPickPhase } from '#engine/requestHandling/handleCardPickPhase.ts';
 import { handleEndOfRoundPhase } from '#engine/requestHandling/handleEndOfRoundPhase.ts';

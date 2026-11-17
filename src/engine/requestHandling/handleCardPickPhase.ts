@@ -1,17 +1,17 @@
-import type { Card } from '#engine/dataTypes/card.ts';
-import type { RoundGameState } from '#engine/dataTypes/gameState.ts';
-import { findCardInHand } from '#engine/dataTypes/hand.ts';
+import type { Card } from '#engine/dataTypes/cards/card.ts';
+import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';
+import { findCardInHand } from '#engine/dataTypes/playerState/hand.ts';
 import {
   doesGameHaveEnoughPlayers,
   findPlayer,
   type PlayerId,
   removePlayer,
-} from '#engine/dataTypes/player.ts';
+} from '#engine/dataTypes/playerState/player.ts';
 import {
   findHand,
   findPick,
   findPickedCardId,
-} from '#engine/dataTypes/round.ts';
+} from '#engine/dataTypes/table/round.ts';
 import {
   abandonGame,
   type GameAction,

@@ -1,9 +1,12 @@
 import { expect, test } from 'vitest';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
-import { createGameState, GamePhase } from '#engine/dataTypes/gameState.ts';
-import { createHand } from '#engine/dataTypes/hand.ts';
-import { createPlayer } from '#engine/dataTypes/player.ts';
-import { createRound } from '#engine/dataTypes/round.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
+import {
+  createGameState,
+  GamePhase,
+} from '#engine/dataTypes/game/gameState.ts';
+import { createHand } from '#engine/dataTypes/playerState/hand.ts';
+import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
+import { createRound } from '#engine/dataTypes/table/round.ts';
 import { pickCard } from '#engine/reducers/gameSlice.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
 import { handleRequest } from '#engine/requestHandling/handleRequest.ts';

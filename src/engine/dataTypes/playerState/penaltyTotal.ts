@@ -1,5 +1,5 @@
-import { type Card, getPenaltyTotal } from '#engine/dataTypes/card.ts';
-import type { PlayerId } from '#engine/dataTypes/player.ts';
+import { type Card, getPenaltyTotal } from '#engine/dataTypes/cards/card.ts';
+import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 
 declare const penaltyTotalBrand: unique symbol;
 

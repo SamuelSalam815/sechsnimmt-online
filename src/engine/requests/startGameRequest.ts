@@ -1,6 +1,6 @@
-import type { Deck } from '#engine/dataTypes/deck.ts';
-import type { GameRules } from '#engine/dataTypes/gameRules.ts';
-import type { PlayerProfile } from '#engine/dataTypes/player.ts';
+import type { Deck } from '#engine/dataTypes/cards/deck.ts';
+import type { GameRules } from '#engine/dataTypes/game/gameRules.ts';
+import type { PlayerProfile } from '#engine/dataTypes/playerState/player.ts';
 import type { GameRequestBase } from '#engine/requests/gameRequestBase.ts';
 import type { RequestType } from '#engine/requests/requestType.ts';
 

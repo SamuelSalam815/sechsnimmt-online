@@ -1,21 +1,21 @@
 import { expect, test } from 'vitest';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
   assertRoundInProgress,
   createGameState,
   GamePhase,
   type RoundGameState,
-} from '#engine/dataTypes/gameState.ts';
-import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
-import { createHand } from '#engine/dataTypes/hand.ts';
-import { createPenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
+} from '#engine/dataTypes/game/gameState.ts';
+import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
+import { createHand } from '#engine/dataTypes/playerState/hand.ts';
+import { createPenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
 import {
   addPenaltyToPlayer,
   createPlayer,
   type Player,
   type PlayerId,
-} from '#engine/dataTypes/player.ts';
-import { createRound, pickCardInRound } from '#engine/dataTypes/round.ts';
+} from '#engine/dataTypes/playerState/player.ts';
+import { createRound, pickCardInRound } from '#engine/dataTypes/table/round.ts';
 import { abandonGame, pickRow } from '#engine/reducers/gameSlice.ts';
 import { handleRowPickPhase } from '#engine/requestHandling/handleRowPickPhase.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';

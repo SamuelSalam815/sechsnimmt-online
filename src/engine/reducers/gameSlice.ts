@@ -1,24 +1,24 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { Card } from '#engine/dataTypes/card.ts';
-import type { GameRules } from '#engine/dataTypes/gameRules.ts';
+import type { Card } from '#engine/dataTypes/cards/card.ts';
+import type { GameRules } from '#engine/dataTypes/game/gameRules.ts';
 import {
   assertRoundInProgress,
   createGameState,
   createInitialGameState,
   GamePhase,
   type GameState,
-} from '#engine/dataTypes/gameState.ts';
+} from '#engine/dataTypes/game/gameState.ts';
 import {
   majorVersionBump,
   minorVersionBump,
-} from '#engine/dataTypes/gameStateVersion.ts';
+} from '#engine/dataTypes/game/gameStateVersion.ts';
 import {
   addPenaltiesToPlayers,
   doesGameHaveEnoughPlayers,
   type Player,
   type PlayerId,
   removePlayer,
-} from '#engine/dataTypes/player.ts';
+} from '#engine/dataTypes/playerState/player.ts';
 import {
   pickCardInRound,
   type Round,
@@ -27,7 +27,7 @@ import {
   resolveReveal,
   resolveRowPick,
   unpickCardInRound,
-} from '#engine/dataTypes/round.ts';
+} from '#engine/dataTypes/table/round.ts';
 
 export interface StartGamePayload {
   gameRules: GameRules;

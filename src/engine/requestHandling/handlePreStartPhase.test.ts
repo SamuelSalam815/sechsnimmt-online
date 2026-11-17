@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
-import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
-import { createPlayer } from '#engine/dataTypes/player.ts';
-import { dealRound } from '#engine/dataTypes/round.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
+import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
+import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
+import { dealRound } from '#engine/dataTypes/table/round.ts';
 import { startGame } from '#engine/reducers/gameSlice.ts';
 import { handlePreStartPhase } from '#engine/requestHandling/handlePreStartPhase.ts';
 import { RequestType } from '#engine/requests/requestType.ts';

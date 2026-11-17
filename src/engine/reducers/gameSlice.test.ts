@@ -1,21 +1,24 @@
 import { assert, describe, expect, test } from 'vitest';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
   createGameState,
   createInitialGameState,
   GamePhase,
   type GameState,
-} from '#engine/dataTypes/gameState.ts';
-import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
-import { createHand } from '#engine/dataTypes/hand.ts';
-import { createPenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
-import { addPenaltyToPlayer, createPlayer } from '#engine/dataTypes/player.ts';
+} from '#engine/dataTypes/game/gameState.ts';
+import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
+import { createHand } from '#engine/dataTypes/playerState/hand.ts';
+import { createPenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
+import {
+  addPenaltyToPlayer,
+  createPlayer,
+} from '#engine/dataTypes/playerState/player.ts';
 import {
   createRound,
   findPickedCardId,
   pickCardInRound,
   type Round,
-} from '#engine/dataTypes/round.ts';
+} from '#engine/dataTypes/table/round.ts';
 import {
   abandonGame,
   gameSlice,
@@ -117,7 +120,7 @@ describe('revealPickedCards', () => {
   );
 
   // resolveReveal decides the phase and places the cards. See
-  // dataTypes/round.test.ts.
+  // dataTypes/table/round.test.ts.
   test('takes the phase from the resolved reveal', () => {
     const next = gameSlice.reducer(picked, revealPickedCards());
     expect(next.phase).toBe(GamePhase.CardPick);
@@ -173,7 +176,7 @@ describe('pickRow', () => {
   const pickRowOfAda = pickRow({ playerId: 'a', rowIndex: 0 });
 
   // resolveRowPick decides the phase and places the cards. See
-  // dataTypes/round.test.ts.
+  // dataTypes/table/round.test.ts.
   test('takes the phase from the resolved row pick', () => {
     const next = gameSlice.reducer(rowPick, pickRowOfAda);
     expect(next.phase).toBe(GamePhase.CardPick);

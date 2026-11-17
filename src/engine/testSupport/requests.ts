@@ -1,7 +1,7 @@
 // Test support. It builds the requests that the tests of several phases send.
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
-import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
-import type { PlayerId } from '#engine/dataTypes/player.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
+import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
+import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 import type { AbandonGameRequest } from '#engine/requests/abandonGameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import type { StartGameRequest } from '#engine/requests/startGameRequest.ts';

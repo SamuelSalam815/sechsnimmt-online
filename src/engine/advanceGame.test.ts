@@ -1,17 +1,20 @@
 import { assert, expect, test } from 'vitest';
 import { advanceGame } from '#engine/advanceGame.ts';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
   createGameState,
   createInitialGameState,
   GamePhase,
-} from '#engine/dataTypes/gameState.ts';
-import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
-import { createHand } from '#engine/dataTypes/hand.ts';
-import { createPenaltyPile } from '#engine/dataTypes/penaltyPile.ts';
-import { createPenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
-import { addPenaltyToPlayer, createPlayer } from '#engine/dataTypes/player.ts';
-import { createRound } from '#engine/dataTypes/round.ts';
+} from '#engine/dataTypes/game/gameState.ts';
+import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
+import { createHand } from '#engine/dataTypes/playerState/hand.ts';
+import { createPenaltyPile } from '#engine/dataTypes/playerState/penaltyPile.ts';
+import { createPenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
+import {
+  addPenaltyToPlayer,
+  createPlayer,
+} from '#engine/dataTypes/playerState/player.ts';
+import { createRound } from '#engine/dataTypes/table/round.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
 import type { RootState } from '#engine/store.ts';

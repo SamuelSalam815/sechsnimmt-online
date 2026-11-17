@@ -3,7 +3,7 @@ import {
   addCardToRow,
   createRow,
   getLastCardOfRow,
-} from '#engine/dataTypes/row.ts';
+} from '#engine/dataTypes/table/row.ts';
 import { cardOf, rowOf } from '#testSupport/cards.ts';
 
 describe('createRow and getLastCardOfRow', () => {

@@ -24,7 +24,7 @@ A reference says which component it belongs to, which is what a boundary rule
 has to see.
 Biome therefore bans `./**` and `../**`, and it can ban a reference.
 
-The specifier carries the extension, as in `#engine/dataTypes/card.ts`.
+The specifier carries the extension, as in `#engine/dataTypes/cards/card.ts`.
 A mapping to `*.ts` alone would not serve `src/client`, which holds `.tsx`
 modules, and a mapping to a list of candidates does not help: Rollup resolves
 the first entry of the list and reports a failure instead of trying the next.

@@ -3,8 +3,8 @@ import {
   createCards,
   getPenalty,
   getPenaltyTotal,
-} from '#engine/dataTypes/card.ts';
-import { getDeckFaceValues } from '#engine/dataTypes/deck.ts';
+} from '#engine/dataTypes/cards/card.ts';
+import { getDeckFaceValues } from '#engine/dataTypes/cards/deck.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
 describe('createCards', () => {

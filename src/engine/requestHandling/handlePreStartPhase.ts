@@ -1,6 +1,6 @@
-import { checkGameStart } from '#engine/dataTypes/gameRules.ts';
-import { createPlayer } from '#engine/dataTypes/player.ts';
-import { dealRound } from '#engine/dataTypes/round.ts';
+import { checkGameStart } from '#engine/dataTypes/game/gameRules.ts';
+import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
+import { dealRound } from '#engine/dataTypes/table/round.ts';
 import { startGame } from '#engine/reducers/gameSlice.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';

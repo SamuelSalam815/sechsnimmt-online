@@ -1,19 +1,19 @@
 import { describe, expect, test } from 'vitest';
-import { createCards } from '#engine/dataTypes/card.ts';
-import { createDeck, getDeckFaceValues } from '#engine/dataTypes/deck.ts';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
-import { GamePhase } from '#engine/dataTypes/gameState.ts';
-import { createHand, type Hand } from '#engine/dataTypes/hand.ts';
+import { createCards } from '#engine/dataTypes/cards/card.ts';
+import { createDeck, getDeckFaceValues } from '#engine/dataTypes/cards/deck.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
+import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
+import { createHand, type Hand } from '#engine/dataTypes/playerState/hand.ts';
 import {
   addCardsToPenaltyPile,
   createPenaltyPile,
-} from '#engine/dataTypes/penaltyPile.ts';
-import { createPenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
+} from '#engine/dataTypes/playerState/penaltyPile.ts';
+import { createPenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
 import {
   addPenaltyToPlayer,
   createPlayer,
   type PlayerId,
-} from '#engine/dataTypes/player.ts';
+} from '#engine/dataTypes/playerState/player.ts';
 import {
   createRound,
   dealRound,
@@ -29,7 +29,7 @@ import {
   resolveReveal,
   resolveRowPick,
   unpickCardInRound,
-} from '#engine/dataTypes/round.ts';
+} from '#engine/dataTypes/table/round.ts';
 import { ErrorCode } from '#engine/result.ts';
 import { cardOf, rowOf } from '#testSupport/cards.ts';
 
