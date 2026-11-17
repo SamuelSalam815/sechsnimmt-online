@@ -187,7 +187,9 @@ describe('card pick phase handling', () => {
 });
 
 describe('handling of the phases that follow the reveal', () => {
-  function inPhase(phase: GamePhase.EndOfRound): GameState {
+  function inPhase(
+    phase: GamePhase.EndOfRound | GamePhase.GameOver,
+  ): GameState {
     return createGameState(
       phase,
       INITIAL_GAME_STATE_VERSION,
@@ -271,6 +273,15 @@ describe('handling of the phases that follow the reveal', () => {
     ).toEqual({
       message:
         'The end of round phase rejects the startGame request: it accepts only the start round request',
+    });
+  });
+
+  test('returns an error for every request in the game over phase', () => {
+    expect(
+      handleRequest(inPhase(GamePhase.GameOver), noHistory, startGameRequest),
+    ).toEqual({
+      message:
+        'The game over phase rejects the startGame request: it accepts no request',
     });
   });
 });
