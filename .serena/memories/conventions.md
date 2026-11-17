@@ -4,7 +4,7 @@
 
 - Biome style: single quotes, semicolons, trailing commas, 2 spaces, width 80.
 - Simple explicit code over abstractions; smallest change.
-- Enums for phases and request types; `import type` for types.
+- String enums, not unions of string literals, for tags, statuses and error codes (`GamePhase`, `RequestType`, `ErrorCode`, `StreamStatus`); see docs/data-type-design.md. `import type` for types.
 - Selectors return `undefined` when not found; reducers wrap them in `requireFound`.
 - Comments state what code cannot: reasons, rejected designs, workarounds, external constants. Short declarative sentences (STE style), often "X. Y therefore Z."
 

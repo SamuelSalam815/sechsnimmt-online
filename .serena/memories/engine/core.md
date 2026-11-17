@@ -3,7 +3,7 @@
 Three layers; they separate responsibility, not imports.
 
 1. Requests (`requests/`): untrusted client asks; change nothing. Each holds `lastVersionSeen`.
-2. Request handling (`requestHandling/`): `handleRequest` switches on phase, one `handle<Phase>Phase` each. Switch has no default on purpose: new phase must break the build. Rejection = returned `{ error }`, never a throw. Accepted = `{ actions }` of plain actions (`PhaseHandlingResult`).
+2. Request handling (`requestHandling/`): `handleRequest` checks staleness first (`ErrorCode.StaleRequest`), then switches on phase, one `handle<Phase>Phase` each. Switch has no default on purpose: new phase must break the build. Rejection = returned `ErrorMessage { errorCode, message }`, never a throw. Game rules (`penaltyLimit`, `handSize`) come with the start game request and live in the game state; `STANDARD_GAME_RULES` is 66 / 10. Accepted = `{ actions }` of plain actions (`PhaseHandlingResult`).
 3. Store (`reducers/gameSlice.ts`, `store.ts`): reducers alone progress the game. They do not check phase (layer 2 did). They throw (`requireFound`) when a selector from `dataTypes/selectors.ts` finds no data: that is a layer-2 bug.
 
 `advanceGame(rootState, request)` is the one entry point: pure, returns the next `RootState` or an `ErrorMessage`.
