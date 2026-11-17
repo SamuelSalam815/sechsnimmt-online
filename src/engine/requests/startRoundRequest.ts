@@ -4,6 +4,5 @@ import type { RequestType } from '#engine/requests/requestType.ts';
 
 export interface StartRoundRequest extends GameRequestBase {
   type: RequestType.StartRound;
-  // A shuffle is impure, so the request handling cannot make the deck.
   newShuffledDeck: Deck;
 }

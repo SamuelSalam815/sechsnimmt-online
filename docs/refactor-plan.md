@@ -65,7 +65,7 @@ The line numbers are from before the moves.
 
 - [x] Change the comments as the table says.
 - [x] For each comment dropped because it explains code that its module does not own: if the reason is not documented, document it. If the reason is local to the other module, move it into that module.
-- [ ] Remove the shuffle comments in `startGameRequest.ts:11` and `startRoundRequest.ts:7`. `docs/game-flow-architecture.md` (Layer 2: Request handling) states the decision. It gets no heading of its own.
+- [x] Remove the shuffle comments in `startGameRequest.ts:11` and `startRoundRequest.ts:7`. `docs/game-flow-architecture.md` (Layer 2: Request handling) states the decision. It gets no heading of its own.
 
 ## Session 2: Engine readability and tests
 

@@ -8,7 +8,5 @@ export interface StartGameRequest extends GameRequestBase {
   type: RequestType.StartGame;
   players: PlayerProfile[];
   gameRules: GameRules;
-  // The deck of the first round. A shuffle is impure, so the request handling
-  // cannot make it.
   newShuffledDeck: Deck;
 }
