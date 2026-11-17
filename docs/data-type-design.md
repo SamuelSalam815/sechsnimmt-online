@@ -100,6 +100,13 @@ The name states the one thing that the function does, which the earlier `toRound
 `dealRound` deals them from a deck, which is the act that the rules name.
 A second verb for the same act, such as the earlier `buildRound`, says nothing about the deck.
 
+## Enums for tags
+
+A value from a fixed set of strings is a string enum, not a union of string literals.
+This applies to a tag that discriminates a union, a status and an error code, for example `GamePhase`, `RequestType` and `ErrorCode`.
+A rename of a member then reaches every use through the compiler and the editor.
+A change of the string value touches one line.
+
 ## Immutable collections
 
 A collection type declares `readonly cards: readonly Card[]`.

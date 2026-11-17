@@ -25,8 +25,13 @@ export enum EventStreamShellMessageType {
   StreamClose = 'eventStreamShell/streamClose',
 }
 
+export enum StreamStatus {
+  Pending = 'pending',
+  Active = 'active',
+}
+
 export interface OpenStream {
-  readonly status: 'pending' | 'active';
+  readonly status: StreamStatus;
   // Undefined for a client that watches without a seat.
   readonly clientToken: string | undefined;
 }
@@ -105,7 +110,7 @@ export function eventStreamStep(
         coreContext: {
           nextStreamId: streamId + 1,
           streams: new Map(coreContext.streams).set(streamId, {
-            status: 'pending',
+            status: StreamStatus.Pending,
             clientToken,
           }),
         },
@@ -134,7 +139,7 @@ export function eventStreamStep(
       const { streamId, history } = inboundMessage;
       const stream = coreContext.streams.get(streamId);
       // The stream can close before its history arrives.
-      if (stream?.status !== 'pending') {
+      if (stream?.status !== StreamStatus.Pending) {
         return { coreContext, outboundMessages: [] };
       }
       return {
@@ -142,7 +147,7 @@ export function eventStreamStep(
           ...coreContext,
           streams: new Map(coreContext.streams).set(streamId, {
             ...stream,
-            status: 'active',
+            status: StreamStatus.Active,
           }),
         },
         outboundMessages: [
@@ -156,7 +161,7 @@ export function eventStreamStep(
       // stream is therefore already in the history that it waits for.
       const outboundMessages: EventStreamShellMessage[] = [];
       for (const [streamId, stream] of coreContext.streams) {
-        if (stream.status === 'active') {
+        if (stream.status === StreamStatus.Active) {
           outboundMessages.push(
             streamWrite(streamId, {
               eventName: 'gameActions',

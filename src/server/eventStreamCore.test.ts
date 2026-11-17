@@ -8,6 +8,7 @@ import {
   eventStreamStep,
   type OpenStream,
   type StreamEvent,
+  StreamStatus,
 } from '#server/eventStreamCore.ts';
 import { GameRunnerMessageType } from '#server/gameRunnerCore.ts';
 import { LogLevel } from '#server/message.ts';
@@ -32,11 +33,11 @@ const roomView: RoomView = {
 };
 
 function pending(clientToken?: string): OpenStream {
-  return { status: 'pending', clientToken };
+  return { status: StreamStatus.Pending, clientToken };
 }
 
 function active(clientToken?: string): OpenStream {
-  return { status: 'active', clientToken };
+  return { status: StreamStatus.Active, clientToken };
 }
 
 function coreContextWith(
