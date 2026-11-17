@@ -163,7 +163,6 @@ describe('resolveReveal', () => {
 });
 
 // Ada picked 5, which fits no row, and Ben picked 25. Ada also holds 100, so
-
 // the round goes on after the reveal.
 function rowPickRound(): Round {
   let round = createRound(
