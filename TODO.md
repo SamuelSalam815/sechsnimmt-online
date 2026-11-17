@@ -1,5 +1,6 @@
 # TODO
 
+- Work through `docs/refactor-plan.md`. It holds the code review work in three sessions, and three of the entries below.
 - Add a fairness test for the shuffle. It examines the distribution of the decks that the shuffle generates. See `docs/testing-strategy.md`.
 - Hide the hidden information from the clients. The start game and start round actions carry every hand, and the pick card action carries the picked card. The event stream must send each client a view of the history without the cards of the other players.
 - Keep the client tokens out of the logs. Each actor logs every message whole, so the join answer, the requests of the room and the game runner, and the stream messages write the token. A reader of the logs can act as any player. For example, log a message with the token redacted.
