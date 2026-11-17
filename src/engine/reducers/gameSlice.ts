@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { Card } from '#engine/dataTypes/card.ts';
+import type { GameRules } from '#engine/dataTypes/gameRules.ts';
 import {
   assertRoundInProgress,
   createGameState,
@@ -29,6 +30,7 @@ import {
 } from '#engine/dataTypes/round.ts';
 
 export interface StartGamePayload {
+  gameRules: GameRules;
   players: readonly Player[];
   round: Round;
 }
@@ -66,6 +68,7 @@ export const gameSlice = createSlice({
         // The start of the game is a major change: a request that saw an
         // earlier version worked off a game that holds no cards.
         majorVersionBump(state.version),
+        action.payload.gameRules,
         action.payload.players,
         action.payload.round,
       ),
@@ -76,6 +79,7 @@ export const gameSlice = createSlice({
       return createGameState(
         state.phase,
         minorVersionBump(state.version),
+        state.gameRules,
         state.players,
         pickCardInRound(state.round, playerId, card),
       );
@@ -89,6 +93,7 @@ export const gameSlice = createSlice({
       return createGameState(
         state.phase,
         minorVersionBump(state.version),
+        state.gameRules,
         state.players,
         unpickCardInRound(state.round, action.payload.playerId),
       );
@@ -100,12 +105,17 @@ export const gameSlice = createSlice({
         round,
         penaltyAccruals: accruals,
         phase,
-      } = resolveReveal(state.round, state.players);
+      } = resolveReveal(
+        state.round,
+        state.players,
+        state.gameRules.penaltyLimit,
+      );
       return createGameState(
         phase,
         // The reveal is a major change: a request that saw an earlier version
         // chose its card without knowing the revealed cards.
         majorVersionBump(state.version),
+        state.gameRules,
         addPenaltiesToPlayers(state.players, accruals),
         round,
       );
@@ -117,12 +127,14 @@ export const gameSlice = createSlice({
         state.round,
         state.players,
         action.payload,
+        state.gameRules.penaltyLimit,
       );
       return createGameState(
         phase,
         // The row pick is a major change: it places the cards that the reveal
         // left picked.
         majorVersionBump(state.version),
+        state.gameRules,
         addPenaltiesToPlayers(state.players, penaltyAccruals),
         round,
       );
@@ -139,6 +151,7 @@ export const gameSlice = createSlice({
         hasEnoughPlayers(players) ? state.phase : GamePhase.GameOver,
         // A player who leaves changes which picks the reveal waits for.
         majorVersionBump(state.version),
+        state.gameRules,
         players,
         removePlayerFromRound(state.round, playerId),
       );
@@ -155,6 +168,7 @@ export const gameSlice = createSlice({
         // A new round is a major change: a request that saw an earlier version
         // worked off cards that are no longer in the game.
         majorVersionBump(state.version),
+        state.gameRules,
         state.players,
         action.payload.round,
       );

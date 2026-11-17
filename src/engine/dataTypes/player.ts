@@ -1,12 +1,12 @@
 import type { PenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
 import { ErrorCode, lookup, type Result } from '#engine/dataTypes/result.ts';
 
-// The game ends when the penalty score of a player reaches this limit. See
-// "End of the game" in docs/game-rules.md.
-const PENALTY_LIMIT = 66;
-
 // 6 nimmt! is a game for 2 players or more.
 export const MIN_PLAYER_COUNT = 2;
+
+// A deal of 10 cards to each of 10 players and 4 to the rows takes all 104
+// cards.
+export const MAX_PLAYER_COUNT = 10;
 
 export type PlayerId = string;
 
@@ -79,8 +79,11 @@ export function addPenaltiesToPlayers(
   );
 }
 
-export function hasReachedPenaltyLimit(player: Player): boolean {
-  return player.penaltyScore >= PENALTY_LIMIT;
+export function hasReachedPenaltyLimit(
+  player: Player,
+  penaltyLimit: number,
+): boolean {
+  return player.penaltyScore >= penaltyLimit;
 }
 
 export function removePlayer(

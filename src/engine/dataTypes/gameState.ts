@@ -1,3 +1,4 @@
+import type { GameRules } from '#engine/dataTypes/gameRules.ts';
 import {
   type GameStateVersion,
   INITIAL_GAME_STATE_VERSION,
@@ -24,6 +25,7 @@ type GameStateFields =
   | {
       readonly phase: RoundPhase;
       readonly version: GameStateVersion;
+      readonly gameRules: GameRules;
       // The players outlive a round, and so does the penalty score that each
       // of them carries.
       readonly players: readonly Player[];
@@ -51,10 +53,11 @@ export function createInitialGameState(): GameState {
 export function createGameState(
   phase: RoundPhase,
   version: GameStateVersion,
+  gameRules: GameRules,
   players: readonly Player[],
   round: Round,
 ): GameState {
-  return brandAsGameState({ phase, version, players, round });
+  return brandAsGameState({ phase, version, gameRules, players, round });
 }
 
 // The pre-start phase holds no round. Layer 2 rejects a request that needs

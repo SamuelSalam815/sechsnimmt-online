@@ -39,8 +39,7 @@ import {
   type Row,
 } from '#engine/dataTypes/row.ts';
 
-const ROW_COUNT = 4;
-const HAND_SIZE = 10;
+export const ROW_COUNT = 4;
 
 declare const roundBrand: unique symbol;
 
@@ -92,9 +91,13 @@ export function createRound(
 }
 
 // The setup of docs/game-rules.md.
-export function dealRound(players: readonly Player[], deck: Deck): Round {
+export function dealRound(
+  players: readonly Player[],
+  deck: Deck,
+  handSize: number,
+): Round {
   const hands = players.map((player) => {
-    const draw = drawCards(deck, HAND_SIZE);
+    const draw = drawCards(deck, handSize);
     deck = draw.newDeck;
     return createHand(player.id, draw.cards);
   });
@@ -182,6 +185,7 @@ interface RevealedCard {
 export function resolveReveal(
   round: Round,
   players: readonly Player[],
+  penaltyLimit: number,
 ): RevealOutcome {
   let nextRound = round;
   const penaltyAccruals: PenaltyAccrual[] = [];
@@ -205,7 +209,7 @@ export function resolveReveal(
       takenCards,
     );
     penaltyAccruals.push(penaltyAccrual);
-    if (reachesPenaltyLimit(players, penaltyAccrual)) {
+    if (reachesPenaltyLimit(players, penaltyAccrual, penaltyLimit)) {
       return { round: nextRound, penaltyAccruals, phase: GamePhase.GameOver };
     }
   }
@@ -259,6 +263,7 @@ export function resolveRowPick(
   round: Round,
   players: readonly Player[],
   rowPick: RowPick,
+  penaltyLimit: number,
 ): RevealOutcome {
   const { playerId, rowIndex } = rowPick;
   // The card comes from the round, not from the caller: the placement removes
@@ -277,14 +282,14 @@ export function resolveRowPick(
     takenCards,
   );
   const penaltyAccrual = createPenaltyAccrual(playerId, takenCards);
-  if (reachesPenaltyLimit(players, penaltyAccrual)) {
+  if (reachesPenaltyLimit(players, penaltyAccrual, penaltyLimit)) {
     return {
       round: nextRound,
       penaltyAccruals: [penaltyAccrual],
       phase: GamePhase.GameOver,
     };
   }
-  const restOfReveal = resolveReveal(nextRound, players);
+  const restOfReveal = resolveReveal(nextRound, players, penaltyLimit);
   return {
     ...restOfReveal,
     penaltyAccruals: [penaltyAccrual, ...restOfReveal.penaltyAccruals],
@@ -296,9 +301,13 @@ export function resolveRowPick(
 function reachesPenaltyLimit(
   players: readonly Player[],
   accrual: PenaltyAccrual,
+  penaltyLimit: number,
 ): boolean {
   const player = findPlayer(players, accrual.playerId).force();
-  return hasReachedPenaltyLimit(addPenaltyToPlayer(player, accrual));
+  return hasReachedPenaltyLimit(
+    addPenaltyToPlayer(player, accrual),
+    penaltyLimit,
+  );
 }
 
 function takeCardsIntoPenaltyPile(

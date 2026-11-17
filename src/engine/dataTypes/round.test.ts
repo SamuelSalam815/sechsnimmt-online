@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { createCards, getDeckFaceValues } from '#engine/dataTypes/card.ts';
 import { createDeck } from '#engine/dataTypes/deck.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
 import { GamePhase } from '#engine/dataTypes/gameState.ts';
 import { createHand, type Hand } from '#engine/dataTypes/hand.ts';
 import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
@@ -53,7 +54,11 @@ function handOf(round: Round, playerId: PlayerId): Hand {
 
 describe('dealRound', () => {
   const cards = createCards(getDeckFaceValues());
-  const round = dealRound([ada, ben], createDeck(cards));
+  const round = dealRound(
+    [ada, ben],
+    createDeck(cards),
+    STANDARD_GAME_RULES.handSize,
+  );
 
   test('gives each player a hand of 10 cards, starting at the first card', () => {
     expect(round.hands).toEqual([
@@ -75,13 +80,19 @@ describe('dealRound', () => {
     const tenPlayers = Array.from({ length: 10 }, (_, i) =>
       createPlayer({ id: `p${i}`, name: `Player ${i}` }),
     );
-    const fullRound = dealRound(tenPlayers, createDeck(cards));
+    const fullRound = dealRound(
+      tenPlayers,
+      createDeck(cards),
+      STANDARD_GAME_RULES.handSize,
+    );
     expect(fullRound.rows[3].cards).toEqual([cards[103]]);
   });
 
   test('throws when the deck holds too few cards for the players', () => {
     const short = createDeck(cards.slice(0, 23));
-    expect(() => dealRound([ada, ben], short)).toThrow();
+    expect(() =>
+      dealRound([ada, ben], short, STANDARD_GAME_RULES.handSize),
+    ).toThrow();
   });
 });
 
@@ -240,7 +251,11 @@ describe('resolveReveal', () => {
     for (const [playerId, faceValue] of picks) {
       round = pickCardInRound(round, playerId, cardOf(faceValue));
     }
-    const outcome = resolveReveal(round, players);
+    const outcome = resolveReveal(
+      round,
+      players,
+      STANDARD_GAME_RULES.penaltyLimit,
+    );
     return {
       phase: outcome.phase,
       rows: outcome.round.rows.map((row) =>
@@ -371,10 +386,15 @@ describe('findCardForRowPick', () => {
 
 describe('resolveRowPick', () => {
   test('gives the row to the player, starts it with the card and places the rest', () => {
-    const outcome = resolveRowPick(rowPickRound(), [ada, ben], {
-      playerId: 'a',
-      rowIndex: 1,
-    });
+    const outcome = resolveRowPick(
+      rowPickRound(),
+      [ada, ben],
+      {
+        playerId: 'a',
+        rowIndex: 1,
+      },
+      STANDARD_GAME_RULES.penaltyLimit,
+    );
     // 25 goes after 10, the closest lower last card.
     expect(faceValuesOfRows(outcome.round)).toEqual([[10, 25], [5]]);
     expect(outcome.round.picks).toEqual({});
@@ -403,10 +423,15 @@ describe('resolveRowPick', () => {
         ),
       ),
     );
-    const outcome = resolveRowPick(rowPickRound(), [scoredAda, ben], {
-      playerId: 'a',
-      rowIndex: 0,
-    });
+    const outcome = resolveRowPick(
+      rowPickRound(),
+      [scoredAda, ben],
+      {
+        playerId: 'a',
+        rowIndex: 0,
+      },
+      STANDARD_GAME_RULES.penaltyLimit,
+    );
     expect(outcome.phase).toBe(GamePhase.GameOver);
     expect(faceValuesOfRows(outcome.round)).toEqual([[5], [20, 21]]);
     // The card of Ben is not placed.

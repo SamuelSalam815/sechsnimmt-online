@@ -13,7 +13,15 @@ export function handleEndOfRoundPhase(
 ): PhaseHandlingResult {
   if (request.type === RequestType.StartRound) {
     return {
-      actions: [startRound({ round: dealRound(state.players, request.deck) })],
+      actions: [
+        startRound({
+          round: dealRound(
+            state.players,
+            request.deck,
+            state.gameRules.handSize,
+          ),
+        }),
+      ],
     };
   }
   if (request.type === RequestType.AbandonGame) {

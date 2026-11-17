@@ -1,4 +1,8 @@
-import { MIN_PLAYER_COUNT, type PlayerId } from '#engine/dataTypes/player.ts';
+import {
+  MAX_PLAYER_COUNT,
+  MIN_PLAYER_COUNT,
+  type PlayerId,
+} from '#engine/dataTypes/player.ts';
 import type { Step } from '#server/actor.ts';
 import {
   type EventStreamMessage,
@@ -11,9 +15,6 @@ import {
 import { LogLevel, type MessageBase } from '#server/message.ts';
 import { readString } from '#server/requestBody.ts';
 
-// A deal of 10 cards to each of 10 players and 4 to the rows takes all 104
-// cards.
-const MAX_PLAYER_COUNT = 10;
 const MAX_NAME_LENGTH = 24;
 
 export enum RoomMessageType {

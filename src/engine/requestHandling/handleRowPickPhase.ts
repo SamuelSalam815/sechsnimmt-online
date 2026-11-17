@@ -54,7 +54,12 @@ function rowPickerAbandonActions(
     playerId,
     rowIndex: findRowIndexOfLargestPenalty(state.round),
   };
-  const outcome = resolveRowPick(state.round, state.players, rowPick);
+  const outcome = resolveRowPick(
+    state.round,
+    state.players,
+    rowPick,
+    state.gameRules.penaltyLimit,
+  );
   if (outcome.phase === GamePhase.GameOver) {
     return [pickRow(rowPick)];
   }

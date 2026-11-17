@@ -1,5 +1,6 @@
 import { advanceGame } from '#engine/advanceGame.ts';
 import type { Deck } from '#engine/dataTypes/deck.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
 import { GamePhase } from '#engine/dataTypes/gameState.ts';
 import type { PlayerId, PlayerProfile } from '#engine/dataTypes/player.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
@@ -217,6 +218,7 @@ function dealRequest(
       type: RequestType.StartGame,
       lastVersionSeen,
       players: coreContext.seats.map((seat) => seat.playerProfile),
+      gameRules: STANDARD_GAME_RULES,
       deck,
     };
   }

@@ -1,5 +1,6 @@
 import { assert, expect, test } from 'vitest';
 import { advanceGame } from '#engine/advanceGame.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
 import {
   createGameState,
   createInitialGameState,
@@ -25,6 +26,7 @@ function started(): RootState {
   const state = advanceGame(initialRootState, {
     type: RequestType.StartGame,
     lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
+    gameRules: STANDARD_GAME_RULES,
     players: [
       { id: 'a', name: 'Ada' },
       { id: 'b', name: 'Ben' },
@@ -46,6 +48,7 @@ const lastTurn: RootState = {
   game: createGameState(
     GamePhase.CardPick,
     INITIAL_GAME_STATE_VERSION,
+    STANDARD_GAME_RULES,
     [scored],
     createRound([rowOf(10)], [createHand('a', [lastCard])]),
   ),

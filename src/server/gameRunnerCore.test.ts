@@ -1,5 +1,6 @@
 import { assert, describe, expect, test } from 'vitest';
 import { advanceGame } from '#engine/advanceGame.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
 import { createGameState, GamePhase } from '#engine/dataTypes/gameState.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
@@ -67,6 +68,7 @@ const lastTurn: GameRunnerCoreContext = {
     game: createGameState(
       GamePhase.CardPick,
       INITIAL_GAME_STATE_VERSION,
+      STANDARD_GAME_RULES,
       [createPlayer({ id: 'a', name: 'Ada' })],
       createRound([rowOf(10)], [createHand('a', [cardOf(50)])]),
     ),
@@ -79,6 +81,7 @@ function started(): GameRunnerCoreContext {
     type: RequestType.StartGame,
     lastVersionSeen: 0,
     players: seats.map((seat) => seat.playerProfile),
+    gameRules: STANDARD_GAME_RULES,
     deck: orderedDeck(),
   });
   assert(!('message' in rootState));

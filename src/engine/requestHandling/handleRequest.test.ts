@@ -1,5 +1,6 @@
 import { assert, describe, expect, test } from 'vitest';
 import type { Card, CardId } from '#engine/dataTypes/card.ts';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
 import {
   createGameState,
   createInitialGameState,
@@ -40,6 +41,7 @@ import { cardOf, orderedDeck, rowOf } from '#testSupport/cards.ts';
 const startGameRequest: StartGameRequest = {
   type: RequestType.StartGame,
   lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
+  gameRules: STANDARD_GAME_RULES,
   players: [
     { id: 'a', name: 'Ada' },
     { id: 'b', name: 'Ben' },
@@ -64,8 +66,27 @@ describe('pre-start phase handling', () => {
   test('handles the start game request with a start game action that deals the deck of the request', () => {
     expect(handleRequest(preStart, noHistory, startGameRequest)).toEqual({
       actions: [
-        startGame({ players, round: dealRound(players, orderedDeck()) }),
+        startGame({
+          gameRules: STANDARD_GAME_RULES,
+          players,
+          round: dealRound(
+            players,
+            orderedDeck(),
+            STANDARD_GAME_RULES.handSize,
+          ),
+        }),
       ],
+    });
+  });
+
+  test('returns the error of the game rules check for the start game request', () => {
+    const outcome = handleRequest(preStart, noHistory, {
+      ...startGameRequest,
+      players: [{ id: 'a', name: 'Ada' }],
+    });
+    expect(outcome).toEqual({
+      errorCode: ErrorCode.InvalidGameRules,
+      message: 'A game needs 2 to 10 players, not 1',
     });
   });
 
@@ -99,7 +120,13 @@ describe('card pick phase handling', () => {
     for (const [playerId, card] of picks) {
       round = pickCardInRound(round, playerId, card);
     }
-    return createGameState(GamePhase.CardPick, version, players, round);
+    return createGameState(
+      GamePhase.CardPick,
+      version,
+      STANDARD_GAME_RULES,
+      players,
+      round,
+    );
   }
 
   function pickRequest(playerId: PlayerId, cardId: CardId): GameRequest {
@@ -229,6 +256,7 @@ describe('card pick phase handling', () => {
     const state = createGameState(
       GamePhase.CardPick,
       version,
+      STANDARD_GAME_RULES,
       [...players, cy],
       round,
     );
@@ -261,6 +289,7 @@ describe('handling of the phases that follow the reveal', () => {
     return createGameState(
       phase,
       INITIAL_GAME_STATE_VERSION,
+      STANDARD_GAME_RULES,
       players,
       createRound([], []),
     );
@@ -278,6 +307,7 @@ describe('handling of the phases that follow the reveal', () => {
     return createGameState(
       GamePhase.RowPick,
       INITIAL_GAME_STATE_VERSION,
+      STANDARD_GAME_RULES,
       players,
       round,
     );
@@ -358,6 +388,7 @@ describe('handling of the phases that follow the reveal', () => {
     const scored = createGameState(
       GamePhase.RowPick,
       state.version,
+      STANDARD_GAME_RULES,
       [scoredAda, players[1]],
       state.round,
     );
@@ -382,7 +413,15 @@ describe('handling of the phases that follow the reveal', () => {
         deck: orderedDeck(),
       }),
     ).toEqual({
-      actions: [startRound({ round: dealRound(players, orderedDeck()) })],
+      actions: [
+        startRound({
+          round: dealRound(
+            players,
+            orderedDeck(),
+            STANDARD_GAME_RULES.handSize,
+          ),
+        }),
+      ],
     });
   });
 
@@ -441,6 +480,7 @@ describe('version checking', () => {
   const state = createGameState(
     GamePhase.CardPick,
     { sequence: 3, major: false },
+    STANDARD_GAME_RULES,
     players,
     createRound([], [createHand('a', [card])]),
   );

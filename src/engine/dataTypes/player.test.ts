@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
 import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
 import {
   addPenaltiesToPlayers,
@@ -97,7 +98,9 @@ describe('hasReachedPenaltyLimit', () => {
   test('is false below 66 penalties', () => {
     const scored = addPenaltyToPlayer(ada, accrualOf('a', doublets));
     expect(scored.penaltyScore).toBe(40);
-    expect(hasReachedPenaltyLimit(scored)).toBe(false);
+    expect(
+      hasReachedPenaltyLimit(scored, STANDARD_GAME_RULES.penaltyLimit),
+    ).toBe(false);
   });
 
   test('is true at 66 penalties', () => {
@@ -108,7 +111,9 @@ describe('hasReachedPenaltyLimit', () => {
       accrualOf('a', [...doublets, 55, 10, 20, 30, 40, 50, 1, 2, 3, 4]),
     );
     expect(scored.penaltyScore).toBe(66);
-    expect(hasReachedPenaltyLimit(scored)).toBe(true);
+    expect(
+      hasReachedPenaltyLimit(scored, STANDARD_GAME_RULES.penaltyLimit),
+    ).toBe(true);
   });
 });
 

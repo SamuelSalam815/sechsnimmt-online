@@ -1,4 +1,5 @@
 import { assert, describe, expect, test } from 'vitest';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
 import {
   createGameState,
   createInitialGameState,
@@ -45,6 +46,7 @@ function cardPick(): GameState {
   return createGameState(
     GamePhase.CardPick,
     INITIAL_GAME_STATE_VERSION,
+    STANDARD_GAME_RULES,
     players,
     createRound([rowOf(50)], hands),
   );
@@ -59,12 +61,17 @@ test('moves to the card pick phase with the players and the round on startGame',
   const round = createRound([], [createHand('a', [aceOfAda])]);
   const next = gameSlice.reducer(
     createInitialGameState(),
-    startGame({ players: [players[0]], round }),
+    startGame({
+      gameRules: STANDARD_GAME_RULES,
+      players: [players[0]],
+      round,
+    }),
   );
   expect(next).toEqual(
     createGameState(
       GamePhase.CardPick,
       { sequence: 1, major: true },
+      STANDARD_GAME_RULES,
       [players[0]],
       round,
     ),
@@ -129,6 +136,7 @@ describe('revealPickedCards', () => {
     const fullRow = createGameState(
       GamePhase.CardPick,
       INITIAL_GAME_STATE_VERSION,
+      STANDARD_GAME_RULES,
       players,
       createRound(
         [rowOf(1, 2, 3, 4, 5)],
@@ -151,6 +159,7 @@ describe('pickRow', () => {
   const rowPick = createGameState(
     GamePhase.RowPick,
     INITIAL_GAME_STATE_VERSION,
+    STANDARD_GAME_RULES,
     players,
     pickCardInRound(
       createRound(
@@ -191,6 +200,7 @@ describe('abandonGame', () => {
     const state = createGameState(
       GamePhase.CardPick,
       INITIAL_GAME_STATE_VERSION,
+      STANDARD_GAME_RULES,
       [...players, cy],
       createRound(
         [rowOf(50)],
@@ -206,6 +216,7 @@ describe('abandonGame', () => {
       createGameState(
         GamePhase.CardPick,
         { sequence: 1, major: true },
+        STANDARD_GAME_RULES,
         [players[1], cy],
         createRound(
           [rowOf(50)],
@@ -231,6 +242,7 @@ test('moves to the card pick phase with the next round on startRound', () => {
   const endOfRound = createGameState(
     GamePhase.EndOfRound,
     INITIAL_GAME_STATE_VERSION,
+    STANDARD_GAME_RULES,
     scored,
     createRound([], []),
   );
@@ -239,6 +251,7 @@ test('moves to the card pick phase with the next round on startRound', () => {
     createGameState(
       GamePhase.CardPick,
       { sequence: 1, major: true },
+      STANDARD_GAME_RULES,
       scored,
       nextRound,
     ),

@@ -6,6 +6,7 @@ export enum ErrorCode {
   WrongPhase = 'wrongPhase',
   UnknownEntity = 'unknownEntity',
   RuleViolation = 'ruleViolation',
+  InvalidGameRules = 'invalidGameRules',
 }
 
 // An outcome that holds no value, only the code and the message that explain
