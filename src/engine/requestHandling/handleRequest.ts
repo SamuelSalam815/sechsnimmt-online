@@ -53,7 +53,7 @@ function handleInPhase(
     case GamePhase.RowPick:
       return handleRowPickPhase(request);
     case GamePhase.EndOfRound:
-      return handleEndOfRoundPhase(request);
+      return handleEndOfRoundPhase(state, request);
     case GamePhase.GameOver:
       return handleGameOverPhase(request);
   }

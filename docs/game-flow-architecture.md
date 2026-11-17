@@ -16,7 +16,7 @@ It changes nothing.
 
 A request is not trusted.
 This layer therefore decides which requests the current phase allows.
-It serves an allowed request with actions, with thunks, or with both.
+It serves an allowed request with actions.
 Handling starts in the generic `handleRequest`.
 That function passes the request to the handling of the current phase.
 
@@ -25,9 +25,13 @@ It travels back to the client.
 A rejection is therefore a returned error, not a throw.
 
 Redux buys predictable and testable changes.
-Actions and reducers therefore stay pure.
-A change that relies on random numbers cannot be pure.
-Such a change is a thunk, and its impurity runs on dispatch.
+Actions, reducers and the request handling therefore stay pure.
+A deal relies on random numbers, which cannot be pure.
+The shuffled deck therefore comes from outside the engine as data.
+The start game request carries the deck of the first round.
+The start round request carries the deck of each round that follows.
+A round that ends therefore rests in the end of round phase until that request arrives.
+`buildShuffledDeck` is the one impure function of the engine, and its caller runs it outside the pure code.
 
 ## Layer 3: Redux store
 

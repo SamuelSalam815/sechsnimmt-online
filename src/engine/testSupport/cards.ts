@@ -5,6 +5,7 @@ import {
   createCards,
   getDeckFaceValues,
 } from '#engine/dataTypes/card.ts';
+import { createDeck, type Deck } from '#engine/dataTypes/deck.ts';
 import { addCardToRow, createRow, type Row } from '#engine/dataTypes/row.ts';
 
 const standardDeck = new Map(
@@ -27,4 +28,10 @@ export function rowOf(...faceValues: number[]): Row {
     (row, card) => addCardToRow(row, card).row,
     createRow(first),
   );
+}
+
+// The deck in the order of the face values. A deal from it therefore gives
+// each player a run of cards: the first player 1 to 10, the next 11 to 20.
+export function orderedDeck(): Deck {
+  return createDeck([...standardDeck.values()]);
 }

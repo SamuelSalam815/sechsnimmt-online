@@ -1,8 +1,4 @@
-import {
-  configureStore,
-  type ThunkAction,
-  type UnknownAction,
-} from '@reduxjs/toolkit';
+import { configureStore, type UnknownAction } from '@reduxjs/toolkit';
 import type { GameState } from '#engine/dataTypes/gameState.ts';
 import { gameSlice } from '#engine/reducers/gameSlice.ts';
 import {
@@ -47,9 +43,3 @@ export function rootReducer(
 export const store = configureStore({ reducer: rootReducer });
 
 export type AppDispatch = typeof store.dispatch;
-export type AppThunk<ReturnType = void> = ThunkAction<
-  ReturnType,
-  RootState,
-  undefined,
-  UnknownAction
->;

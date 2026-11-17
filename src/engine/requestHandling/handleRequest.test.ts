@@ -9,10 +9,16 @@ import {
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
 import { createPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
-import { createRound, pickCardInRound } from '#engine/dataTypes/round.ts';
+import {
+  createRound,
+  dealRound,
+  pickCardInRound,
+} from '#engine/dataTypes/round.ts';
 import {
   pickCard,
   revealPickedCards,
+  startGame,
+  startRound,
   unpickCard,
 } from '#engine/reducers/gameSlice.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
@@ -20,7 +26,7 @@ import { handleRequest } from '#engine/requestHandling/handleRequest.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import type { StartGameRequest } from '#engine/requests/startGameRequest.ts';
-import { cardOf } from '#testSupport/cards.ts';
+import { cardOf, orderedDeck } from '#testSupport/cards.ts';
 
 const startGameRequest: StartGameRequest = {
   type: RequestType.StartGame,
@@ -29,6 +35,7 @@ const startGameRequest: StartGameRequest = {
     { id: 'a', name: 'Ada' },
     { id: 'b', name: 'Ben' },
   ],
+  deck: orderedDeck(),
 };
 const noHistory: AppliedAction[] = [];
 const preStart = createInitialGameState();
@@ -37,9 +44,12 @@ const players = startGameRequest.players.map((profile) =>
 );
 
 describe('pre-start phase handling', () => {
-  test('handles the start game request with one thunk', () => {
-    const result = handleRequest(preStart, noHistory, startGameRequest);
-    expect(result).toEqual({ actions: [expect.any(Function)] });
+  test('handles the start game request with a start game action that deals the deck of the request', () => {
+    expect(handleRequest(preStart, noHistory, startGameRequest)).toEqual({
+      actions: [
+        startGame({ players, round: dealRound(players, orderedDeck()) }),
+      ],
+    });
   });
 
   test('returns an error for the pick card request', () => {
@@ -191,12 +201,24 @@ describe('handling of the phases that follow the reveal', () => {
     ).toThrow('Not implemented');
   });
 
-  test('returns an error in the end of round phase', () => {
+  test('handles the start round request in the end of round phase with a start round action that deals the deck of the request', () => {
+    expect(
+      handleRequest(inPhase(GamePhase.EndOfRound), noHistory, {
+        type: RequestType.StartRound,
+        lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
+        deck: orderedDeck(),
+      }),
+    ).toEqual({
+      actions: [startRound({ round: dealRound(players, orderedDeck()) })],
+    });
+  });
+
+  test('returns an error for any other request in the end of round phase', () => {
     expect(
       handleRequest(inPhase(GamePhase.EndOfRound), noHistory, startGameRequest),
     ).toEqual({
       message:
-        'The end of round phase rejects the startGame request: it accepts no request',
+        'The end of round phase rejects the startGame request: it accepts only the start round request',
     });
   });
 });

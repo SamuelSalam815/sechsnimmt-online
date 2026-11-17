@@ -19,7 +19,7 @@ Impure code depends on something outside its input, for example random numbers, 
 
 - Do not unit test impure code.
 - Do not mock an external dependency to make a unit test possible.
-- Keep impure code out of pure code. A state change that relies on impurity is a thunk. See [the game flow architecture](game-flow-architecture.md).
+- Keep impure code out of pure code. A state change that relies on impurity takes the impure value as data, for example the shuffled deck of a deal. See [the game flow architecture](game-flow-architecture.md).
 - Test impure code as an integration: run it with its real dependencies and examine the result.
 
 The two kinds run separately.

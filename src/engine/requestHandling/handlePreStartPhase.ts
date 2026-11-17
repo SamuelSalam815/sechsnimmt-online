@@ -1,27 +1,20 @@
-import { createPlayer, type PlayerProfile } from '#engine/dataTypes/player.ts';
+import { createPlayer } from '#engine/dataTypes/player.ts';
+import { dealRound } from '#engine/dataTypes/round.ts';
 import { startGame } from '#engine/reducers/gameSlice.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
-import { buildShuffledRound } from '#engine/requestHandling/shuffledRound.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
-import type { AppThunk } from '#engine/store.ts';
 
 export function handlePreStartPhase(request: GameRequest): PhaseHandlingResult {
   if (request.type === RequestType.StartGame) {
-    return { actions: [startGameWithShuffledCards(request.players)] };
+    const players = request.players.map((profile) => createPlayer(profile));
+    return {
+      actions: [
+        startGame({ players, round: dealRound(players, request.deck) }),
+      ],
+    };
   }
   return {
     message: `The pre-start phase rejects the ${request.type} request: it accepts only the start game request`,
-  };
-}
-
-// Impure, because the shuffle uses random numbers. It has no unit test. See
-// docs/testing-strategy.md.
-function startGameWithShuffledCards(
-  profiles: readonly PlayerProfile[],
-): AppThunk {
-  return (dispatch) => {
-    const players = profiles.map((profile) => createPlayer(profile));
-    dispatch(startGame({ players, round: buildShuffledRound(players) }));
   };
 }

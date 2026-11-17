@@ -1,16 +1,13 @@
 import { createCards, getDeckFaceValues } from '#engine/dataTypes/card.ts';
-import { createDeck } from '#engine/dataTypes/deck.ts';
-import type { Player } from '#engine/dataTypes/player.ts';
-import { dealRound, type Round } from '#engine/dataTypes/round.ts';
+import { createDeck, type Deck } from '#engine/dataTypes/deck.ts';
 
-// Impure, because the shuffle uses random numbers. Call it from a thunk only.
-// See docs/testing-strategy.md.
-export function buildShuffledRound(players: readonly Player[]): Round {
+// Impure, because the shuffle uses random numbers. The rest of the engine is
+// pure, so the deck reaches it as data. See docs/game-flow-architecture.md.
+export function buildShuffledDeck(): Deck {
   const faceValues = getDeckFaceValues();
   shuffle(faceValues);
   // The cards get their IDs after the shuffle so IDs alone don't reveal faceValues
-  const deck = createDeck(createCards(faceValues));
-  return dealRound(players, deck);
+  return createDeck(createCards(faceValues));
 }
 
 // Fisher-Yates shuffle, in place.
