@@ -1,7 +1,16 @@
-import type { RoundGameState } from '#engine/dataTypes/gameState.ts';
-import { findPlayer } from '#engine/dataTypes/player.ts';
-import { findCardForRowPick, findRow } from '#engine/dataTypes/round.ts';
-import { abandonGame, pickRow } from '#engine/reducers/gameSlice.ts';
+import { GamePhase, type RoundGameState } from '#engine/dataTypes/gameState.ts';
+import { findPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
+import {
+  findCardForRowPick,
+  findRow,
+  findRowIndexOfLargestPenalty,
+  resolveRowPick,
+} from '#engine/dataTypes/round.ts';
+import {
+  abandonGame,
+  type GameAction,
+  pickRow,
+} from '#engine/reducers/gameSlice.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
@@ -13,9 +22,7 @@ export function handleRowPickPhase(
   if (request.type === RequestType.AbandonGame) {
     const { playerId } = request;
     if (findCardForRowPick(state.round, playerId).ok) {
-      return {
-        message: `Not implemented: the abandon game request of the player ${playerId}, who must pick a row`,
-      };
+      return { actions: rowPickerAbandonActions(state, playerId) };
     }
     return findPlayer(state.players, playerId).use(() => ({
       actions: [abandonGame({ playerId })],
@@ -32,4 +39,22 @@ export function handleRowPickPhase(
     .andThen(() => findRow(round, rowIndex))
     .andThen(() => findCardForRowPick(round, playerId))
     .use(() => ({ actions: [pickRow({ playerId, rowIndex })] }));
+}
+
+// The game waits for the row of the player who abandons, so the row with the
+// largest penalty goes to that player before they leave. A row that ends the
+// game keeps the player in it, so that the result shows their score.
+function rowPickerAbandonActions(
+  state: RoundGameState,
+  playerId: PlayerId,
+): GameAction[] {
+  const rowPick = {
+    playerId,
+    rowIndex: findRowIndexOfLargestPenalty(state.round),
+  };
+  const outcome = resolveRowPick(state.round, state.players, rowPick);
+  if (outcome.phase === GamePhase.GameOver) {
+    return [pickRow(rowPick)];
+  }
+  return [pickRow(rowPick), abandonGame({ playerId })];
 }

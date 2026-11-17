@@ -1,4 +1,8 @@
-import type { Card, CardId } from '#engine/dataTypes/card.ts';
+import {
+  type Card,
+  type CardId,
+  getPenaltyTotal,
+} from '#engine/dataTypes/card.ts';
 import {
   type Deck,
   drawCardsFromDeck as drawCards,
@@ -217,6 +221,19 @@ export function findRow(round: Round, rowIndex: number): Result<Row> {
     round.rows[rowIndex],
     `The game holds no row at the index ${rowIndex}`,
   );
+}
+
+// The first of the rows with the largest penalty, when more than one row has it.
+export function findRowIndexOfLargestPenalty(round: Round): number {
+  let rowIndex = 0;
+  round.rows.forEach((row, index) => {
+    if (
+      getPenaltyTotal(row.cards) > getPenaltyTotal(round.rows[rowIndex].cards)
+    ) {
+      rowIndex = index;
+    }
+  });
+  return rowIndex;
 }
 
 // Only the lowest picked card can fit no row. See resolveReveal.

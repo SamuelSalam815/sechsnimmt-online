@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { assert, describe, expect, test } from 'vitest';
 import type { Card, CardId } from '#engine/dataTypes/card.ts';
 import {
   createGameState,
@@ -8,7 +8,12 @@ import {
 } from '#engine/dataTypes/gameState.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
-import { createPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
+import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
+import {
+  addPenaltyToPlayer,
+  createPlayer,
+  type PlayerId,
+} from '#engine/dataTypes/player.ts';
 import {
   createRound,
   dealRound,
@@ -307,10 +312,38 @@ describe('handling of the phases that follow the reveal', () => {
     });
   });
 
-  test('does not yet handle the abandon game request of the player who must pick a row', () => {
+  test('gives the row with the largest penalty to the player who must pick a row and abandons', () => {
+    // The row of 20 counts 3 penalty, the row of 10 counts 3 as well, and the
+    // first of them goes to Ada.
     expect(handleRequest(rowPick(), noHistory, abandonRequest('a'))).toEqual({
-      message:
-        'Not implemented: the abandon game request of the player a, who must pick a row',
+      actions: [
+        pickRow({ playerId: 'a', rowIndex: 0 }),
+        abandonGame({ playerId: 'a' }),
+      ],
+    });
+  });
+
+  test('keeps the player who must pick a row in the game when that row ends it', () => {
+    const state = rowPick();
+    assert(state.phase === GamePhase.RowPick);
+    // A score of 63 for Ada. The row of 10 adds 3, which reaches the limit.
+    const scoredAda = addPenaltyToPlayer(
+      players[0],
+      createPenaltyAccrual(
+        'a',
+        [11, 22, 33, 44, 66, 77, 88, 99, 55, 20, 30, 40, 50, 15, 35].map(
+          cardOf,
+        ),
+      ),
+    );
+    const scored = createGameState(
+      GamePhase.RowPick,
+      state.version,
+      [scoredAda, players[1]],
+      state.round,
+    );
+    expect(handleRequest(scored, noHistory, abandonRequest('a'))).toEqual({
+      actions: [pickRow({ playerId: 'a', rowIndex: 0 })],
     });
   });
 

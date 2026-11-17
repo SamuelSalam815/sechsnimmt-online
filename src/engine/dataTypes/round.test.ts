@@ -21,6 +21,7 @@ import {
   findPick,
   findPickedCardId,
   findRow,
+  findRowIndexOfLargestPenalty,
   pickCardInRound,
   type Round,
   removePlayerFromRound,
@@ -416,5 +417,17 @@ describe('removePlayerFromRound', () => {
     expect(round.picks).toEqual({ b: cardOf(25).id });
     expect(round.penaltyPiles).toEqual([createPenaltyPile('b')]);
     expect(round.rows).toEqual(rowPickRound().rows);
+  });
+});
+
+describe('findRowIndexOfLargestPenalty', () => {
+  test('gives the index of the row with the largest penalty', () => {
+    const round = createRound([rowOf(10), rowOf(55), rowOf(20, 21)], []);
+    expect(findRowIndexOfLargestPenalty(round)).toBe(1);
+  });
+
+  test('gives the first of the rows that share the largest penalty', () => {
+    const round = createRound([rowOf(1), rowOf(10), rowOf(20)], []);
+    expect(findRowIndexOfLargestPenalty(round)).toBe(1);
   });
 });
