@@ -10,7 +10,7 @@
 
 ## Tests
 
-- Unit tests cover pure code only. No mocks of external dependencies. Impure code (random, clock, network) is tested as integration with real dependencies in `*.integration.test.ts`.
+- A unit test examines one module, pure or impure. An integration test runs several modules through one entry point, in `*.integration.test.ts`. No mocks of external dependencies; impure code runs with its real dependencies.
 - Do not test what the compiler rejects (no casts to build invalid values).
 - Vitest `test`/`describe`; test names are sentences describing behaviour.
 
