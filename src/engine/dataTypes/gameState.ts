@@ -18,8 +18,6 @@ export type RoundPhase = Exclude<GamePhase, GamePhase.PreStart>;
 
 declare const gameStateBrand: unique symbol;
 
-// The phases that hold a round share one member of the union. With one member
-// for each phase, a change of phase would rebuild the whole state.
 type GameStateFields =
   | { readonly phase: GamePhase.PreStart; readonly version: GameStateVersion }
   | {
@@ -27,7 +25,7 @@ type GameStateFields =
       readonly version: GameStateVersion;
       readonly gameRules: GameRules;
       // The players outlive a round, and so does the penalty score that each
-      // of them carries.
+      // of them carries. The round-local state (e.g. hand) lives inside the round.
       readonly players: readonly Player[];
       readonly round: Round;
     };
@@ -60,8 +58,6 @@ export function createGameState(
   return brandAsGameState({ phase, version, gameRules, players, round });
 }
 
-// The pre-start phase holds no round. Layer 2 rejects a request that needs
-// one, so a missing round here is a bug in that handling.
 export function assertRoundInProgress(
   state: GameState,
 ): asserts state is RoundGameState {

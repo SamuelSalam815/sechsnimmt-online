@@ -64,7 +64,7 @@ export function addPenaltyToPlayer(
   return brandAsPlayer(
     player.id,
     player.name,
-    player.penaltyScore + accrual.penalty,
+    player.penaltyScore + accrual.penaltyIncrease,
   );
 }
 
@@ -93,6 +93,6 @@ export function removePlayer(
   return players.filter((player) => player.id !== playerId);
 }
 
-export function hasEnoughPlayers(players: readonly Player[]): boolean {
+export function doesGameHaveEnoughPlayers(players: readonly Player[]): boolean {
   return players.length >= MIN_PLAYER_COUNT;
 }

@@ -32,7 +32,7 @@ describe('findCardInHand', () => {
 });
 
 describe('isHandEmpty', () => {
-  test('is true for a hand without cards', () => {
+  test('is only true for a hand without cards', () => {
     expect(isHandEmpty(createHand('a', []))).toBe(true);
     expect(isHandEmpty(createHand('a', [ace]))).toBe(false);
   });

@@ -10,5 +10,5 @@ export interface StartGameRequest extends GameRequestBase {
   gameRules: GameRules;
   // The deck of the first round. A shuffle is impure, so the request handling
   // cannot make it.
-  deck: Deck;
+  newShuffledDeck: Deck;
 }

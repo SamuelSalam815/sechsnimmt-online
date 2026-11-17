@@ -2,8 +2,8 @@ import type { Card } from '#engine/dataTypes/card.ts';
 import type { RoundGameState } from '#engine/dataTypes/gameState.ts';
 import { findCardInHand } from '#engine/dataTypes/hand.ts';
 import {
+  doesGameHaveEnoughPlayers,
   findPlayer,
-  hasEnoughPlayers,
   type PlayerId,
   removePlayer,
 } from '#engine/dataTypes/player.ts';
@@ -77,7 +77,7 @@ function abandonActions(
 ): GameAction[] {
   const actions: GameAction[] = [abandonGame({ playerId })];
   if (
-    hasEnoughPlayers(removePlayer(state.players, playerId)) &&
+    doesGameHaveEnoughPlayers(removePlayer(state.players, playerId)) &&
     wouldBeLastRemainingPlayerToPick(state, playerId)
   ) {
     actions.push(revealPickedCards());

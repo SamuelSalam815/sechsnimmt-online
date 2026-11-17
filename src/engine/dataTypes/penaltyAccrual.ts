@@ -8,7 +8,7 @@ declare const penaltyAccrualBrand: unique symbol;
 // that the player carries.
 export interface PenaltyAccrual {
   readonly playerId: PlayerId;
-  readonly penalty: number;
+  readonly penaltyIncrease: number;
   readonly [penaltyAccrualBrand]: true;
 }
 
@@ -17,6 +17,7 @@ export function createPenaltyAccrual(
   playerId: PlayerId,
   cards: readonly Card[],
 ): PenaltyAccrual {
+  const penaltyIncrease = getPenaltyTotal(cards);
   // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
-  return { playerId, penalty: getPenaltyTotal(cards) } as PenaltyAccrual;
+  return { playerId, penaltyIncrease } as PenaltyAccrual;
 }

@@ -63,7 +63,7 @@ test('plays a full game with stale and bad requests mixed in', () => {
       lastVersionSeen: seen,
       gameRules: rules,
       players,
-      deck,
+      newShuffledDeck: deck,
     });
   }
 
@@ -71,7 +71,7 @@ test('plays a full game with stale and bad requests mixed in', () => {
     send('start a round', {
       type: RequestType.StartRound,
       lastVersionSeen: seen,
-      deck,
+      newShuffledDeck: deck,
     });
   }
 

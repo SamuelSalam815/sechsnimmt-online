@@ -82,7 +82,7 @@ function started(): GameRunnerCoreContext {
     lastVersionSeen: 0,
     players: seats.map((seat) => seat.playerProfile),
     gameRules: STANDARD_GAME_RULES,
-    deck: orderedDeck(),
+    newShuffledDeck: orderedDeck(),
   });
   assert(!('message' in rootState));
   return { seats, rootState };

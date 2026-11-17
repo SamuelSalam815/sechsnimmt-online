@@ -38,7 +38,7 @@ test('handles the start round request with a start round action that deals the d
     handleEndOfRoundPhase(endOfRound(), {
       type: RequestType.StartRound,
       lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
-      deck: orderedDeck(),
+      newShuffledDeck: orderedDeck(),
     }),
   ).toEqual({
     actions: [

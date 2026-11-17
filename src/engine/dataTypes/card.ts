@@ -3,6 +3,7 @@ export type CardId = number;
 
 declare const cardBrand: unique symbol;
 
+// The representation of a playing card in sechsnimmt
 export interface Card {
   readonly id: CardId;
   readonly faceValue: number;

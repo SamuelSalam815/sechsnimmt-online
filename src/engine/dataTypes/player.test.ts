@@ -5,8 +5,8 @@ import {
   addPenaltiesToPlayers,
   addPenaltyToPlayer,
   createPlayer,
+  doesGameHaveEnoughPlayers,
   findPlayer,
-  hasEnoughPlayers,
   hasReachedPenaltyLimit,
   removePlayer,
 } from '#engine/dataTypes/player.ts';
@@ -125,7 +125,7 @@ describe('removePlayer', () => {
 
 describe('hasEnoughPlayers', () => {
   test('needs two players', () => {
-    expect(hasEnoughPlayers([ada])).toBe(false);
-    expect(hasEnoughPlayers([ada, ben])).toBe(true);
+    expect(doesGameHaveEnoughPlayers([ada])).toBe(false);
+    expect(doesGameHaveEnoughPlayers([ada, ben])).toBe(true);
   });
 });

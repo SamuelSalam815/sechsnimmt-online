@@ -14,7 +14,7 @@ import {
 } from '#engine/dataTypes/gameStateVersion.ts';
 import {
   addPenaltiesToPlayers,
-  hasEnoughPlayers,
+  doesGameHaveEnoughPlayers,
   type Player,
   type PlayerId,
   removePlayer,
@@ -148,7 +148,7 @@ export const gameSlice = createSlice({
       const { playerId } = action.payload;
       const players = removePlayer(state.players, playerId);
       return createGameState(
-        hasEnoughPlayers(players) ? state.phase : GamePhase.GameOver,
+        doesGameHaveEnoughPlayers(players) ? state.phase : GamePhase.GameOver,
         // A player who leaves changes which picks the reveal waits for.
         majorVersionBump(state.version),
         state.gameRules,

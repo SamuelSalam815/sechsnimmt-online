@@ -31,7 +31,7 @@ function started(): RootState {
       { id: 'a', name: 'Ada' },
       { id: 'b', name: 'Ben' },
     ],
-    deck: orderedDeck(),
+    newShuffledDeck: orderedDeck(),
   });
   assert(!('message' in state));
   return state;
@@ -120,7 +120,7 @@ test('the start round request deals the next round and keeps the scores', () => 
   const next = advanceGame(ended, {
     type: RequestType.StartRound,
     lastVersionSeen: ended.game.version.sequence,
-    deck: orderedDeck(),
+    newShuffledDeck: orderedDeck(),
   });
   assert(!('message' in next));
   const game = next.game;

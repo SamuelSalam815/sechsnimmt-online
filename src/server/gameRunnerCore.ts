@@ -219,10 +219,14 @@ function dealRequest(
       lastVersionSeen,
       players: coreContext.seats.map((seat) => seat.playerProfile),
       gameRules: STANDARD_GAME_RULES,
-      deck,
+      newShuffledDeck: deck,
     };
   }
-  return { type: RequestType.StartRound, lastVersionSeen, deck };
+  return {
+    type: RequestType.StartRound,
+    lastVersionSeen,
+    newShuffledDeck: deck,
+  };
 }
 
 function playerGameRequest(

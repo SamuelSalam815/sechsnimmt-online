@@ -15,7 +15,7 @@ export const startGameRequest: StartGameRequest = {
     { id: 'a', name: 'Ada' },
     { id: 'b', name: 'Ben' },
   ],
-  deck: orderedDeck(),
+  newShuffledDeck: orderedDeck(),
 };
 
 export function abandonRequest(playerId: PlayerId): AbandonGameRequest {

@@ -2,11 +2,13 @@ import type { Card } from '#engine/dataTypes/card.ts';
 
 declare const deckBrand: unique symbol;
 
+// Represents a particular shuffling of cards
 export interface Deck {
   readonly cards: readonly Card[];
   readonly [deckBrand]: true;
 }
 
+// Represents the consequence of drawing a number of cards from a deck
 export interface DeckDraw {
   readonly newDeck: Deck;
   readonly cards: readonly Card[];

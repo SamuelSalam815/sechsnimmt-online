@@ -300,7 +300,7 @@ describe('resolveReveal', () => {
     expect(next.accruals).toEqual([
       createPenaltyAccrual('b', [1, 2, 3, 4, 5].map(cardOf)),
     ]);
-    expect(next.accruals[0].penalty).toBe(6);
+    expect(next.accruals[0].penaltyIncrease).toBe(6);
     expect(next.phase).toBe(GamePhase.CardPick);
   });
 

@@ -9,12 +9,14 @@ import { RequestType } from '#engine/requests/requestType.ts';
 
 export function handlePreStartPhase(request: GameRequest): PhaseHandlingResult {
   if (request.type === RequestType.StartGame) {
-    const { gameRules, deck } = request;
-    return checkGameStart(gameRules, request.players, deck).use(() => {
-      const players = request.players.map((profile) => createPlayer(profile));
-      const round = dealRound(players, deck, gameRules.handSize);
-      return { actions: [startGame({ gameRules, players, round })] };
-    });
+    const { gameRules, newShuffledDeck } = request;
+    return checkGameStart(gameRules, request.players, newShuffledDeck).use(
+      () => {
+        const players = request.players.map((profile) => createPlayer(profile));
+        const round = dealRound(players, newShuffledDeck, gameRules.handSize);
+        return { actions: [startGame({ gameRules, players, round })] };
+      },
+    );
   }
   return {
     errorCode: ErrorCode.WrongPhase,
