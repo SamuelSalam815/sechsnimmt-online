@@ -1,15 +1,25 @@
 import { describe, expect, test } from 'vitest';
-import { type CounterAction, CounterMessageType } from '#server/counterCore.ts';
+import { unpickCard } from '#engine/reducers/gameSlice.ts';
+import type { AppliedAction } from '#engine/reducers/history.ts';
 import {
   type EventStreamCoreContext,
   EventStreamMessageType,
   EventStreamShellMessageType,
   eventStreamStep,
 } from '#server/eventStreamCore.ts';
+import { GameRunnerMessageType } from '#server/gameRunnerCore.ts';
 import { LogLevel } from '#server/message.ts';
 
-const one: CounterAction = { type: 'counter/tick', totalCount: 1 };
-const two: CounterAction = { type: 'counter/tick', totalCount: 2 };
+function appliedAction(sequence: number): AppliedAction {
+  return {
+    oldVersion: { sequence: sequence - 1, major: false },
+    newVersion: { sequence, major: false },
+    action: unpickCard({ playerId: 'a' }),
+  };
+}
+
+const one = appliedAction(1);
+const two = appliedAction(2);
 
 function coreContextWith(
   streams: [number, 'pending' | 'active'][],
@@ -18,7 +28,7 @@ function coreContextWith(
 }
 
 describe('eventStreamStep', () => {
-  test('a stream request accepts a pending stream under the next ID and asks the counter for its history', () => {
+  test('a stream request accepts a pending stream under the next ID and asks the game runner for its history', () => {
     expect(
       eventStreamStep(coreContextWith([]), {
         type: EventStreamMessageType.StreamRequested,
@@ -36,7 +46,7 @@ describe('eventStreamStep', () => {
           streamId: 5,
         },
         {
-          type: CounterMessageType.HistoryRequested,
+          type: GameRunnerMessageType.HistoryRequested,
           logLevel: LogLevel.Debug,
           streamId: 5,
         },
@@ -77,7 +87,7 @@ describe('eventStreamStep', () => {
     ).toEqual({ coreContext, outboundMessages: [] });
   });
 
-  test('a broadcast action goes to the active streams only', () => {
+  test('broadcast actions go to the active streams only', () => {
     const coreContext = coreContextWith([
       [1, 'active'],
       [2, 'pending'],
@@ -85,9 +95,9 @@ describe('eventStreamStep', () => {
     ]);
     expect(
       eventStreamStep(coreContext, {
-        type: EventStreamMessageType.BroadcastAction,
+        type: EventStreamMessageType.BroadcastActions,
         logLevel: LogLevel.Info,
-        action: two,
+        actions: [one, two],
       }),
     ).toEqual({
       coreContext,
@@ -96,13 +106,13 @@ describe('eventStreamStep', () => {
           type: EventStreamShellMessageType.StreamWrite,
           logLevel: LogLevel.Debug,
           streamId: 1,
-          actions: [two],
+          actions: [one, two],
         },
         {
           type: EventStreamShellMessageType.StreamWrite,
           logLevel: LogLevel.Debug,
           streamId: 3,
-          actions: [two],
+          actions: [one, two],
         },
       ],
     });

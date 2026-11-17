@@ -1,11 +1,7 @@
 import { type Response, Router } from 'express';
 import type { Logger } from 'pino';
+import type { AppliedAction } from '#engine/reducers/history.ts';
 import { type Actor, createActor } from '#server/actor.ts';
-import {
-  type CounterAction,
-  type CounterMessage,
-  CounterMessageType,
-} from '#server/counterCore.ts';
 import {
   type EventStreamMessage,
   EventStreamMessageType,
@@ -13,6 +9,10 @@ import {
   eventStreamStep,
   initialEventStreamCoreContext,
 } from '#server/eventStreamCore.ts';
+import {
+  type GameRunnerMessage,
+  GameRunnerMessageType,
+} from '#server/gameRunnerCore.ts';
 import { LogLevel } from '#server/message.ts';
 import { requireValue } from '#server/requireValue.ts';
 
@@ -22,7 +22,7 @@ export interface EventStream {
 }
 
 export function eventStreamActor(
-  sendToCounter: (message: CounterMessage) => void,
+  sendToGameRunner: (message: GameRunnerMessage) => void,
   logger: Logger,
 ): EventStream {
   const streams = new Map<number, Response>();
@@ -32,9 +32,8 @@ export function eventStreamActor(
     step: eventStreamStep,
     interpret(outboundMessage, response: Response | undefined) {
       switch (outboundMessage.type) {
-        case CounterMessageType.TickRequested:
-        case CounterMessageType.HistoryRequested:
-          sendToCounter(outboundMessage);
+        case GameRunnerMessageType.HistoryRequested:
+          sendToGameRunner(outboundMessage);
           return;
 
         case EventStreamShellMessageType.StreamOpen:
@@ -75,7 +74,7 @@ export function eventStreamActor(
 
   function writeActions(
     streamId: number,
-    actions: readonly CounterAction[],
+    actions: readonly AppliedAction[],
   ): void {
     const stream = streams.get(streamId);
     if (stream === undefined) {
@@ -86,7 +85,7 @@ export function eventStreamActor(
   }
 
   const router = Router();
-  router.get('/counter/events', (_request, response) => {
+  router.get('/events', (_request, response) => {
     actor.send(
       {
         type: EventStreamMessageType.StreamRequested,

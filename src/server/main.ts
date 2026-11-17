@@ -2,8 +2,8 @@ import { createServer } from 'node:http';
 import { networkInterfaces } from 'node:os';
 import express from 'express';
 import { builtClient, viteClient } from '#server/clientServing.ts';
-import { counterActor } from '#server/counter.ts';
 import { eventStreamActor } from '#server/eventStream.ts';
+import { gameRunnerActor } from '#server/gameRunner.ts';
 import { developmentLogger, productionLogger } from '#server/logger.ts';
 import { restHandlerRouter } from '#server/restHandler.ts';
 
@@ -14,10 +14,10 @@ const logger = inProduction ? productionLogger() : developmentLogger();
 const clientServing = inProduction ? builtClient : viteClient;
 
 const eventStream = eventStreamActor(
-  (message) => counter.send(message),
+  (message) => gameRunner.actor.send(message),
   logger,
 );
-const counter = counterActor(
+const gameRunner = gameRunnerActor(
   (message) => eventStream.actor.send(message),
   logger,
 );
@@ -26,8 +26,10 @@ const restHandler = restHandlerRouter(logger);
 const app = express();
 const httpServer = createServer(app);
 
+app.use('/api', express.json());
 app.use('/api', restHandler);
 app.use('/api', eventStream.router);
+app.use('/api', gameRunner.router);
 await clientServing.attach(app, httpServer);
 
 httpServer.listen(port, () => {

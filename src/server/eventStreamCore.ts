@@ -1,15 +1,15 @@
+import type { AppliedAction } from '#engine/reducers/history.ts';
 import type { Step } from '#server/actor.ts';
 import {
-  type CounterAction,
-  type CounterMessage,
-  CounterMessageType,
-} from '#server/counterCore.ts';
+  type GameRunnerMessage,
+  GameRunnerMessageType,
+} from '#server/gameRunnerCore.ts';
 import { LogLevel, type MessageBase } from '#server/message.ts';
 
 export enum EventStreamMessageType {
   StreamRequested = 'eventStream/streamRequested',
   HistoryResponse = 'eventStream/historyResponse',
-  BroadcastAction = 'eventStream/broadcastAction',
+  BroadcastActions = 'eventStream/broadcastActions',
   StreamClosed = 'eventStream/streamClosed',
 }
 
@@ -30,11 +30,11 @@ export type EventStreamMessage = MessageBase &
     | {
         readonly type: EventStreamMessageType.HistoryResponse;
         readonly streamId: number;
-        readonly history: readonly CounterAction[];
+        readonly history: readonly AppliedAction[];
       }
     | {
-        readonly type: EventStreamMessageType.BroadcastAction;
-        readonly action: CounterAction;
+        readonly type: EventStreamMessageType.BroadcastActions;
+        readonly actions: readonly AppliedAction[];
       }
     | {
         readonly type: EventStreamMessageType.StreamClosed;
@@ -51,7 +51,7 @@ export type EventStreamShellMessage = MessageBase &
     | {
         readonly type: EventStreamShellMessageType.StreamWrite;
         readonly streamId: number;
-        readonly actions: readonly CounterAction[];
+        readonly actions: readonly AppliedAction[];
       }
     | {
         readonly type: EventStreamShellMessageType.StreamClose;
@@ -67,7 +67,7 @@ export const initialEventStreamCoreContext: EventStreamCoreContext = {
 export function eventStreamStep(
   coreContext: EventStreamCoreContext,
   inboundMessage: EventStreamMessage,
-): Step<CounterMessage | EventStreamShellMessage, EventStreamCoreContext> {
+): Step<GameRunnerMessage | EventStreamShellMessage, EventStreamCoreContext> {
   switch (inboundMessage.type) {
     case EventStreamMessageType.StreamRequested: {
       const streamId = coreContext.nextStreamId;
@@ -83,7 +83,7 @@ export function eventStreamStep(
             streamId,
           },
           {
-            type: CounterMessageType.HistoryRequested,
+            type: GameRunnerMessageType.HistoryRequested,
             logLevel: LogLevel.Debug,
             streamId,
           },
@@ -113,7 +113,7 @@ export function eventStreamStep(
       };
     }
 
-    case EventStreamMessageType.BroadcastAction: {
+    case EventStreamMessageType.BroadcastActions: {
       // Mailboxes keep their order. An action that reaches a pending
       // stream is therefore already in the history that it waits for.
       const outboundMessages: EventStreamShellMessage[] = [];
@@ -123,7 +123,7 @@ export function eventStreamStep(
             type: EventStreamShellMessageType.StreamWrite,
             logLevel: LogLevel.Debug,
             streamId,
-            actions: [inboundMessage.action],
+            actions: inboundMessage.actions,
           });
         }
       }

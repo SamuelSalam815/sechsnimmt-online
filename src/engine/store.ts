@@ -12,7 +12,7 @@ export interface RootState {
   history: AppliedAction[];
 }
 
-const initialRootState: RootState = {
+export const initialRootState: RootState = {
   game: gameSlice.getInitialState(),
   history: INITIAL_HISTORY,
 };

@@ -1,7 +1,7 @@
 # Server architecture
 
 The server is a functional core in an imperative shell.
-Three actors divide it: the REST handler, the event stream and the counter.
+Three actors divide it: the REST handler, the event stream and the game runner.
 
 ## Actors
 
@@ -31,9 +31,9 @@ The I/O of an actor is the work of its shell.
 The shell is therefore one more recipient, with messages of its own, for example `eventStreamShell/streamWrite`.
 Such a message is data that says what the shell must do.
 
-An enum of each actor holds the tags of its messages, for example `CounterMessageType`.
+An enum of each actor holds the tags of its messages, for example `GameRunnerMessageType`.
 The prefix of the tag of an actor message names its recipient.
-`counter/tickRequested` goes to the counter, and `eventStream/broadcastAction` goes to the event stream.
+`gameRunner/historyRequested` goes to the game runner, and `eventStream/broadcastActions` goes to the event stream.
 The prefix of the tag of a shell message names the actor of that shell and ends in `Shell`, for example `restHandlerShell/`.
 The shell therefore routes an outbound message by its tag alone, and no two shells share a tag.
 An action of the game is payload inside a message.
@@ -62,18 +62,22 @@ The REST handler owns the HTTP routes of plain requests.
 It answers a ping.
 
 The event stream owns the route that opens an event stream, and the open event streams.
-A stream request makes a pending stream, and the event stream asks the counter for the history.
+A stream request makes a pending stream, and the event stream asks the game runner for the history.
 The history response makes the stream active.
-The counter sends each new action to the event stream, which broadcasts it to the active streams.
+The game runner sends the new actions of each change to the event stream, which broadcasts them to the active streams.
 
-The counter owns the action history.
-Its shell holds the timer, which sends it a tick request.
-The core makes the next action on a tick request, and it answers a history request.
-The counter stands in for a game room.
-The actions that the request handlers of the engine emit will take the place of its actions.
+The game runner owns the game state, its action history and the routes of the game requests.
+A client request names its seat with the client token, and the game runner turns it into a request of the engine with the player ID of that seat.
+The engine is pure, so the game runner asks its shell for a shuffled deck when a deal is due: at the start of the game and at the end of each round.
+The shell answers with the deck in a message to the game runner.
+The engine rejects every request while the deck is on its way, because the game rests in a phase that waits for the deal.
+
+A request of a client is untrusted.
+The core therefore reads the request body field by field and rejects a body that lacks a field.
+The answer to a rejected request carries an HTTP status: 400 for a malformed body, 403 for an unknown client token, 409 for a request that the engine rejects.
 
 ## Wire format
 
-Each event of the stream carries a JSON array of actions.
-A new stream first gets the full history, then each new action.
+Each event of the stream carries a JSON array of applied actions.
+A new stream first gets the full history, then the new actions of each change.
 The client replays the actions to get the state.
