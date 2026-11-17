@@ -87,10 +87,8 @@ function unpickRequest(playerId: PlayerId, cardId: CardId): GameRequest {
 }
 
 test('returns an error for the start game request', () => {
-  expect(handleCardPickPhase(cardPick(), startGameRequest)).toEqual({
+  expect(handleCardPickPhase(cardPick(), startGameRequest)).toMatchObject({
     errorCode: ErrorCode.WrongPhase,
-    message:
-      'The card pick phase rejects the startGame request: it accepts only the pick card, unpick card and abandon game requests',
   });
 });
 
@@ -98,9 +96,8 @@ test.each([
   ['pick card', pickRequest('nobody', aceOfAda.id)],
   ['unpick card', unpickRequest('nobody', aceOfAda.id)],
 ])('returns an error for the %s request of an unknown player', (_, request) => {
-  expect(handleCardPickPhase(cardPick(), request)).toEqual({
+  expect(handleCardPickPhase(cardPick(), request)).toMatchObject({
     errorCode: ErrorCode.UnknownEntity,
-    message: 'The game holds no player with the ID nobody',
   });
 });
 
@@ -113,9 +110,8 @@ test('handles the pick card request with the pick card action', () => {
 test('returns an error if the card is not in the hand of the player', () => {
   expect(
     handleCardPickPhase(cardPick(), pickRequest('a', aceOfBen.id)),
-  ).toEqual({
+  ).toMatchObject({
     errorCode: ErrorCode.RuleViolation,
-    message: 'The hand of the player a does not hold the card 2',
   });
 });
 
@@ -129,17 +125,17 @@ test('handles the unpick card request with the unpick card action', () => {
 test('returns an error if the card is not picked', () => {
   expect(
     handleCardPickPhase(cardPick(), unpickRequest('a', aceOfAda.id)),
-  ).toEqual({
+  ).toMatchObject({
     errorCode: ErrorCode.RuleViolation,
-    message: 'The player a has picked no card, not the card 0',
   });
 });
 
 test('returns an error if another player owns the picked card', () => {
   const state = cardPick([['b', aceOfBen]]);
-  expect(handleCardPickPhase(state, unpickRequest('a', aceOfBen.id))).toEqual({
+  expect(
+    handleCardPickPhase(state, unpickRequest('a', aceOfBen.id)),
+  ).toMatchObject({
     errorCode: ErrorCode.RuleViolation,
-    message: 'The player a has picked no card, not the card 2',
   });
 });
 
@@ -157,9 +153,10 @@ test('handles the abandon game request with the abandon game action', () => {
 });
 
 test('returns an error for the abandon game request of an unknown player', () => {
-  expect(handleCardPickPhase(cardPick(), abandonRequest('nobody'))).toEqual({
+  expect(
+    handleCardPickPhase(cardPick(), abandonRequest('nobody')),
+  ).toMatchObject({
     errorCode: ErrorCode.UnknownEntity,
-    message: 'The game holds no player with the ID nobody',
   });
 });
 

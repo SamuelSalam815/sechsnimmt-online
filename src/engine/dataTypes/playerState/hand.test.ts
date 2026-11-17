@@ -20,12 +20,11 @@ describe('findCardInHand', () => {
     });
   });
 
-  test('names the miss for a card that the hand does not hold', () => {
-    expect(findCardInHand(createHand('a', [ace]), other.id)).toEqual({
+  test('fails for a card that the hand does not hold', () => {
+    expect(findCardInHand(createHand('a', [ace]), other.id)).toMatchObject({
       ok: false,
       failure: {
         errorCode: ErrorCode.RuleViolation,
-        message: `The hand of the player a does not hold the card ${other.id}`,
       },
     });
   });

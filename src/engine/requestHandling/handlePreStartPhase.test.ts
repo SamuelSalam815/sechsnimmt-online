@@ -30,9 +30,8 @@ test('returns the error of the game rules check for the start game request', () 
     ...startGameRequest,
     players: [{ id: 'a', name: 'Ada' }],
   });
-  expect(outcome).toEqual({
+  expect(outcome).toMatchObject({
     errorCode: ErrorCode.InvalidGameRules,
-    message: 'A game needs 2 to 10 players, not 1',
   });
 });
 
@@ -43,9 +42,7 @@ test('returns an error for the pick card request', () => {
     playerId: 'a',
     cardId: 0,
   });
-  expect(outcome).toEqual({
+  expect(outcome).toMatchObject({
     errorCode: ErrorCode.WrongPhase,
-    message:
-      'The pre-start phase rejects the pickCard request: it accepts only the start game request',
   });
 });

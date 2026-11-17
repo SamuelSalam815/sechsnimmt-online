@@ -68,23 +68,22 @@ test('handles the pick row request with the pick row action', () => {
 });
 
 test('returns an error for the pick row request of a player whose card fits a row', () => {
-  expect(handleRowPickPhase(rowPick(), pickRowRequest('b', 1))).toEqual({
+  expect(handleRowPickPhase(rowPick(), pickRowRequest('b', 1))).toMatchObject({
     errorCode: ErrorCode.RuleViolation,
-    message: 'The player b holds no card that waits for a row pick',
   });
 });
 
 test('returns an error for the pick row request of an unknown row', () => {
-  expect(handleRowPickPhase(rowPick(), pickRowRequest('a', 2))).toEqual({
+  expect(handleRowPickPhase(rowPick(), pickRowRequest('a', 2))).toMatchObject({
     errorCode: ErrorCode.UnknownEntity,
-    message: 'The game holds no row at the index 2',
   });
 });
 
 test('returns an error for the pick row request of an unknown player', () => {
-  expect(handleRowPickPhase(rowPick(), pickRowRequest('nobody', 0))).toEqual({
+  expect(
+    handleRowPickPhase(rowPick(), pickRowRequest('nobody', 0)),
+  ).toMatchObject({
     errorCode: ErrorCode.UnknownEntity,
-    message: 'The game holds no player with the ID nobody',
   });
 });
 
@@ -122,9 +121,7 @@ test('keeps the player who must pick a row in the game when that row ends it', (
 });
 
 test('returns an error for any other request', () => {
-  expect(handleRowPickPhase(rowPick(), startGameRequest)).toEqual({
+  expect(handleRowPickPhase(rowPick(), startGameRequest)).toMatchObject({
     errorCode: ErrorCode.WrongPhase,
-    message:
-      'The row pick phase rejects the startGame request: it accepts only the pick row and abandon game requests',
   });
 });

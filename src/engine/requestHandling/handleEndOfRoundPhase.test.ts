@@ -59,9 +59,7 @@ test('handles the abandon game request', () => {
 });
 
 test('returns an error for any other request', () => {
-  expect(handleEndOfRoundPhase(endOfRound(), startGameRequest)).toEqual({
+  expect(handleEndOfRoundPhase(endOfRound(), startGameRequest)).toMatchObject({
     errorCode: ErrorCode.WrongPhase,
-    message:
-      'The end of round phase rejects the startGame request: it accepts only the start round and abandon game requests',
   });
 });

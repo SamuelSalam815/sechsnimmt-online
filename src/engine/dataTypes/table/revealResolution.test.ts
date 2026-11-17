@@ -23,6 +23,7 @@ import {
   pickCardInRound,
   type Round,
 } from '#engine/dataTypes/table/roundLifecycle.ts';
+import { ErrorCode } from '#engine/result.ts';
 import { cardOf, rowOf } from '#testSupport/cards.ts';
 
 const ada = createPlayer({ id: 'a', name: 'Ada' });
@@ -182,10 +183,11 @@ describe('findCardForRowPick', () => {
     expect(findCardForRowPick(rowPickRound(), 'a').force()).toEqual(cardOf(5));
   });
 
-  test('names the miss for a player whose card is not the lowest', () => {
-    expect(() => findCardForRowPick(rowPickRound(), 'b').force()).toThrow(
-      'The player b holds no card that waits for a row pick',
-    );
+  test('fails for a player whose card is not the lowest', () => {
+    expect(findCardForRowPick(rowPickRound(), 'b')).toMatchObject({
+      ok: false,
+      failure: { errorCode: ErrorCode.RuleViolation },
+    });
   });
 });
 

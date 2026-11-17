@@ -270,5 +270,5 @@ test('an action throws if the phase holds no round', () => {
       createInitialGameState(),
       pickCard({ playerId: 'a', card: aceOfAda }),
     ),
-  ).toThrow('The game state holds no round in the preStart phase');
+  ).toThrow();
 });

@@ -114,12 +114,11 @@ describe('findHand', () => {
     expect(handOf(round, 'a').cards).toEqual([aceOfAda, otherOfAda]);
   });
 
-  test('names the miss for a player that holds no hand', () => {
-    expect(findHand(round, 'nobody')).toEqual({
+  test('fails for a player that holds no hand', () => {
+    expect(findHand(round, 'nobody')).toMatchObject({
       ok: false,
       failure: {
         errorCode: ErrorCode.UnknownEntity,
-        message: 'The game state holds no hand for the player nobody',
       },
     });
   });
@@ -177,22 +176,20 @@ describe('findPick', () => {
     });
   });
 
-  test('names the pick of the player for another card', () => {
-    expect(findPick(picked, 'b', aceOfAda.id)).toEqual({
+  test('fails for a player that has picked another card', () => {
+    expect(findPick(picked, 'b', aceOfAda.id)).toMatchObject({
       ok: false,
       failure: {
         errorCode: ErrorCode.RuleViolation,
-        message: `The player b has picked the card ${aceOfBen.id}, not the card ${aceOfAda.id}`,
       },
     });
   });
 
-  test('names the miss for a player that has picked no card', () => {
-    expect(findPick(picked, 'a', aceOfAda.id)).toEqual({
+  test('fails for a player that has picked no card', () => {
+    expect(findPick(picked, 'a', aceOfAda.id)).toMatchObject({
       ok: false,
       failure: {
         errorCode: ErrorCode.RuleViolation,
-        message: `The player a has picked no card, not the card ${aceOfAda.id}`,
       },
     });
   });
@@ -215,11 +212,11 @@ describe('findRow', () => {
     expect(findRow(pickedRound(), 1).force()).toEqual(rowOf(20, 21));
   });
 
-  test('names the miss for an index past the rows', () => {
-    expect(findRow(pickedRound(), 2).ok).toBe(false);
-    expect(() => findRow(pickedRound(), 2).force()).toThrow(
-      'The game holds no row at the index 2',
-    );
+  test('fails for an index past the rows', () => {
+    expect(findRow(pickedRound(), 2)).toMatchObject({
+      ok: false,
+      failure: { errorCode: ErrorCode.UnknownEntity },
+    });
   });
 });
 

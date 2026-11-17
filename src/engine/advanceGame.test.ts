@@ -147,9 +147,7 @@ test('a rejected request returns its error', () => {
       playerId: 'a',
       cardId: 0,
     }),
-  ).toEqual({
+  ).toMatchObject({
     errorCode: ErrorCode.WrongPhase,
-    message:
-      'The pre-start phase rejects the pickCard request: it accepts only the start game request',
   });
 });

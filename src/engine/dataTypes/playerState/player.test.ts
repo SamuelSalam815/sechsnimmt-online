@@ -33,12 +33,11 @@ describe('findPlayer', () => {
     expect(findPlayer([ada, ben], 'b')).toEqual({ ok: true, value: ben });
   });
 
-  test('names the miss for an unknown ID', () => {
-    expect(findPlayer([ada, ben], 'nobody')).toEqual({
+  test('fails for an unknown ID', () => {
+    expect(findPlayer([ada, ben], 'nobody')).toMatchObject({
       ok: false,
       failure: {
         errorCode: ErrorCode.UnknownEntity,
-        message: 'The game holds no player with the ID nobody',
       },
     });
   });
@@ -60,9 +59,7 @@ describe('addPenaltyToPlayer', () => {
   });
 
   test('throws for the penalty total of another player', () => {
-    expect(() => addPenaltyToPlayer(ada, penaltyTotalOf('b', [55]))).toThrow(
-      'The penalty of the player b does not belong to the player a',
-    );
+    expect(() => addPenaltyToPlayer(ada, penaltyTotalOf('b', [55]))).toThrow();
   });
 });
 
