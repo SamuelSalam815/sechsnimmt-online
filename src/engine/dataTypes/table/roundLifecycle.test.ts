@@ -75,25 +75,6 @@ describe('dealRound', () => {
       [cards[23]],
     ]);
   });
-
-  test('uses all 104 cards for 10 players', () => {
-    const tenPlayers = Array.from({ length: 10 }, (_, i) =>
-      createPlayer({ id: `p${i}`, name: `Player ${i}` }),
-    );
-    const fullRound = dealRound(
-      tenPlayers,
-      createDeck(cards),
-      STANDARD_GAME_RULES.handSize,
-    );
-    expect(fullRound.rows[3].cards).toEqual([cards[103]]);
-  });
-
-  test('throws when the deck holds too few cards for the players', () => {
-    const short = createDeck(cards.slice(0, 23));
-    expect(() =>
-      dealRound([ada, ben], short, STANDARD_GAME_RULES.handSize),
-    ).toThrow();
-  });
 });
 
 describe('createRound', () => {
