@@ -261,8 +261,9 @@ test('moves to the card pick phase with the next round on startRound', () => {
   );
 });
 
-// Layer 2 rejects such a request, so these actions never reach the reducer in
-// the running game. The throw makes a gap in that handling visible.
+// An action that does not fit the state means a bug in the request handling,
+// which only makes actions that are valid for the current state. The throw
+// makes that bug visible.
 test('an action throws if the phase holds no round', () => {
   expect(() =>
     gameSlice.reducer(

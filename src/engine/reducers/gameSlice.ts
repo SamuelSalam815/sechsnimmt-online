@@ -39,15 +39,13 @@ export interface StartRoundPayload {
   round: Round;
 }
 
-// Layer 2 found the card in the hand of the player. The action carries the
-// card itself, so that no reducer searches for it a second time.
 export interface PickCardPayload {
   playerId: PlayerId;
   card: Card;
 }
 
-// The unpick drops whatever the player has picked, which layer 2 confirmed is
-// the card of the request. The reducer therefore needs no card.
+// A player has at most one card picked at a time, so the player ID alone finds
+// the pick that the unpick drops.
 export interface UnpickCardPayload {
   playerId: PlayerId;
 }

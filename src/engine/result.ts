@@ -1,6 +1,3 @@
-// Layer 2 checks the staleness of a request before anything else, so
-// StaleRequest says nothing about whether the request is otherwise good. Every
-// other code comes from a check that runs after it.
 export enum ErrorCode {
   StaleRequest = 'staleRequest',
   WrongPhase = 'wrongPhase',
@@ -9,10 +6,8 @@ export enum ErrorCode {
   InvalidGameRules = 'invalidGameRules',
 }
 
-// An outcome that holds no value, only the code and the message that explain
-// it. Layer 2 returns it as the rejection of a request, so a call site of an
-// operation that failed passes the failure on as it is instead of wrapping the
-// message again.
+// Expected failures, such as a bad request, are structured errors, whose kinds
+// ErrorCode lists.
 export interface ErrorMessage {
   readonly errorCode: ErrorCode;
   readonly message: string;
