@@ -53,10 +53,11 @@ A row holds between one and five cards at all times, and no caller asks about th
 
 ## An operation reports its own failure
 
-An operation that can fail gives a `Result`: a `Success` that holds the value, or a `Failure` that holds the message.
+An operation that can fail gives a `Result`: a `Success` that holds the value, or a `Failure` that holds the error code and the message.
 
 ```ts
 export interface ErrorMessage {
+  readonly errorCode: ErrorCode;
   readonly message: string;
 }
 
@@ -64,7 +65,7 @@ export type Result<T> = Success<T> | Failure;
 ```
 
 `success` and `fail` build the two halves.
-A search that gives `undefined` on a miss passes through `lookup`, which picks the half and words the miss with one message.
+A search that gives `undefined` on a miss passes through `lookup`, which picks the half and gives the miss one error code and one message.
 
 The module that fails words that message.
 A message therefore names the failure in the terms of the module that knows it, and no caller words it again.

@@ -1,8 +1,19 @@
-// An outcome that holds no value, only the message that explains it. Layer 2
-// returns it as the rejection of a request, so a call site of an operation
-// that failed passes the failure on as it is instead of wrapping the message
-// again.
+// Layer 2 checks the staleness of a request before anything else, so
+// StaleRequest says nothing about whether the request is otherwise good. Every
+// other code comes from a check that runs after it.
+export enum ErrorCode {
+  StaleRequest = 'staleRequest',
+  WrongPhase = 'wrongPhase',
+  UnknownEntity = 'unknownEntity',
+  RuleViolation = 'ruleViolation',
+}
+
+// An outcome that holds no value, only the code and the message that explain
+// it. Layer 2 returns it as the rejection of a request, so a call site of an
+// operation that failed passes the failure on as it is instead of wrapping the
+// message again.
 export interface ErrorMessage {
+  readonly errorCode: ErrorCode;
   readonly message: string;
 }
 
@@ -57,12 +68,16 @@ export function success<T>(value: T): Result<T> {
   return new Success(value);
 }
 
-export function fail<T>(message: string): Result<T> {
-  return new Failure({ message });
+export function fail<T>(errorCode: ErrorCode, message: string): Result<T> {
+  return new Failure({ errorCode, message });
 }
 
 // For a search that gives the value or `undefined`, which is every search that
 // needs no message of its own beyond the one for the miss.
-export function lookup<T>(value: T | undefined, message: string): Result<T> {
-  return value === undefined ? fail(message) : success(value);
+export function lookup<T>(
+  value: T | undefined,
+  errorCode: ErrorCode,
+  message: string,
+): Result<T> {
+  return value === undefined ? fail(errorCode, message) : success(value);
 }

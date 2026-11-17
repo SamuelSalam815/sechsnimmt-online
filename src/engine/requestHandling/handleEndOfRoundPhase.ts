@@ -1,5 +1,6 @@
 import type { RoundGameState } from '#engine/dataTypes/gameState.ts';
 import { findPlayer } from '#engine/dataTypes/player.ts';
+import { ErrorCode } from '#engine/dataTypes/result.ts';
 import { dealRound } from '#engine/dataTypes/round.ts';
 import { abandonGame, startRound } from '#engine/reducers/gameSlice.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
@@ -22,6 +23,7 @@ export function handleEndOfRoundPhase(
     }));
   }
   return {
+    errorCode: ErrorCode.WrongPhase,
     message: `The end of round phase rejects the ${request.type} request: it accepts only the start round and abandon game requests`,
   };
 }

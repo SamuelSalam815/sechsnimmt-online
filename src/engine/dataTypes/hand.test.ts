@@ -6,6 +6,7 @@ import {
   isHandEmpty,
   removeCardFromHand,
 } from '#engine/dataTypes/hand.ts';
+import { ErrorCode } from '#engine/dataTypes/result.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
 const ace = cardOf(1);
@@ -23,6 +24,7 @@ describe('findCardInHand', () => {
     expect(findCardInHand(createHand('a', [ace]), other.id)).toEqual({
       ok: false,
       failure: {
+        errorCode: ErrorCode.RuleViolation,
         message: `The hand of the player a does not hold the card ${other.id}`,
       },
     });

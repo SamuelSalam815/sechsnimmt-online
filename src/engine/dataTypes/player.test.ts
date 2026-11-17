@@ -9,6 +9,7 @@ import {
   hasReachedPenaltyLimit,
   removePlayer,
 } from '#engine/dataTypes/player.ts';
+import { ErrorCode } from '#engine/dataTypes/result.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
 const ada = createPlayer({ id: 'a', name: 'Ada' });
@@ -34,7 +35,10 @@ describe('findPlayer', () => {
   test('names the miss for an unknown ID', () => {
     expect(findPlayer([ada, ben], 'nobody')).toEqual({
       ok: false,
-      failure: { message: 'The game holds no player with the ID nobody' },
+      failure: {
+        errorCode: ErrorCode.UnknownEntity,
+        message: 'The game holds no player with the ID nobody',
+      },
     });
   });
 });

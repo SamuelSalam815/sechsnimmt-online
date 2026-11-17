@@ -7,6 +7,7 @@ import {
   type PlayerId,
   removePlayer,
 } from '#engine/dataTypes/player.ts';
+import { ErrorCode } from '#engine/dataTypes/result.ts';
 import {
   findHand,
   findPick,
@@ -38,6 +39,7 @@ export function handleCardPickPhase(
     request.type !== RequestType.UnpickCard
   ) {
     return {
+      errorCode: ErrorCode.WrongPhase,
       message: `The card pick phase rejects the ${request.type} request: it accepts only the pick card, unpick card and abandon game requests`,
     };
   }

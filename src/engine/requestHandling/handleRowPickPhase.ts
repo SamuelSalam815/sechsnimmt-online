@@ -1,5 +1,6 @@
 import { GamePhase, type RoundGameState } from '#engine/dataTypes/gameState.ts';
 import { findPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
+import { ErrorCode } from '#engine/dataTypes/result.ts';
 import {
   findCardForRowPick,
   findRow,
@@ -30,6 +31,7 @@ export function handleRowPickPhase(
   }
   if (request.type !== RequestType.PickRow) {
     return {
+      errorCode: ErrorCode.WrongPhase,
       message: `The row pick phase rejects the ${request.type} request: it accepts only the pick row and abandon game requests`,
     };
   }

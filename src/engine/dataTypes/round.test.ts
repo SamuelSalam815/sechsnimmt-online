@@ -13,6 +13,7 @@ import {
   createPlayer,
   type PlayerId,
 } from '#engine/dataTypes/player.ts';
+import { ErrorCode } from '#engine/dataTypes/result.ts';
 import {
   createRound,
   dealRound,
@@ -106,6 +107,7 @@ describe('findHand', () => {
     expect(findHand(round, 'nobody')).toEqual({
       ok: false,
       failure: {
+        errorCode: ErrorCode.UnknownEntity,
         message: 'The game state holds no hand for the player nobody',
       },
     });
@@ -168,6 +170,7 @@ describe('findPick', () => {
     expect(findPick(picked, 'b', aceOfAda.id)).toEqual({
       ok: false,
       failure: {
+        errorCode: ErrorCode.RuleViolation,
         message: `The player b has picked the card ${aceOfBen.id}, not the card ${aceOfAda.id}`,
       },
     });
@@ -177,6 +180,7 @@ describe('findPick', () => {
     expect(findPick(picked, 'a', aceOfAda.id)).toEqual({
       ok: false,
       failure: {
+        errorCode: ErrorCode.RuleViolation,
         message: `The player a has picked no card, not the card ${aceOfAda.id}`,
       },
     });

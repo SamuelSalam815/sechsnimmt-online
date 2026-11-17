@@ -10,6 +10,7 @@ import { createHand } from '#engine/dataTypes/hand.ts';
 import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
 import { createPenaltyPile } from '#engine/dataTypes/penaltyPile.ts';
 import { addPenaltyToPlayer, createPlayer } from '#engine/dataTypes/player.ts';
+import { ErrorCode } from '#engine/dataTypes/result.ts';
 import { createRound } from '#engine/dataTypes/round.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import type { RootState } from '#engine/store.ts';
@@ -141,6 +142,7 @@ test('a rejected request returns its error', () => {
       cardId: 0,
     }),
   ).toEqual({
+    errorCode: ErrorCode.WrongPhase,
     message:
       'The pre-start phase rejects the pickCard request: it accepts only the start game request',
   });

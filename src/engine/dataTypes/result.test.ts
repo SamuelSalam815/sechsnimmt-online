@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest';
-import { fail, lookup, success } from '#engine/dataTypes/result.ts';
+import { ErrorCode, fail, lookup, success } from '#engine/dataTypes/result.ts';
 
 const ace = success('ace');
-const noCard = fail<string>('no card');
+const noCard = fail<string>(ErrorCode.UnknownEntity, 'no card');
 
 describe('success', () => {
   test('holds the value of the operation', () => {
@@ -14,20 +14,25 @@ describe('fail', () => {
   test('holds the failure of the operation', () => {
     expect(noCard).toEqual({
       ok: false,
-      failure: { message: 'no card' },
+      failure: { errorCode: ErrorCode.UnknownEntity, message: 'no card' },
     });
   });
 });
 
 describe('lookup', () => {
   test('gives the value that was found', () => {
-    expect(lookup('ace', 'no card')).toEqual({ ok: true, value: 'ace' });
+    expect(lookup('ace', ErrorCode.UnknownEntity, 'no card')).toEqual({
+      ok: true,
+      value: 'ace',
+    });
   });
 
   test('gives the failure of a miss', () => {
-    expect(lookup<string>(undefined, 'no card')).toEqual({
+    expect(
+      lookup<string>(undefined, ErrorCode.UnknownEntity, 'no card'),
+    ).toEqual({
       ok: false,
-      failure: { message: 'no card' },
+      failure: { errorCode: ErrorCode.UnknownEntity, message: 'no card' },
     });
   });
 });
@@ -35,7 +40,9 @@ describe('lookup', () => {
 describe('andThen', () => {
   test('carries on with the value of the operation', () => {
     expect(
-      ace.andThen((value) => lookup(`${value} of spades`, 'no suit')),
+      ace.andThen((value) =>
+        lookup(`${value} of spades`, ErrorCode.UnknownEntity, 'no suit'),
+      ),
     ).toEqual({ ok: true, value: 'ace of spades' });
   });
 
@@ -43,7 +50,10 @@ describe('andThen', () => {
     const next = noCard.andThen(() => {
       throw new Error('the chain carried on after a failure');
     });
-    expect(next).toEqual({ ok: false, failure: { message: 'no card' } });
+    expect(next).toEqual({
+      ok: false,
+      failure: { errorCode: ErrorCode.UnknownEntity, message: 'no card' },
+    });
   });
 });
 
@@ -54,6 +64,7 @@ describe('use', () => {
 
   test('gives the failure instead', () => {
     expect(noCard.use(() => ({ card: 'none' }))).toEqual({
+      errorCode: ErrorCode.UnknownEntity,
       message: 'no card',
     });
   });

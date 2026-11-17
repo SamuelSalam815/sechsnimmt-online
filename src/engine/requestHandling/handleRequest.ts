@@ -1,6 +1,11 @@
 import { GamePhase, type GameState } from '#engine/dataTypes/gameState.ts';
 import { isRequestStale } from '#engine/dataTypes/gameStateVersion.ts';
-import { fail, type Result, success } from '#engine/dataTypes/result.ts';
+import {
+  ErrorCode,
+  fail,
+  type Result,
+  success,
+} from '#engine/dataTypes/result.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
 import { handleCardPickPhase } from '#engine/requestHandling/handleCardPickPhase.ts';
 import { handleEndOfRoundPhase } from '#engine/requestHandling/handleEndOfRoundPhase.ts';
@@ -33,6 +38,7 @@ function checkRequestStillGood(
     return success(request);
   }
   return fail(
+    ErrorCode.StaleRequest,
     `The ${request.type} request saw the version ${request.lastVersionSeen}, which the major change to the version ${staleMaker.newVersion.sequence} has outdated`,
   );
 }

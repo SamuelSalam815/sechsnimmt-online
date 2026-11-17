@@ -31,7 +31,7 @@ import {
   type Player,
   type PlayerId,
 } from '#engine/dataTypes/player.ts';
-import { lookup, type Result } from '#engine/dataTypes/result.ts';
+import { ErrorCode, lookup, type Result } from '#engine/dataTypes/result.ts';
 import {
   addCardToRow,
   createRow,
@@ -105,6 +105,7 @@ export function dealRound(players: readonly Player[], deck: Deck): Round {
 export function findHand(round: Round, playerId: PlayerId): Result<Hand> {
   return lookup(
     round.hands.find((hand) => hand.playerId === playerId),
+    ErrorCode.UnknownEntity,
     `The game state holds no hand for the player ${playerId}`,
   );
 }
@@ -128,6 +129,7 @@ export function findPick(
   const describedPick = picked === undefined ? 'no card' : `the card ${picked}`;
   return lookup(
     picked === cardId ? picked : undefined,
+    ErrorCode.RuleViolation,
     `The player ${playerId} has picked ${describedPick}, not the card ${cardId}`,
   );
 }
@@ -219,6 +221,7 @@ export function resolveReveal(
 export function findRow(round: Round, rowIndex: number): Result<Row> {
   return lookup(
     round.rows[rowIndex],
+    ErrorCode.UnknownEntity,
     `The game holds no row at the index ${rowIndex}`,
   );
 }
@@ -244,6 +247,7 @@ export function findCardForRowPick(
   const lowest = revealedCardsLowestFirst(round).at(0);
   return lookup(
     lowest?.playerId === playerId ? lowest.card : undefined,
+    ErrorCode.RuleViolation,
     `The player ${playerId} holds no card that waits for a row pick`,
   );
 }
@@ -412,6 +416,7 @@ function findPileOfPlayer(
 ): Result<PenaltyPile> {
   return lookup(
     piles.find((pile) => pile.playerId === playerId),
+    ErrorCode.UnknownEntity,
     `The game state holds no penalty pile for the player ${playerId}`,
   );
 }

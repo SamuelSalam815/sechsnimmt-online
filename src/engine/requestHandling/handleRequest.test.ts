@@ -14,6 +14,7 @@ import {
   createPlayer,
   type PlayerId,
 } from '#engine/dataTypes/player.ts';
+import { ErrorCode } from '#engine/dataTypes/result.ts';
 import {
   createRound,
   dealRound,
@@ -76,6 +77,7 @@ describe('pre-start phase handling', () => {
       cardId: 0,
     };
     expect(handleRequest(preStart, noHistory, pickCardRequest)).toEqual({
+      errorCode: ErrorCode.WrongPhase,
       message:
         'The pre-start phase rejects the pickCard request: it accepts only the start game request',
     });
@@ -120,6 +122,7 @@ describe('card pick phase handling', () => {
 
   test('returns an error for the start game request', () => {
     expect(handleRequest(cardPick(), noHistory, startGameRequest)).toEqual({
+      errorCode: ErrorCode.WrongPhase,
       message:
         'The card pick phase rejects the startGame request: it accepts only the pick card, unpick card and abandon game requests',
     });
@@ -132,6 +135,7 @@ describe('card pick phase handling', () => {
     'returns an error for the %s request of an unknown player',
     (_, request) => {
       expect(handleRequest(cardPick(), noHistory, request)).toEqual({
+        errorCode: ErrorCode.UnknownEntity,
         message: 'The game holds no player with the ID nobody',
       });
     },
@@ -149,6 +153,7 @@ describe('card pick phase handling', () => {
     expect(
       handleRequest(cardPick(), noHistory, pickRequest('a', aceOfBen.id)),
     ).toEqual({
+      errorCode: ErrorCode.RuleViolation,
       message: 'The hand of the player a does not hold the card 2',
     });
   });
@@ -166,6 +171,7 @@ describe('card pick phase handling', () => {
     expect(
       handleRequest(cardPick(), noHistory, unpickRequest('a', aceOfAda.id)),
     ).toEqual({
+      errorCode: ErrorCode.RuleViolation,
       message: 'The player a has picked no card, not the card 0',
     });
   });
@@ -175,6 +181,7 @@ describe('card pick phase handling', () => {
     expect(
       handleRequest(state, noHistory, unpickRequest('a', aceOfBen.id)),
     ).toEqual({
+      errorCode: ErrorCode.RuleViolation,
       message: 'The player a has picked no card, not the card 2',
     });
   });
@@ -200,7 +207,10 @@ describe('card pick phase handling', () => {
   test('returns an error for the abandon game request of an unknown player', () => {
     expect(
       handleRequest(cardPick(), noHistory, abandonRequest('nobody')),
-    ).toEqual({ message: 'The game holds no player with the ID nobody' });
+    ).toEqual({
+      errorCode: ErrorCode.UnknownEntity,
+      message: 'The game holds no player with the ID nobody',
+    });
   });
 
   test('reveals the picked cards when every player who stays has picked one', () => {
@@ -290,20 +300,29 @@ describe('handling of the phases that follow the reveal', () => {
 
   test('returns an error for the pick row request of a player whose card fits a row', () => {
     expect(handleRequest(rowPick(), noHistory, pickRowRequest('b', 1))).toEqual(
-      { message: 'The player b holds no card that waits for a row pick' },
+      {
+        errorCode: ErrorCode.RuleViolation,
+        message: 'The player b holds no card that waits for a row pick',
+      },
     );
   });
 
   test('returns an error for the pick row request of an unknown row', () => {
     expect(handleRequest(rowPick(), noHistory, pickRowRequest('a', 2))).toEqual(
-      { message: 'The game holds no row at the index 2' },
+      {
+        errorCode: ErrorCode.UnknownEntity,
+        message: 'The game holds no row at the index 2',
+      },
     );
   });
 
   test('returns an error for the pick row request of an unknown player', () => {
     expect(
       handleRequest(rowPick(), noHistory, pickRowRequest('nobody', 0)),
-    ).toEqual({ message: 'The game holds no player with the ID nobody' });
+    ).toEqual({
+      errorCode: ErrorCode.UnknownEntity,
+      message: 'The game holds no player with the ID nobody',
+    });
   });
 
   test('handles the abandon game request of a player who need not pick a row', () => {
@@ -349,6 +368,7 @@ describe('handling of the phases that follow the reveal', () => {
 
   test('returns an error for any other request in the row pick phase', () => {
     expect(handleRequest(rowPick(), noHistory, startGameRequest)).toEqual({
+      errorCode: ErrorCode.WrongPhase,
       message:
         'The row pick phase rejects the startGame request: it accepts only the pick row and abandon game requests',
     });
@@ -380,6 +400,7 @@ describe('handling of the phases that follow the reveal', () => {
     expect(
       handleRequest(inPhase(GamePhase.EndOfRound), noHistory, startGameRequest),
     ).toEqual({
+      errorCode: ErrorCode.WrongPhase,
       message:
         'The end of round phase rejects the startGame request: it accepts only the start round and abandon game requests',
     });
@@ -389,6 +410,7 @@ describe('handling of the phases that follow the reveal', () => {
     expect(
       handleRequest(inPhase(GamePhase.GameOver), noHistory, startGameRequest),
     ).toEqual({
+      errorCode: ErrorCode.WrongPhase,
       message:
         'The game over phase rejects the startGame request: it accepts no request',
     });
@@ -434,6 +456,7 @@ describe('version checking', () => {
 
   test('rejects a request that a major change followed', () => {
     expect(handleRequest(state, history, pickRequestSeeing(1))).toEqual({
+      errorCode: ErrorCode.StaleRequest,
       message:
         'The pickCard request saw the version 1, which the major change to the version 2 has outdated',
     });
