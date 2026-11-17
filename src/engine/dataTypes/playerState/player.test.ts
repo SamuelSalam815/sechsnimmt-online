@@ -122,7 +122,7 @@ describe('removePlayer', () => {
   });
 });
 
-describe('hasEnoughPlayers', () => {
+describe('doesGameHaveEnoughPlayers', () => {
   test('needs two players', () => {
     expect(doesGameHaveEnoughPlayers([ada])).toBe(false);
     expect(doesGameHaveEnoughPlayers([ada, ben])).toBe(true);
