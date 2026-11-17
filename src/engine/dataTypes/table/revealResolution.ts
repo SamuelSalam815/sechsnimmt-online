@@ -110,15 +110,16 @@ export function resolveReveal(
 
 // The first of the rows with the largest penalty, when more than one row has it.
 export function findRowIndexOfLargestPenalty(round: Round): number {
-  let rowIndex = 0;
-  round.rows.forEach((row, index) => {
+  let largestPenaltyRowIndex = 0;
+  round.rows.forEach((row, rowIndex) => {
     if (
-      getPenaltyTotal(row.cards) > getPenaltyTotal(round.rows[rowIndex].cards)
+      getPenaltyTotal(row.cards) >
+      getPenaltyTotal(round.rows[largestPenaltyRowIndex].cards)
     ) {
-      rowIndex = index;
+      largestPenaltyRowIndex = rowIndex;
     }
   });
-  return rowIndex;
+  return largestPenaltyRowIndex;
 }
 
 // Only the lowest picked card can fit no row. See resolveReveal.
@@ -126,9 +127,11 @@ export function findCardForRowPick(
   round: Round,
   playerId: PlayerId,
 ): Result<Card> {
-  const lowest = revealedCardsLowestFirst(round).at(0);
+  const lowestRevealedCard = revealedCardsLowestFirst(round).at(0);
   return lookup(
-    lowest?.playerId === playerId ? lowest.card : undefined,
+    lowestRevealedCard?.playerId === playerId
+      ? lowestRevealedCard.card
+      : undefined,
     ErrorCode.RuleViolation,
     `The player ${playerId} holds no card that waits for a row pick`,
   );
@@ -164,10 +167,10 @@ export function resolveRowPick(
       phase: GamePhase.GameOver,
     };
   }
-  const restOfReveal = resolveReveal(nextRound, players, penaltyLimit);
+  const restOfRevealOutcome = resolveReveal(nextRound, players, penaltyLimit);
   return {
-    ...restOfReveal,
-    penaltyTotals: [penaltyTotal, ...restOfReveal.penaltyTotals],
+    ...restOfRevealOutcome,
+    penaltyTotals: [penaltyTotal, ...restOfRevealOutcome.penaltyTotals],
   };
 }
 
@@ -207,28 +210,33 @@ function placeCardInRows(
   rows: readonly Row[],
   card: Card,
 ): CardPlacement | undefined {
-  const target = findRowForCard(rows, card);
-  if (!target) {
+  const targetRow = findRowForCard(rows, card);
+  if (!targetRow) {
     return undefined;
   }
-  const placement = addCardToRow(target, card);
+  const rowPlacementOutcome = addCardToRow(targetRow, card);
   return {
-    rows: rows.map((row) => (row === target ? placement.row : row)),
-    takenCards: placement.takenCards,
+    rows: rows.map((row) =>
+      row === targetRow ? rowPlacementOutcome.row : row,
+    ),
+    takenCards: rowPlacementOutcome.takenCards,
   };
 }
 
 // Rules 1 and 2: of the rows whose last card is lower than the card, the row
 // whose last card is the highest.
 function findRowForCard(rows: readonly Row[], card: Card): Row | undefined {
-  let target: Row | undefined;
-  let targetLastValue = 0;
+  let targetRow: Row | undefined;
+  let targetRowLastFaceValue = 0;
   for (const row of rows) {
-    const lastValue = getLastCardOfRow(row).faceValue;
-    if (lastValue < card.faceValue && lastValue > targetLastValue) {
-      target = row;
-      targetLastValue = lastValue;
+    const lastFaceValue = getLastCardOfRow(row).faceValue;
+    if (
+      lastFaceValue < card.faceValue &&
+      lastFaceValue > targetRowLastFaceValue
+    ) {
+      targetRow = row;
+      targetRowLastFaceValue = lastFaceValue;
     }
   }
-  return target;
+  return targetRow;
 }

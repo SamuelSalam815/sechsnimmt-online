@@ -64,9 +64,9 @@ export function dealRound(
   handSize: number,
 ): Round {
   const hands = players.map((player) => {
-    const draw = drawCards(deck, handSize);
-    deck = draw.newDeck;
-    return createHand(player.id, draw.cards);
+    const deckDraw = drawCards(deck, handSize);
+    deck = deckDraw.newDeck;
+    return createHand(player.id, deckDraw.cards);
   });
   const rows = drawCards(deck, ROW_COUNT).cards.map(createRow);
   return createRound(rows, hands);
@@ -103,10 +103,11 @@ export function findPick(
   playerId: PlayerId,
   cardId: CardId,
 ): Result<CardId> {
-  const picked = findPickedCardId(round, playerId);
-  const describedPick = picked === undefined ? 'no card' : `the card ${picked}`;
+  const pickedCardId = findPickedCardId(round, playerId);
+  const describedPick =
+    pickedCardId === undefined ? 'no card' : `the card ${pickedCardId}`;
   return lookup(
-    picked === cardId ? picked : undefined,
+    pickedCardId === cardId ? pickedCardId : undefined,
     ErrorCode.RuleViolation,
     `The player ${playerId} has picked ${describedPick}, not the card ${cardId}`,
   );
@@ -178,7 +179,9 @@ export function takeCardsIntoPenaltyPile(
 
 function picksWithout(picks: CardPicks, playerId: PlayerId): CardPicks {
   return Object.fromEntries(
-    Object.entries(picks).filter(([id]) => id !== playerId),
+    Object.entries(picks).filter(
+      ([ownerPlayerId]) => ownerPlayerId !== playerId,
+    ),
   );
 }
 
@@ -186,14 +189,14 @@ function pilesWith(
   piles: readonly PenaltyPile[],
   pile: PenaltyPile,
 ): readonly PenaltyPile[] {
-  return piles.map((current) =>
-    current.playerId === pile.playerId ? pile : current,
+  return piles.map((existingPile) =>
+    existingPile.playerId === pile.playerId ? pile : existingPile,
   );
 }
 
 function handsWith(hands: readonly Hand[], hand: Hand): readonly Hand[] {
-  return hands.map((current) =>
-    current.playerId === hand.playerId ? hand : current,
+  return hands.map((existingHand) =>
+    existingHand.playerId === hand.playerId ? hand : existingHand,
   );
 }
 
