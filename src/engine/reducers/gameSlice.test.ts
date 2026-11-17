@@ -16,6 +16,7 @@ import {
   type Round,
 } from '#engine/dataTypes/round.ts';
 import {
+  abandonGame,
   gameSlice,
   pickCard,
   pickRow,
@@ -180,6 +181,43 @@ describe('pickRow', () => {
   test('makes a major version change', () => {
     const next = gameSlice.reducer(rowPick, pickRowOfAda);
     expect(next.version).toEqual({ sequence: 1, major: true });
+  });
+});
+
+describe('abandonGame', () => {
+  const cy = createPlayer({ id: 'c', name: 'Cy' });
+
+  test('takes the player and the cards of the player out of the game', () => {
+    const state = createGameState(
+      GamePhase.CardPick,
+      INITIAL_GAME_STATE_VERSION,
+      [...players, cy],
+      createRound(
+        [rowOf(50)],
+        [
+          createHand('a', [aceOfAda]),
+          createHand('b', [cardOfBen]),
+          createHand('c', []),
+        ],
+      ),
+    );
+    const next = gameSlice.reducer(state, abandonGame({ playerId: 'a' }));
+    expect(next).toEqual(
+      createGameState(
+        GamePhase.CardPick,
+        { sequence: 1, major: true },
+        [players[1], cy],
+        createRound(
+          [rowOf(50)],
+          [createHand('b', [cardOfBen]), createHand('c', [])],
+        ),
+      ),
+    );
+  });
+
+  test('ends the game when too few players stay', () => {
+    const next = gameSlice.reducer(cardPick(), abandonGame({ playerId: 'a' }));
+    expect(next.phase).toBe(GamePhase.GameOver);
   });
 });
 

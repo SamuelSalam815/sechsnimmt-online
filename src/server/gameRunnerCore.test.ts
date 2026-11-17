@@ -170,6 +170,54 @@ describe('gameRunnerStep', () => {
     ]);
   });
 
+  test('an abandon takes the seat and the player out of the game and broadcasts it', () => {
+    const step = gameRunnerStep(started(), {
+      type: GameRunnerMessageType.PlayerAbandoned,
+      logLevel: LogLevel.Info,
+      playerId: 'a',
+    });
+    expect(step.coreContext.seats).toEqual([seats[1]]);
+    // One player stays, which is too few for the game.
+    expect(step.coreContext.rootState.game.phase).toBe(GamePhase.GameOver);
+    expect(step.outboundMessages).toEqual([
+      {
+        type: EventStreamMessageType.BroadcastActions,
+        logLevel: LogLevel.Info,
+        actions: step.coreContext.rootState.history.slice(1),
+      },
+    ]);
+  });
+
+  test('an abandon after the game is over only takes the seat', () => {
+    const over = gameRunnerStep(started(), {
+      type: GameRunnerMessageType.PlayerAbandoned,
+      logLevel: LogLevel.Info,
+      playerId: 'a',
+    }).coreContext;
+    expect(
+      gameRunnerStep(over, {
+        type: GameRunnerMessageType.PlayerAbandoned,
+        logLevel: LogLevel.Info,
+        playerId: 'b',
+      }),
+    ).toEqual({
+      coreContext: { ...over, seats: [] },
+      outboundMessages: [],
+    });
+  });
+
+  test('a shuffled deck after the game is over changes nothing', () => {
+    const over = gameRunnerStep(started(), {
+      type: GameRunnerMessageType.PlayerAbandoned,
+      logLevel: LogLevel.Info,
+      playerId: 'a',
+    }).coreContext;
+    expect(gameRunnerStep(over, deckShuffled())).toEqual({
+      coreContext: over,
+      outboundMessages: [],
+    });
+  });
+
   test('a shuffled deck that no deal waits for is a bug', () => {
     expect(() => gameRunnerStep(lastTurn, deckShuffled())).toThrow(
       'The card pick phase rejects the startRound request',

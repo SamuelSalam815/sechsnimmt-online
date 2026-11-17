@@ -4,4 +4,5 @@ export enum RequestType {
   PickCard = 'pickCard',
   UnpickCard = 'unpickCard',
   PickRow = 'pickRow',
+  AbandonGame = 'abandonGame',
 }

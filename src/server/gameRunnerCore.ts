@@ -17,6 +17,7 @@ export enum GameRunnerMessageType {
   GameStartRequested = 'gameRunner/gameStartRequested',
   DeckShuffled = 'gameRunner/deckShuffled',
   PlayerRequested = 'gameRunner/playerRequested',
+  PlayerAbandoned = 'gameRunner/playerAbandoned',
   HistoryRequested = 'gameRunner/historyRequested',
 }
 
@@ -57,6 +58,10 @@ export type GameRunnerMessage = MessageBase &
         readonly type: GameRunnerMessageType.PlayerRequested;
         readonly requestType: PlayerRequestType;
         readonly requestBody: unknown;
+      }
+    | {
+        readonly type: GameRunnerMessageType.PlayerAbandoned;
+        readonly playerId: PlayerId;
       }
     | {
         readonly type: GameRunnerMessageType.HistoryRequested;
@@ -106,12 +111,17 @@ export function gameRunnerStep(
       };
 
     case GameRunnerMessageType.DeckShuffled: {
+      // A player can abandon the game while the deck is on its way, and the
+      // game ends when too few players stay.
+      if (coreContext.rootState.game.phase === GamePhase.GameOver) {
+        return { coreContext, outboundMessages: [] };
+      }
       const outcome = advanceGame(
         coreContext.rootState,
         dealRequest(coreContext, inboundMessage.deck),
       );
-      // The game runner asks for a deck only when a deal is due, and no
-      // request can change the phase while the deck is on its way.
+      // The game runner asks for a deck only when a deal is due, and only an
+      // abandon can change the phase while the deck is on its way.
       if ('message' in outcome) {
         throw new Error(outcome.message);
       }
@@ -158,6 +168,27 @@ export function gameRunnerStep(
           logLevel: LogLevel.Debug,
         },
       ]);
+    }
+
+    case GameRunnerMessageType.PlayerAbandoned: {
+      const { playerId } = inboundMessage;
+      const nextContext = {
+        ...coreContext,
+        seats: coreContext.seats.filter(
+          (seat) => seat.playerProfile.id !== playerId,
+        ),
+      };
+      const outcome = advanceGame(coreContext.rootState, {
+        type: RequestType.AbandonGame,
+        lastVersionSeen: coreContext.rootState.game.version.sequence,
+        playerId,
+      });
+      // The engine rejects the request once the game is over. The player then
+      // only leaves the seats.
+      if ('message' in outcome) {
+        return { coreContext: nextContext, outboundMessages: [] };
+      }
+      return advanced(nextContext, outcome, []);
     }
 
     case GameRunnerMessageType.HistoryRequested:

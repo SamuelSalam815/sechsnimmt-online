@@ -1,3 +1,4 @@
+import type { AbandonGameRequest } from '#engine/requests/abandonGameRequest.ts';
 import type { PickCardRequest } from '#engine/requests/pickCardRequest.ts';
 import type { PickRowRequest } from '#engine/requests/pickRowRequest.ts';
 import type { StartGameRequest } from '#engine/requests/startGameRequest.ts';
@@ -9,4 +10,5 @@ export type GameRequest =
   | StartRoundRequest
   | PickCardRequest
   | UnpickCardRequest
-  | PickRowRequest;
+  | PickRowRequest
+  | AbandonGameRequest;

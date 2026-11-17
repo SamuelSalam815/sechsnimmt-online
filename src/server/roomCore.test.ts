@@ -342,6 +342,28 @@ describe('grace period', () => {
     });
   });
 
+  test('the end of the grace period in the game abandons the game for the player', () => {
+    const step = roomStep(
+      roomWith([ada, disconnectedBen], { gameStarted: true }),
+      graceTimerExpired(3),
+    );
+    const coreContext = roomWith([ada], {
+      nextPlayerNumber: 3,
+      gameStarted: true,
+    });
+    expect(step).toEqual({
+      coreContext,
+      outboundMessages: [
+        {
+          type: GameRunnerMessageType.PlayerAbandoned,
+          logLevel: LogLevel.Info,
+          playerId: 'player2',
+        },
+        viewBroadcast(coreContext),
+      ],
+    });
+  });
+
   test('a timer that a reconnection outdated changes nothing', () => {
     const coreContext = roomWith([ada, ben]);
     expect(roomStep(coreContext, graceTimerExpired(3))).toEqual({

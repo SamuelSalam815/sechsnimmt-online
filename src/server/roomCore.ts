@@ -1,4 +1,4 @@
-import type { PlayerId } from '#engine/dataTypes/player.ts';
+import { MIN_PLAYER_COUNT, type PlayerId } from '#engine/dataTypes/player.ts';
 import type { Step } from '#server/actor.ts';
 import {
   type EventStreamMessage,
@@ -11,9 +11,8 @@ import {
 import { LogLevel, type MessageBase } from '#server/message.ts';
 import { readString } from '#server/requestBody.ts';
 
-// 6 nimmt! is a game for 2 to 10 players. A deal of 10 cards to each of 10
-// players and 4 to the rows takes all 104 cards.
-const MIN_PLAYER_COUNT = 2;
+// A deal of 10 cards to each of 10 players and 4 to the rows takes all 104
+// cards.
 const MAX_PLAYER_COUNT = 10;
 const MAX_NAME_LENGTH = 24;
 
@@ -183,19 +182,22 @@ export function roomStep(
       if (player === undefined) {
         return { coreContext, outboundMessages: [] };
       }
+      const nextContext = {
+        ...coreContext,
+        players: coreContext.players.filter(
+          (candidate) => candidate !== player,
+        ),
+      };
       if (coreContext.gameStarted) {
-        // TODO: abandon the game for the player. See TODO.md.
-        return { coreContext, outboundMessages: [] };
+        return changed(nextContext, [
+          {
+            type: GameRunnerMessageType.PlayerAbandoned,
+            logLevel: LogLevel.Info,
+            playerId: player.playerId,
+          },
+        ]);
       }
-      return startedIfAllReady(
-        {
-          ...coreContext,
-          players: coreContext.players.filter(
-            (candidate) => candidate !== player,
-          ),
-        },
-        [],
-      );
+      return startedIfAllReady(nextContext, []);
     }
   }
 }

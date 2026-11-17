@@ -15,6 +15,7 @@ import {
   pickCardInRound,
 } from '#engine/dataTypes/round.ts';
 import {
+  abandonGame,
   pickCard,
   pickRow,
   revealPickedCards,
@@ -24,6 +25,7 @@ import {
 } from '#engine/reducers/gameSlice.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
 import { handleRequest } from '#engine/requestHandling/handleRequest.ts';
+import type { AbandonGameRequest } from '#engine/requests/abandonGameRequest.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import type { StartGameRequest } from '#engine/requests/startGameRequest.ts';
@@ -43,6 +45,14 @@ const preStart = createInitialGameState();
 const players = startGameRequest.players.map((profile) =>
   createPlayer(profile),
 );
+
+function abandonRequest(playerId: PlayerId): AbandonGameRequest {
+  return {
+    type: RequestType.AbandonGame,
+    lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
+    playerId,
+  };
+}
 
 describe('pre-start phase handling', () => {
   test('handles the start game request with a start game action that deals the deck of the request', () => {
@@ -106,7 +116,7 @@ describe('card pick phase handling', () => {
   test('returns an error for the start game request', () => {
     expect(handleRequest(cardPick(), noHistory, startGameRequest)).toEqual({
       message:
-        'The card pick phase rejects the startGame request: it accepts only the pick card and unpick card requests',
+        'The card pick phase rejects the startGame request: it accepts only the pick card, unpick card and abandon game requests',
     });
   });
 
@@ -173,6 +183,49 @@ describe('card pick phase handling', () => {
         pickCard({ playerId: 'a', card: aceOfAda }),
         revealPickedCards(),
       ],
+    });
+  });
+
+  test('handles the abandon game request with the abandon game action', () => {
+    expect(handleRequest(cardPick(), noHistory, abandonRequest('a'))).toEqual({
+      actions: [abandonGame({ playerId: 'a' })],
+    });
+  });
+
+  test('returns an error for the abandon game request of an unknown player', () => {
+    expect(
+      handleRequest(cardPick(), noHistory, abandonRequest('nobody')),
+    ).toEqual({ message: 'The game holds no player with the ID nobody' });
+  });
+
+  test('reveals the picked cards when every player who stays has picked one', () => {
+    const cy = createPlayer({ id: 'c', name: 'Cy' });
+    const aceOfCy = cardOf(4);
+    let round = createRound(
+      [],
+      [
+        createHand('a', [aceOfAda]),
+        createHand('b', [aceOfBen]),
+        createHand('c', [aceOfCy]),
+      ],
+    );
+    round = pickCardInRound(round, 'b', aceOfBen);
+    round = pickCardInRound(round, 'c', aceOfCy);
+    const state = createGameState(
+      GamePhase.CardPick,
+      version,
+      [...players, cy],
+      round,
+    );
+    expect(handleRequest(state, noHistory, abandonRequest('a'))).toEqual({
+      actions: [abandonGame({ playerId: 'a' }), revealPickedCards()],
+    });
+  });
+
+  test('does not reveal when the abandon leaves too few players', () => {
+    const state = cardPick([['b', aceOfBen]]);
+    expect(handleRequest(state, noHistory, abandonRequest('a'))).toEqual({
+      actions: [abandonGame({ playerId: 'a' })],
     });
   });
 
@@ -248,10 +301,23 @@ describe('handling of the phases that follow the reveal', () => {
     ).toEqual({ message: 'The game holds no player with the ID nobody' });
   });
 
+  test('handles the abandon game request of a player who need not pick a row', () => {
+    expect(handleRequest(rowPick(), noHistory, abandonRequest('b'))).toEqual({
+      actions: [abandonGame({ playerId: 'b' })],
+    });
+  });
+
+  test('does not yet handle the abandon game request of the player who must pick a row', () => {
+    expect(handleRequest(rowPick(), noHistory, abandonRequest('a'))).toEqual({
+      message:
+        'Not implemented: the abandon game request of the player a, who must pick a row',
+    });
+  });
+
   test('returns an error for any other request in the row pick phase', () => {
     expect(handleRequest(rowPick(), noHistory, startGameRequest)).toEqual({
       message:
-        'The row pick phase rejects the startGame request: it accepts only the pick row request',
+        'The row pick phase rejects the startGame request: it accepts only the pick row and abandon game requests',
     });
   });
 
@@ -267,12 +333,22 @@ describe('handling of the phases that follow the reveal', () => {
     });
   });
 
+  test('handles the abandon game request in the end of round phase', () => {
+    expect(
+      handleRequest(
+        inPhase(GamePhase.EndOfRound),
+        noHistory,
+        abandonRequest('a'),
+      ),
+    ).toEqual({ actions: [abandonGame({ playerId: 'a' })] });
+  });
+
   test('returns an error for any other request in the end of round phase', () => {
     expect(
       handleRequest(inPhase(GamePhase.EndOfRound), noHistory, startGameRequest),
     ).toEqual({
       message:
-        'The end of round phase rejects the startGame request: it accepts only the start round request',
+        'The end of round phase rejects the startGame request: it accepts only the start round and abandon game requests',
     });
   });
 

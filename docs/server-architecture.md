@@ -71,6 +71,7 @@ A player with no open event stream is not responsive.
 When the last stream of a player closes, and at the join, the room starts a grace timer in its shell.
 A stream that opens with the token of the player before the timer expires reconnects the player, and the timer then changes nothing.
 A timer that expires before the start of the game removes the player from the room.
+A timer that expires in the game also removes the player, and the room tells the game runner, which sends the engine an abandon game request for that player.
 
 The event stream owns the route that opens an event stream, and the open event streams.
 A stream request makes a pending stream, and the event stream asks the game runner for the history.

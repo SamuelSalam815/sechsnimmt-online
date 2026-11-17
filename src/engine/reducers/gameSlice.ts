@@ -13,13 +13,16 @@ import {
 } from '#engine/dataTypes/gameStateVersion.ts';
 import {
   addPenaltiesToPlayers,
+  hasEnoughPlayers,
   type Player,
   type PlayerId,
+  removePlayer,
 } from '#engine/dataTypes/player.ts';
 import {
   pickCardInRound,
   type Round,
   type RowPick,
+  removePlayerFromRound,
   resolveReveal,
   resolveRowPick,
   unpickCardInRound,
@@ -44,6 +47,10 @@ export interface PickCardPayload {
 // The unpick drops whatever the player has picked, which layer 2 confirmed is
 // the card of the request. The reducer therefore needs no card.
 export interface UnpickCardPayload {
+  playerId: PlayerId;
+}
+
+export interface AbandonGamePayload {
   playerId: PlayerId;
 }
 
@@ -121,6 +128,22 @@ export const gameSlice = createSlice({
       );
     },
 
+    abandonGame: (
+      state,
+      action: PayloadAction<AbandonGamePayload>,
+    ): GameState => {
+      assertRoundInProgress(state);
+      const { playerId } = action.payload;
+      const players = removePlayer(state.players, playerId);
+      return createGameState(
+        hasEnoughPlayers(players) ? state.phase : GamePhase.GameOver,
+        // A player who leaves changes which picks the reveal waits for.
+        majorVersionBump(state.version),
+        players,
+        removePlayerFromRound(state.round, playerId),
+      );
+    },
+
     startRound: (
       state,
       action: PayloadAction<StartRoundPayload>,
@@ -145,6 +168,7 @@ export const {
   unpickCard,
   revealPickedCards,
   pickRow,
+  abandonGame,
   startRound,
 } = gameSlice.actions;
 
@@ -154,5 +178,6 @@ export type GameAction = ReturnType<
   | typeof unpickCard
   | typeof revealPickedCards
   | typeof pickRow
+  | typeof abandonGame
   | typeof startRound
 >;

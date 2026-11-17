@@ -5,7 +5,9 @@ import {
   addPenaltyToPlayer,
   createPlayer,
   findPlayer,
+  hasEnoughPlayers,
   hasReachedPenaltyLimit,
+  removePlayer,
 } from '#engine/dataTypes/player.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
@@ -103,5 +105,18 @@ describe('hasReachedPenaltyLimit', () => {
     );
     expect(scored.penaltyScore).toBe(66);
     expect(hasReachedPenaltyLimit(scored)).toBe(true);
+  });
+});
+
+describe('removePlayer', () => {
+  test('keeps every other player in order', () => {
+    expect(removePlayer([ada, ben], 'a')).toEqual([ben]);
+  });
+});
+
+describe('hasEnoughPlayers', () => {
+  test('needs two players', () => {
+    expect(hasEnoughPlayers([ada])).toBe(false);
+    expect(hasEnoughPlayers([ada, ben])).toBe(true);
   });
 });

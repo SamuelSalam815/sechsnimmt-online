@@ -23,6 +23,7 @@ import {
   findRow,
   pickCardInRound,
   type Round,
+  removePlayerFromRound,
   resolveReveal,
   resolveRowPick,
   unpickCardInRound,
@@ -405,5 +406,15 @@ describe('resolveRowPick', () => {
     expect(faceValuesOfRows(outcome.round)).toEqual([[5], [20, 21]]);
     // The card of Ben is not placed.
     expect(outcome.round.picks).toEqual({ b: cardOf(25).id });
+  });
+});
+
+describe('removePlayerFromRound', () => {
+  test('takes the hand, the pick and the penalty pile of the player out', () => {
+    const round = removePlayerFromRound(rowPickRound(), 'a');
+    expect(round.hands).toEqual([createHand('b', [cardOf(25)])]);
+    expect(round.picks).toEqual({ b: cardOf(25).id });
+    expect(round.penaltyPiles).toEqual([createPenaltyPile('b')]);
+    expect(round.rows).toEqual(rowPickRound().rows);
   });
 });

@@ -143,6 +143,19 @@ export function unpickCardInRound(round: Round, playerId: PlayerId): Round {
   return brandAsRound({ ...round, picks: picksWithout(round.picks, playerId) });
 }
 
+// The cards of the hand, the pick and the penalty pile of the player leave the
+// game with the player.
+export function removePlayerFromRound(round: Round, playerId: PlayerId): Round {
+  return brandAsRound({
+    ...round,
+    hands: round.hands.filter((hand) => hand.playerId !== playerId),
+    picks: picksWithout(round.picks, playerId),
+    penaltyPiles: round.penaltyPiles.filter(
+      (pile) => pile.playerId !== playerId,
+    ),
+  });
+}
+
 // A revealed card pairs the pick of a player with the card that it names, so
 // that the reveal can place the cards in order.
 interface RevealedCard {

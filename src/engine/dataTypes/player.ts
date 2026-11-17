@@ -5,6 +5,9 @@ import { lookup, type Result } from '#engine/dataTypes/result.ts';
 // "End of the game" in docs/game-rules.md.
 const PENALTY_LIMIT = 66;
 
+// 6 nimmt! is a game for 2 players or more.
+export const MIN_PLAYER_COUNT = 2;
+
 export type PlayerId = string;
 
 declare const playerBrand: unique symbol;
@@ -77,4 +80,15 @@ export function addPenaltiesToPlayers(
 
 export function hasReachedPenaltyLimit(player: Player): boolean {
   return player.penaltyScore >= PENALTY_LIMIT;
+}
+
+export function removePlayer(
+  players: readonly Player[],
+  playerId: PlayerId,
+): readonly Player[] {
+  return players.filter((player) => player.id !== playerId);
+}
+
+export function hasEnoughPlayers(players: readonly Player[]): boolean {
+  return players.length >= MIN_PLAYER_COUNT;
 }

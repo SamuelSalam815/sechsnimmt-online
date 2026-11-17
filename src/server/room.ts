@@ -49,6 +49,7 @@ export function roomActor(
         case GameRunnerMessageType.GameStartRequested:
         case GameRunnerMessageType.DeckShuffled:
         case GameRunnerMessageType.PlayerRequested:
+        case GameRunnerMessageType.PlayerAbandoned:
         case GameRunnerMessageType.HistoryRequested:
           sendToGameRunner(outboundMessage);
           return;
