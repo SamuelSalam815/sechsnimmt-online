@@ -112,16 +112,9 @@ describe('createActor', () => {
     expect(trace).toEqual(['a@h', 'end a', 'b@h', 'end b']);
   });
 
-  test('logs each outbound message at its log level with the actor ID', async () => {
+  test('logs an inbound message as received and each outbound message, each at its log level with the actor ID', async () => {
     const lines: unknown[] = [];
     loggingActor(lines).send(infoReplies);
-    await settled();
-    expect(lines).toEqual(outboundLines);
-  });
-
-  test('logs a message from outside as received before its outbound messages', async () => {
-    const lines: unknown[] = [];
-    loggingActor(lines).sendFromOutside(infoReplies);
     await settled();
     expect(lines).toEqual([
       {

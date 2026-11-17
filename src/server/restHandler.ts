@@ -30,7 +30,7 @@ export function restHandlerRouter(logger: Logger): Router {
 
   const router = Router();
   router.get('/ping', (_request, response) => {
-    actor.sendFromOutside(
+    actor.send(
       { type: RestHandlerMessageType.Ping, logLevel: LogLevel.Debug },
       response,
     );

@@ -47,11 +47,3 @@
 
 - Accept the changes that the formatter (`npm run format`) makes. Do not revert them.
 - If the formatter changes files that are not related to the current work, commit those changes in a separate commit.
-
-## Logging
-
-- Open question: should an actor log every message that it receives, also
-  a message from another actor? Now only a message from outside the actors
-  (`sendFromOutside`) is logged as received, because the sender already
-  logs a message between actors and two entries for one message were
-  rejected as noise. Bring this up with the user when you work on logging.

@@ -29,12 +29,6 @@ export interface ActorDefinition<
 
 export interface Actor<InboundMessage, ShellContext = never> {
   send(inboundMessage: InboundMessage, shellContext?: ShellContext): void;
-  // The sending actor logs a message between actors, so only a message from
-  // outside the actors needs a log entry on its arrival.
-  sendFromOutside(
-    inboundMessage: InboundMessage,
-    shellContext?: ShellContext,
-  ): void;
 }
 
 export function createActor<
@@ -72,19 +66,14 @@ export function createActor<
     inboundMessage: InboundMessage,
     shellContext: ShellContext | undefined,
   ) {
+    logAtItsLevel(logger, inboundMessage, 'received');
     // A synchronous run would run the step of the receiver inside the
     // interpretation of the sender. A message that the receiver sends back
     // could then overtake one that the sender has yet to send.
     mailboxTail = mailboxTail.then(() => run(inboundMessage, shellContext));
   }
 
-  return {
-    send,
-    sendFromOutside(inboundMessage, shellContext) {
-      logAtItsLevel(logger, inboundMessage, 'received');
-      send(inboundMessage, shellContext);
-    },
-  };
+  return { send };
 }
 
 function logAtItsLevel(

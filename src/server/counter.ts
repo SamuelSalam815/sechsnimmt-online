@@ -23,7 +23,7 @@ export function counterActor(
 
   setInterval(
     () =>
-      counter.sendFromOutside({
+      counter.send({
         type: CounterMessageType.TickRequested,
         logLevel: LogLevel.Debug,
       }),
