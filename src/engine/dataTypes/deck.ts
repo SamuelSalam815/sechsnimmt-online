@@ -1,4 +1,4 @@
-import type { Card } from '#engine/dataTypes/card.ts';
+import { type Card, DECK_SIZE } from '#engine/dataTypes/card.ts';
 
 declare const deckBrand: unique symbol;
 
@@ -17,6 +17,10 @@ export interface DeckDraw {
 function brandAsDeck(cards: readonly Card[]): Deck {
   // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
   return { cards } as Deck;
+}
+
+export function getDeckFaceValues(): number[] {
+  return Array.from({ length: DECK_SIZE }, (_, i) => i + 1);
 }
 
 export function createDeck(cards: readonly Card[]): Deck {

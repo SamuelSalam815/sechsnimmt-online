@@ -1,11 +1,11 @@
 // Test support. It builds cards and rows through their constructors, so a test
 // needs no cast to hold one.
+import { type Card, createCards } from '#engine/dataTypes/card.ts';
 import {
-  type Card,
-  createCards,
+  createDeck,
+  type Deck,
   getDeckFaceValues,
-} from '#engine/dataTypes/card.ts';
-import { createDeck, type Deck } from '#engine/dataTypes/deck.ts';
+} from '#engine/dataTypes/deck.ts';
 import { addCardToRow, createRow, type Row } from '#engine/dataTypes/row.ts';
 
 const standardDeck = new Map(

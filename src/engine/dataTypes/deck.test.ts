@@ -1,6 +1,17 @@
 import { describe, expect, test } from 'vitest';
-import { createDeck, drawCardsFromDeck } from '#engine/dataTypes/deck.ts';
+import {
+  createDeck,
+  drawCardsFromDeck,
+  getDeckFaceValues,
+} from '#engine/dataTypes/deck.ts';
 import { cardOf } from '#testSupport/cards.ts';
+
+describe('getDeckFaceValues', () => {
+  test('gives the face values 1 to 104 in ascending order', () => {
+    const oneTo104 = Array.from({ length: 104 }, (_, i) => i + 1);
+    expect(getDeckFaceValues()).toEqual(oneTo104);
+  });
+});
 
 describe('drawCardsFromDeck', () => {
   const deck = createDeck([1, 2, 3].map(cardOf));

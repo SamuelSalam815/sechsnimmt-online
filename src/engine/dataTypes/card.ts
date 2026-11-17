@@ -10,11 +10,7 @@ export interface Card {
   readonly [cardBrand]: true;
 }
 
-const DECK_SIZE = 104;
-
-export function getDeckFaceValues(): number[] {
-  return Array.from({ length: DECK_SIZE }, (_, i) => i + 1);
-}
+export const DECK_SIZE = 104;
 
 export function createCards(faceValues: number[]): Card[] {
   return faceValues.map(createCard);

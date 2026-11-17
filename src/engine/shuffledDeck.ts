@@ -1,5 +1,9 @@
-import { createCards, getDeckFaceValues } from '#engine/dataTypes/card.ts';
-import { createDeck, type Deck } from '#engine/dataTypes/deck.ts';
+import { createCards } from '#engine/dataTypes/card.ts';
+import {
+  createDeck,
+  type Deck,
+  getDeckFaceValues,
+} from '#engine/dataTypes/deck.ts';
 
 // Impure, because the shuffle uses random numbers. The rest of the engine is
 // pure, so the deck reaches it as data. See docs/game-flow-architecture.md.

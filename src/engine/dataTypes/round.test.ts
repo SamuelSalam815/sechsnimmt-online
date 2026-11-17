@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { createCards, getDeckFaceValues } from '#engine/dataTypes/card.ts';
-import { createDeck } from '#engine/dataTypes/deck.ts';
+import { createCards } from '#engine/dataTypes/card.ts';
+import { createDeck, getDeckFaceValues } from '#engine/dataTypes/deck.ts';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
 import { GamePhase } from '#engine/dataTypes/gameState.ts';
 import { createHand, type Hand } from '#engine/dataTypes/hand.ts';
