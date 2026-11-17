@@ -15,6 +15,7 @@ import {
 import { type Actor, createActor } from '#server/infrastructure/actor.ts';
 import { LogLevel } from '#server/infrastructure/message.ts';
 import { requireValue } from '#server/infrastructure/requireValue.ts';
+import { type RoomMessage, RoomMessageType } from '#server/room/roomCore.ts';
 
 export interface GameRunner {
   readonly actor: Actor<GameRunnerMessage, Response>;
@@ -23,6 +24,7 @@ export interface GameRunner {
 
 export function gameRunnerActor(
   sendToEventStream: (message: EventStreamMessage) => void,
+  sendToRoom: (message: RoomMessage) => void,
   logger: Logger,
 ): GameRunner {
   const actor: Actor<GameRunnerMessage, Response> = createActor({
@@ -36,6 +38,15 @@ export function gameRunnerActor(
         case EventStreamMessageType.BroadcastRoomView:
         case EventStreamMessageType.StreamClosed:
           sendToEventStream(outboundMessage);
+          return;
+
+        case RoomMessageType.JoinRequested:
+        case RoomMessageType.ReadyRequested:
+        case RoomMessageType.StreamOpened:
+        case RoomMessageType.StreamClosed:
+        case RoomMessageType.GraceTimerExpired:
+        case RoomMessageType.GameStartRejected:
+          sendToRoom(outboundMessage);
           return;
 
         case GameRunnerShellMessageType.ShuffleRequested:

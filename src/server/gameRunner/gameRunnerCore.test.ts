@@ -23,6 +23,7 @@ import {
   type Seat,
 } from '#server/gameRunner/gameRunnerCore.ts';
 import { LogLevel } from '#server/infrastructure/message.ts';
+import { RoomMessageType } from '#server/room/roomCore.ts';
 import { cardOf, orderedDeck, rowOf } from '#testSupport/cards.ts';
 
 const seats: Seat[] = [
@@ -221,6 +222,23 @@ describe('gameRunnerStep', () => {
     expect(gameRunnerStep(over, deckShuffled())).toEqual({
       coreContext: over,
       outboundMessages: [],
+    });
+  });
+
+  test('a shuffled deck for a start with too few seats gives the seats up and tells the room', () => {
+    const onlyAda = gameRunnerStep(
+      { ...initialGameRunnerCoreContext, seats },
+      {
+        type: GameRunnerMessageType.PlayerAbandoned,
+        logLevel: LogLevel.Info,
+        playerId: 'b',
+      },
+    ).coreContext;
+    expect(gameRunnerStep(onlyAda, deckShuffled())).toEqual({
+      coreContext: initialGameRunnerCoreContext,
+      outboundMessages: [
+        { type: RoomMessageType.GameStartRejected, logLevel: LogLevel.Info },
+      ],
     });
   });
 

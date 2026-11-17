@@ -28,6 +28,7 @@ export enum RoomMessageType {
   StreamOpened = 'room/streamOpened',
   StreamClosed = 'room/streamClosed',
   GraceTimerExpired = 'room/graceTimerExpired',
+  GameStartRejected = 'room/gameStartRejected',
 }
 
 export enum RoomShellMessageType {
@@ -94,6 +95,7 @@ export type RoomMessage = MessageBase &
         readonly type: RoomMessageType.GraceTimerExpired;
         readonly graceTimerId: number;
       }
+    | { readonly type: RoomMessageType.GameStartRejected }
   );
 
 export type RoomShellMessage = MessageBase &
@@ -179,6 +181,9 @@ export function roomStep(
       );
       return changed(nextContext, [graceTimerStart(graceTimerId)]);
     }
+
+    case RoomMessageType.GameStartRejected:
+      return startedIfAllReady({ ...coreContext, gameStarted: false }, []);
 
     case RoomMessageType.GraceTimerExpired: {
       const { graceTimerId } = inboundMessage;

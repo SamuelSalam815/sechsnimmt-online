@@ -364,6 +364,38 @@ describe('grace period', () => {
     });
   });
 
+  test('a rejected game start opens the room again and keeps the ready flags', () => {
+    const readyAda = roomPlayer(1, 'Ada', { ready: true });
+    const step = roomStep(roomWith([readyAda], { gameStarted: true }), {
+      type: RoomMessageType.GameStartRejected,
+      logLevel: LogLevel.Info,
+    });
+    const coreContext = roomWith([readyAda]);
+    expect(step).toEqual({
+      coreContext,
+      outboundMessages: [viewBroadcast(coreContext)],
+    });
+  });
+
+  test('after a rejected game start, the next player who gets ready starts the game', () => {
+    const readyAda = roomPlayer(1, 'Ada', { ready: true });
+    const reopened = roomStep(
+      roomWith([readyAda, ben], { gameStarted: true }),
+      {
+        type: RoomMessageType.GameStartRejected,
+        logLevel: LogLevel.Info,
+      },
+    ).coreContext;
+    const step = roomStep(
+      reopened,
+      readyRequested({ clientToken: 'secret-2' }),
+    );
+    expect(step.coreContext.gameStarted).toBe(true);
+    expect(step.outboundMessages.at(-1)).toMatchObject({
+      type: GameRunnerMessageType.GameStartRequested,
+    });
+  });
+
   test('a timer that a reconnection outdated changes nothing', () => {
     const coreContext = roomWith([ada, ben]);
     expect(roomStep(coreContext, graceTimerExpired(3))).toEqual({

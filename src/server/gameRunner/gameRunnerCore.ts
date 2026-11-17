@@ -8,6 +8,7 @@ import type {
 } from '#engine/dataTypes/playerState/player.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
+import { ErrorCode } from '#engine/result.ts';
 import { initialRootState, type RootState } from '#engine/store.ts';
 import {
   type EventStreamMessage,
@@ -22,6 +23,7 @@ import {
   readInteger,
   readString,
 } from '#server/infrastructure/requestBody.ts';
+import { type RoomMessage, RoomMessageType } from '#server/room/roomCore.ts';
 
 export enum GameRunnerMessageType {
   GameStartRequested = 'gameRunner/gameStartRequested',
@@ -104,7 +106,7 @@ export type GameRunnerShellMessage = MessageBase &
   );
 
 type GameRunnerStep = Step<
-  EventStreamMessage | GameRunnerShellMessage,
+  EventStreamMessage | RoomMessage | GameRunnerShellMessage,
   GameRunnerCoreContext
 >;
 
@@ -143,6 +145,22 @@ export function gameRunnerStep(
         coreContext.rootState,
         dealRequest(coreContext, inboundMessage.deck),
       );
+      // A grace period can end while the first deck is on its way, and the
+      // seats that remain can then be too few for a game.
+      if (
+        'message' in outcome &&
+        outcome.errorCode === ErrorCode.InvalidGameRules
+      ) {
+        return {
+          coreContext: { ...coreContext, seats: [] },
+          outboundMessages: [
+            {
+              type: RoomMessageType.GameStartRejected,
+              logLevel: LogLevel.Info,
+            },
+          ],
+        };
+      }
       // The game runner asks for a deck only when a deal is due, and only an
       // abandon can change the phase while the deck is on its way.
       if ('message' in outcome) {

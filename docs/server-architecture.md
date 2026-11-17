@@ -92,6 +92,11 @@ The engine is pure, so the game runner asks its shell for a shuffled deck when a
 The shell answers with the deck in a message to the game runner.
 The engine rejects every request while the deck is on its way, because the game rests in a phase that waits for the deal.
 
+A grace period can end while the first deck is on its way.
+The seats that remain can then be fewer than 2, and the engine rejects the start of the game.
+The game runner then gives up its seats and tells the room, which opens again with `gameStarted` false.
+The remaining players keep their ready flags, so the game starts as soon as enough players are ready.
+
 A request of a client is untrusted.
 The core therefore reads the request body field by field and rejects a body that lacks a field.
 The answer to a rejected request carries an HTTP status: 400 for a malformed body, 403 for an unknown client token, 409 for a request that the engine rejects.

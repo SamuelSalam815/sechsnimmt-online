@@ -24,6 +24,7 @@ const eventStream = eventStreamActor(
 );
 const gameRunner = gameRunnerActor(
   (message) => eventStream.actor.send(message),
+  (message) => room.actor.send(message),
   logger,
 );
 const room = roomActor(
