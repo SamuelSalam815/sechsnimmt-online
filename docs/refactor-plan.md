@@ -45,7 +45,7 @@ The moves come first, so later edits land in the final paths.
 
 The module names and the place of each function are a draft.
 
-- [ ] Decide how the other two modules build a `Round`. `docs/data-type-design.md` says that only the owning module builds a value, and `brandAsRound` is private now. Ask the user if the choice is unclear.
+- [x] Decide how the other two modules build a `Round`. `docs/data-type-design.md` says that only the owning module builds a value, and `brandAsRound` is private now. Ask the user if the choice is unclear.
 - [ ] Split `round.test.ts` the same way.
 - [ ] Update `docs/data-type-design.md`, which names `round.ts` as the model for the naming rule.
 

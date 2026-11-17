@@ -6,7 +6,7 @@ A caller therefore describes a change in domain terms instead of reaching into a
 ## One module for each type
 
 Each type lives in one module of `src/engine/dataTypes`.
-That module holds the type, its constructor and its operations.
+That module holds the type, its constructor and the operations that build a value of it.
 The types share no structural supertype.
 A shared supertype makes two types assignable to each other, which defeats the boundary below.
 
@@ -43,6 +43,14 @@ return { faceValue } as Card;
 Biome requires a reason in a suppression comment.
 A suppression anywhere else therefore has to state a reason, and no other reason is valid.
 A module holds one such assertion, even when several of its operations build a value.
+
+A type whose rules fill more than one module still has one owning module.
+`roundLifecycle.ts` holds `Round` and `brandAsRound`.
+It exports each small operation that builds a round: a pick, an unpick, the removal of a player, a placed card and the cards that a penalty pile takes.
+`revealResolution.ts` holds the rules of the reveal and of the row pick, and it calls those operations.
+It holds no assertion.
+An export of the brand constructor would let any module build a round.
+An assertion in each module would give the type more than one owner.
 
 ## The module holds the invariants of its type
 
