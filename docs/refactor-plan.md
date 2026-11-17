@@ -105,7 +105,7 @@ The rule: assert that an error occurs and, at most, its error code. Test each ru
 
 ### Request body parsing
 
-- [ ] Add plain functions on top of `readString` and `readInteger` that parse a request body into a typed value, or a `Lookup` failure, per route. Add a class only if a need shows. The fields that the code reads now:
+- [x] Add plain functions on top of `readString` and `readInteger` that parse a request body into a typed value, or a `Lookup` failure, per route. Add a class only if a need shows. The fields that the code reads now:
   - `gameRunnerCore.ts`: `clientToken`, `lastVersionSeen`, `cardId`, `rowIndex`
   - `roomCore.ts`: `name`, `clientToken`
 

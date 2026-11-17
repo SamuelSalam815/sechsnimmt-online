@@ -1,6 +1,25 @@
 // A request body is untrusted JSON. A read therefore gives undefined for a
 // field that is missing or that holds a value of another type.
 
+// The engine's `Result` does not fit a parse, because its error codes name the
+// rejections of the engine. A parse fails only on a malformed body, so the
+// failure carries no more than its message.
+export type ParsedRequestBody<RequestBody> =
+  | { readonly ok: true; readonly requestBody: RequestBody }
+  | { readonly ok: false; readonly message: string };
+
+export function parsedBody<RequestBody>(
+  requestBody: RequestBody,
+): ParsedRequestBody<RequestBody> {
+  return { ok: true, requestBody };
+}
+
+export function malformedBody<RequestBody>(
+  message: string,
+): ParsedRequestBody<RequestBody> {
+  return { ok: false, message };
+}
+
 export function readString(
   requestBody: unknown,
   fieldName: string,

@@ -13,7 +13,12 @@ import {
 } from '#server/gameRunner/gameRunnerCore.ts';
 import type { Step } from '#server/infrastructure/actor.ts';
 import { LogLevel, type MessageBase } from '#server/infrastructure/message.ts';
-import { readString } from '#server/infrastructure/requestBody.ts';
+import {
+  malformedBody,
+  type ParsedRequestBody,
+  parsedBody,
+  readString,
+} from '#server/infrastructure/requestBody.ts';
 
 const MAX_NAME_LENGTH = 24;
 
@@ -208,18 +213,11 @@ function join(
   clientToken: string,
   requestBody: unknown,
 ): RoomStep {
-  const name = readString(requestBody, 'name')?.trim();
-  if (
-    name === undefined ||
-    name.length === 0 ||
-    name.length > MAX_NAME_LENGTH
-  ) {
-    return rejected(
-      coreContext,
-      400,
-      `The request body needs a name of 1 to ${MAX_NAME_LENGTH} characters`,
-    );
+  const parsedRequestBody = parseJoinRequestBody(requestBody);
+  if (!parsedRequestBody.ok) {
+    return rejected(coreContext, 400, parsedRequestBody.message);
   }
+  const { name } = parsedRequestBody.requestBody;
   if (coreContext.gameStarted) {
     return rejected(coreContext, 409, 'The game has started');
   }
@@ -257,15 +255,28 @@ function join(
   );
 }
 
-function ready(coreContext: RoomCoreContext, requestBody: unknown): RoomStep {
-  const clientToken = readString(requestBody, 'clientToken');
-  if (clientToken === undefined) {
-    return rejected(
-      coreContext,
-      400,
-      'The request body needs a clientToken string',
+function parseJoinRequestBody(
+  requestBody: unknown,
+): ParsedRequestBody<{ readonly name: string }> {
+  const name = readString(requestBody, 'name')?.trim();
+  if (
+    name === undefined ||
+    name.length === 0 ||
+    name.length > MAX_NAME_LENGTH
+  ) {
+    return malformedBody(
+      `The request body needs a name of 1 to ${MAX_NAME_LENGTH} characters`,
     );
   }
+  return parsedBody({ name });
+}
+
+function ready(coreContext: RoomCoreContext, requestBody: unknown): RoomStep {
+  const parsedRequestBody = parseReadyRequestBody(requestBody);
+  if (!parsedRequestBody.ok) {
+    return rejected(coreContext, 400, parsedRequestBody.message);
+  }
+  const { clientToken } = parsedRequestBody.requestBody;
   if (findPlayer(coreContext, clientToken) === undefined) {
     return rejected(coreContext, 403, 'The client token holds no player');
   }
@@ -279,6 +290,16 @@ function ready(coreContext: RoomCoreContext, requestBody: unknown): RoomStep {
     })),
     [{ type: RoomShellMessageType.ReadyAccepted, logLevel: LogLevel.Debug }],
   );
+}
+
+function parseReadyRequestBody(
+  requestBody: unknown,
+): ParsedRequestBody<{ readonly clientToken: string }> {
+  const clientToken = readString(requestBody, 'clientToken');
+  if (clientToken === undefined) {
+    return malformedBody('The request body needs a clientToken string');
+  }
+  return parsedBody({ clientToken });
 }
 
 function startedIfAllReady(

@@ -15,7 +15,13 @@ import {
 } from '#server/eventStream/eventStreamCore.ts';
 import type { Step } from '#server/infrastructure/actor.ts';
 import { LogLevel, type MessageBase } from '#server/infrastructure/message.ts';
-import { readInteger, readString } from '#server/infrastructure/requestBody.ts';
+import {
+  malformedBody,
+  type ParsedRequestBody,
+  parsedBody,
+  readInteger,
+  readString,
+} from '#server/infrastructure/requestBody.ts';
 
 export enum GameRunnerMessageType {
   GameStartRequested = 'gameRunner/gameStartRequested',
@@ -42,6 +48,19 @@ export type PlayerRequestType =
   | RequestType.PickCard
   | RequestType.UnpickCard
   | RequestType.PickRow;
+
+type PlayerChoice =
+  | {
+      readonly type: RequestType.PickCard | RequestType.UnpickCard;
+      readonly cardId: number;
+    }
+  | { readonly type: RequestType.PickRow; readonly rowIndex: number };
+
+interface PlayerRequestBody {
+  readonly clientToken: string;
+  readonly lastVersionSeen: number;
+  readonly playerChoice: PlayerChoice;
+}
 
 export interface GameRunnerCoreContext {
   readonly rootState: RootState;
@@ -133,36 +152,26 @@ export function gameRunnerStep(
     }
 
     case GameRunnerMessageType.PlayerRequested: {
-      const { requestType, requestBody } = inboundMessage;
-      const clientToken = readString(requestBody, 'clientToken');
-      const lastVersionSeen = readInteger(requestBody, 'lastVersionSeen');
-      if (clientToken === undefined || lastVersionSeen === undefined) {
-        return rejected(
-          coreContext,
-          400,
-          'The request body needs a clientToken string and a lastVersionSeen integer',
-        );
+      const parsedRequestBody = parsePlayerRequestBody(
+        inboundMessage.requestType,
+        inboundMessage.requestBody,
+      );
+      if (!parsedRequestBody.ok) {
+        return rejected(coreContext, 400, parsedRequestBody.message);
       }
+      const { clientToken, lastVersionSeen, playerChoice } =
+        parsedRequestBody.requestBody;
       const seat = coreContext.seats.find(
         (candidate) => candidate.clientToken === clientToken,
       );
       if (seat === undefined) {
         return rejected(coreContext, 403, 'The client token holds no seat');
       }
-      const gameRequest = playerGameRequest(
-        requestType,
-        requestBody,
-        seat.playerProfile.id,
+      const outcome = advanceGame(coreContext.rootState, {
+        ...playerChoice,
         lastVersionSeen,
-      );
-      if (gameRequest === undefined) {
-        return rejected(
-          coreContext,
-          400,
-          `The ${requestType} request body lacks an integer field`,
-        );
-      }
-      const outcome = advanceGame(coreContext.rootState, gameRequest);
+        playerId: seat.playerProfile.id,
+      });
       if ('message' in outcome) {
         return rejected(coreContext, 409, outcome.message);
       }
@@ -232,25 +241,41 @@ function dealRequest(
   };
 }
 
-function playerGameRequest(
+function parsePlayerRequestBody(
   requestType: PlayerRequestType,
   requestBody: unknown,
-  playerId: PlayerId,
-  lastVersionSeen: number,
-): GameRequest | undefined {
+): ParsedRequestBody<PlayerRequestBody> {
+  const clientToken = readString(requestBody, 'clientToken');
+  const lastVersionSeen = readInteger(requestBody, 'lastVersionSeen');
+  if (clientToken === undefined || lastVersionSeen === undefined) {
+    return malformedBody(
+      'The request body needs a clientToken string and a lastVersionSeen integer',
+    );
+  }
+  const playerChoice = parsePlayerChoice(requestType, requestBody);
+  if (playerChoice === undefined) {
+    return malformedBody(
+      `The ${requestType} request body lacks an integer field`,
+    );
+  }
+  return parsedBody({ clientToken, lastVersionSeen, playerChoice });
+}
+
+function parsePlayerChoice(
+  requestType: PlayerRequestType,
+  requestBody: unknown,
+): PlayerChoice | undefined {
   switch (requestType) {
     case RequestType.PickCard:
     case RequestType.UnpickCard: {
       const cardId = readInteger(requestBody, 'cardId');
-      return cardId === undefined
-        ? undefined
-        : { type: requestType, lastVersionSeen, playerId, cardId };
+      return cardId === undefined ? undefined : { type: requestType, cardId };
     }
     case RequestType.PickRow: {
       const rowIndex = readInteger(requestBody, 'rowIndex');
       return rowIndex === undefined
         ? undefined
-        : { type: requestType, lastVersionSeen, playerId, rowIndex };
+        : { type: requestType, rowIndex };
     }
   }
 }
