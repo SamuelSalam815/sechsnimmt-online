@@ -56,6 +56,12 @@ The two entries are accepted, because together they show when a message was sent
 Each entry carries the `actorId` of the actor that logs it.
 A log entry therefore needs no code of its own, and the levels are part of what the core tests examine.
 
+A log entry holds no client token.
+The actor puts a marker in place of each `clientToken` field, at any depth of the message, before it logs it.
+A client token lets its holder act as its player, so a reader of the logs could otherwise act as any player.
+The message that the actor delivers keeps its tokens.
+No other path logs a token: the server has no request logging, and the event stream route puts the token of its query only into a message.
+
 ## The actors and their messages
 
 The REST handler owns the HTTP routes of plain requests.

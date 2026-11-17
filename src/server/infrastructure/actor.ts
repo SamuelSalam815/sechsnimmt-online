@@ -81,15 +81,47 @@ function logAtItsLevel(
   message: MessageBase,
   logMessage?: string,
 ) {
+  // The redaction copies the whole message, which a level that the logger
+  // drops does not need.
+  if (!logger.isLevelEnabled(message.logLevel)) {
+    return;
+  }
+  const logEntry = withClientTokensRedacted(message);
   switch (message.logLevel) {
     case LogLevel.Debug:
-      logger.debug(message, logMessage);
+      logger.debug(logEntry, logMessage);
       return;
     case LogLevel.Info:
-      logger.info(message, logMessage);
+      logger.info(logEntry, logMessage);
       return;
     case LogLevel.Error:
-      logger.error(message, logMessage);
+      logger.error(logEntry, logMessage);
       return;
   }
+}
+
+export const REDACTED_CLIENT_TOKEN = '[redacted]';
+
+// By the field name and at any depth, so that a new message with a client token
+// needs no change here. A request body is untrusted, so a client token can be
+// at any place in it.
+function withClientTokensRedacted(value: object): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(value).map(([fieldName, fieldValue]) => [
+      fieldName,
+      fieldName === 'clientToken' && fieldValue !== undefined
+        ? REDACTED_CLIENT_TOKEN
+        : withNestedClientTokensRedacted(fieldValue),
+    ]),
+  );
+}
+
+function withNestedClientTokensRedacted(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(withNestedClientTokensRedacted);
+  }
+  if (typeof value === 'object' && value !== null) {
+    return withClientTokensRedacted(value);
+  }
+  return value;
 }

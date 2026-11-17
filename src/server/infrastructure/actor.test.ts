@@ -1,6 +1,10 @@
 import pino from 'pino';
 import { describe, expect, test } from 'vitest';
-import { type Actor, createActor } from '#server/infrastructure/actor.ts';
+import {
+  type Actor,
+  createActor,
+  REDACTED_CLIENT_TOKEN,
+} from '#server/infrastructure/actor.ts';
 import { LogLevel } from '#server/infrastructure/message.ts';
 
 interface Reply {
@@ -129,5 +133,45 @@ describe('createActor', () => {
       },
       ...outboundLines,
     ]);
+  });
+
+  test('logs no client token, at any depth, and hands the interpretation the message whole', async () => {
+    interface TokenMessage {
+      readonly logLevel: LogLevel;
+      readonly clientToken: string;
+      readonly requestBody: unknown;
+    }
+    const tokenMessage: TokenMessage = {
+      logLevel: LogLevel.Debug,
+      clientToken: 'secret-a',
+      requestBody: { seats: [{ clientToken: 'secret-b' }] },
+    };
+    const lines: unknown[] = [];
+    const interpreted: TokenMessage[] = [];
+    createActor({
+      initial: null,
+      step: (coreContext: null, inboundMessage: TokenMessage) => ({
+        coreContext,
+        outboundMessages: [inboundMessage],
+      }),
+      interpret(outboundMessage: TokenMessage) {
+        interpreted.push(outboundMessage);
+      },
+      actorId: 'echo',
+      logger: loggerInto(lines),
+    }).send(tokenMessage);
+    await settled();
+    const redactedEntry = {
+      level: 20,
+      actorId: 'echo',
+      logLevel: 'debug',
+      clientToken: REDACTED_CLIENT_TOKEN,
+      requestBody: { seats: [{ clientToken: REDACTED_CLIENT_TOKEN }] },
+    };
+    expect(lines).toEqual([
+      { ...redactedEntry, msg: 'received' },
+      redactedEntry,
+    ]);
+    expect(interpreted).toEqual([tokenMessage]);
   });
 });

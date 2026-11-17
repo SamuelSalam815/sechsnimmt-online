@@ -111,7 +111,7 @@ The rule: assert that an error occurs and, at most, its error code. Test each ru
 
 ### From TODO.md
 
-- [ ] Keep the client tokens out of the logs. It touches `logger`, `message` and the actors. Do it after the move.
+- [x] Keep the client tokens out of the logs. It touches `logger`, `message` and the actors. Do it after the move.
 - [ ] Handle the rejection of a game start with too few seats in `gameRunnerCore.ts`. The game runner throws on `invalidGameRules` now.
 
 ## Out of this plan
