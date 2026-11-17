@@ -16,6 +16,7 @@ import {
 } from '#engine/dataTypes/round.ts';
 import {
   pickCard,
+  pickRow,
   revealPickedCards,
   startGame,
   startRound,
@@ -26,7 +27,7 @@ import { handleRequest } from '#engine/requestHandling/handleRequest.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import type { StartGameRequest } from '#engine/requests/startGameRequest.ts';
-import { cardOf, orderedDeck } from '#testSupport/cards.ts';
+import { cardOf, orderedDeck, rowOf } from '#testSupport/cards.ts';
 
 const startGameRequest: StartGameRequest = {
   type: RequestType.StartGame,
@@ -186,7 +187,7 @@ describe('card pick phase handling', () => {
 });
 
 describe('handling of the phases that follow the reveal', () => {
-  function inPhase(phase: GamePhase.RowPick | GamePhase.EndOfRound): GameState {
+  function inPhase(phase: GamePhase.EndOfRound): GameState {
     return createGameState(
       phase,
       INITIAL_GAME_STATE_VERSION,
@@ -195,10 +196,61 @@ describe('handling of the phases that follow the reveal', () => {
     );
   }
 
-  test('throws in the row pick phase, because it is not implemented', () => {
-    expect(() =>
-      handleRequest(inPhase(GamePhase.RowPick), noHistory, startGameRequest),
-    ).toThrow('Not implemented');
+  // Ada picked 1, which is lower than the last card of every row, and Ben
+  // picked 60.
+  function rowPick(): GameState {
+    let round = createRound(
+      [rowOf(10), rowOf(20)],
+      [createHand('a', [cardOf(1)]), createHand('b', [cardOf(60)])],
+    );
+    round = pickCardInRound(round, 'a', cardOf(1));
+    round = pickCardInRound(round, 'b', cardOf(60));
+    return createGameState(
+      GamePhase.RowPick,
+      INITIAL_GAME_STATE_VERSION,
+      players,
+      round,
+    );
+  }
+
+  function pickRowRequest(playerId: PlayerId, rowIndex: number): GameRequest {
+    return {
+      type: RequestType.PickRow,
+      lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
+      playerId,
+      rowIndex,
+    };
+  }
+
+  test('handles the pick row request with the pick row action', () => {
+    expect(handleRequest(rowPick(), noHistory, pickRowRequest('a', 1))).toEqual(
+      { actions: [pickRow({ playerId: 'a', rowIndex: 1 })] },
+    );
+  });
+
+  test('returns an error for the pick row request of a player whose card fits a row', () => {
+    expect(handleRequest(rowPick(), noHistory, pickRowRequest('b', 1))).toEqual(
+      { message: 'The player b holds no card that waits for a row pick' },
+    );
+  });
+
+  test('returns an error for the pick row request of an unknown row', () => {
+    expect(handleRequest(rowPick(), noHistory, pickRowRequest('a', 2))).toEqual(
+      { message: 'The game holds no row at the index 2' },
+    );
+  });
+
+  test('returns an error for the pick row request of an unknown player', () => {
+    expect(
+      handleRequest(rowPick(), noHistory, pickRowRequest('nobody', 0)),
+    ).toEqual({ message: 'The game holds no player with the ID nobody' });
+  });
+
+  test('returns an error for any other request in the row pick phase', () => {
+    expect(handleRequest(rowPick(), noHistory, startGameRequest)).toEqual({
+      message:
+        'The row pick phase rejects the startGame request: it accepts only the pick row request',
+    });
   });
 
   test('handles the start round request in the end of round phase with a start round action that deals the deck of the request', () => {

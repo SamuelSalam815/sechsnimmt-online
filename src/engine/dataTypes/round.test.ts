@@ -16,12 +16,15 @@ import {
 import {
   createRound,
   dealRound,
+  findCardForRowPick,
   findHand,
   findPick,
   findPickedCardId,
+  findRow,
   pickCardInRound,
   type Round,
   resolveReveal,
+  resolveRowPick,
   unpickCardInRound,
 } from '#engine/dataTypes/round.ts';
 import { cardOf, rowOf } from '#testSupport/cards.ts';
@@ -317,5 +320,90 @@ describe('resolveReveal', () => {
     const next = reveal([[10]], [['a', 11]], { handOfAda: [] });
     expect(next.phase).toBe(GamePhase.EndOfRound);
     expect(next.rows).toEqual([[10, 11]]);
+  });
+});
+
+// Ada picked 5, which fits no row, and Ben picked 25. Ada also holds 100, so
+// the round goes on after the reveal.
+function rowPickRound(): Round {
+  let round = createRound(
+    [rowOf(10), rowOf(20, 21)],
+    [createHand('a', [cardOf(5), cardOf(100)]), createHand('b', [cardOf(25)])],
+  );
+  round = pickCardInRound(round, 'a', cardOf(5));
+  return pickCardInRound(round, 'b', cardOf(25));
+}
+
+function faceValuesOfRows(round: Round): number[][] {
+  return round.rows.map((row) => row.cards.map((card) => card.faceValue));
+}
+
+describe('findRow', () => {
+  test('gives the row at the index', () => {
+    expect(findRow(rowPickRound(), 1).force()).toEqual(rowOf(20, 21));
+  });
+
+  test('names the miss for an index past the rows', () => {
+    expect(findRow(rowPickRound(), 2).ok).toBe(false);
+    expect(() => findRow(rowPickRound(), 2).force()).toThrow(
+      'The game holds no row at the index 2',
+    );
+  });
+});
+
+describe('findCardForRowPick', () => {
+  test('gives the lowest picked card to its owner', () => {
+    expect(findCardForRowPick(rowPickRound(), 'a').force()).toEqual(cardOf(5));
+  });
+
+  test('names the miss for a player whose card is not the lowest', () => {
+    expect(() => findCardForRowPick(rowPickRound(), 'b').force()).toThrow(
+      'The player b holds no card that waits for a row pick',
+    );
+  });
+});
+
+describe('resolveRowPick', () => {
+  test('gives the row to the player, starts it with the card and places the rest', () => {
+    const outcome = resolveRowPick(rowPickRound(), [ada, ben], {
+      playerId: 'a',
+      rowIndex: 1,
+    });
+    // 25 goes after 10, the closest lower last card.
+    expect(faceValuesOfRows(outcome.round)).toEqual([[10, 25], [5]]);
+    expect(outcome.round.picks).toEqual({});
+    expect(outcome.round.hands).toEqual([
+      createHand('a', [cardOf(100)]),
+      createHand('b', []),
+    ]);
+    expect(outcome.round.penaltyPiles).toEqual([
+      addCardsToPenaltyPile(createPenaltyPile('a'), [cardOf(20), cardOf(21)]),
+      createPenaltyPile('b'),
+    ]);
+    expect(outcome.penaltyAccruals).toEqual([
+      createPenaltyAccrual('a', [cardOf(20), cardOf(21)]),
+    ]);
+    expect(outcome.phase).toBe(GamePhase.CardPick);
+  });
+
+  test('moves to the game over phase when the taken row reaches the penalty limit', () => {
+    // A score of 63 for Ada. The row of 10 adds 3, which reaches the limit of 66.
+    const scoredAda = addPenaltyToPlayer(
+      ada,
+      createPenaltyAccrual(
+        'a',
+        [11, 22, 33, 44, 66, 77, 88, 99, 55, 20, 30, 40, 50, 15, 35].map(
+          cardOf,
+        ),
+      ),
+    );
+    const outcome = resolveRowPick(rowPickRound(), [scoredAda, ben], {
+      playerId: 'a',
+      rowIndex: 0,
+    });
+    expect(outcome.phase).toBe(GamePhase.GameOver);
+    expect(faceValuesOfRows(outcome.round)).toEqual([[5], [20, 21]]);
+    // The card of Ben is not placed.
+    expect(outcome.round.picks).toEqual({ b: cardOf(25).id });
   });
 });

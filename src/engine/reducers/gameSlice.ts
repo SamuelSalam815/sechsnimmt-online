@@ -19,7 +19,9 @@ import {
 import {
   pickCardInRound,
   type Round,
+  type RowPick,
   resolveReveal,
+  resolveRowPick,
   unpickCardInRound,
 } from '#engine/dataTypes/round.ts';
 
@@ -102,6 +104,23 @@ export const gameSlice = createSlice({
       );
     },
 
+    pickRow: (state, action: PayloadAction<RowPick>): GameState => {
+      assertRoundInProgress(state);
+      const { round, penaltyAccruals, phase } = resolveRowPick(
+        state.round,
+        state.players,
+        action.payload,
+      );
+      return createGameState(
+        phase,
+        // The row pick is a major change: it places the cards that the reveal
+        // left picked.
+        majorVersionBump(state.version),
+        addPenaltiesToPlayers(state.players, penaltyAccruals),
+        round,
+      );
+    },
+
     startRound: (
       state,
       action: PayloadAction<StartRoundPayload>,
@@ -125,6 +144,7 @@ export const {
   pickCard,
   unpickCard,
   revealPickedCards,
+  pickRow,
   startRound,
 } = gameSlice.actions;
 
@@ -133,5 +153,6 @@ export type GameAction = ReturnType<
   | typeof pickCard
   | typeof unpickCard
   | typeof revealPickedCards
+  | typeof pickRow
   | typeof startRound
 >;

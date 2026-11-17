@@ -56,6 +56,12 @@ export interface Round {
   readonly [roundBrand]: true;
 }
 
+// The row that a player chose to take for the card that fits no row.
+export interface RowPick {
+  readonly playerId: PlayerId;
+  readonly rowIndex: number;
+}
+
 export interface RevealOutcome {
   readonly round: Round;
   readonly penaltyAccruals: readonly PenaltyAccrual[];
@@ -190,6 +196,64 @@ export function resolveReveal(
     phase: everyHandIsEmpty(nextRound)
       ? GamePhase.EndOfRound
       : GamePhase.CardPick,
+  };
+}
+
+export function findRow(round: Round, rowIndex: number): Result<Row> {
+  return lookup(
+    round.rows[rowIndex],
+    `The game holds no row at the index ${rowIndex}`,
+  );
+}
+
+// Only the lowest picked card can fit no row. See resolveReveal.
+export function findCardForRowPick(
+  round: Round,
+  playerId: PlayerId,
+): Result<Card> {
+  const lowest = revealedCardsLowestFirst(round).at(0);
+  return lookup(
+    lowest?.playerId === playerId ? lowest.card : undefined,
+    `The player ${playerId} holds no card that waits for a row pick`,
+  );
+}
+
+// Rule 4 of docs/game-rules.md, and then the rest of the reveal. The player
+// who takes the row has placed their one picked card, so the rest of the
+// reveal gives that player no second accrual.
+export function resolveRowPick(
+  round: Round,
+  players: readonly Player[],
+  rowPick: RowPick,
+): RevealOutcome {
+  const { playerId, rowIndex } = rowPick;
+  // The card comes from the round, not from the caller: the placement removes
+  // it from the hand by identity.
+  const card = findCardForRowPick(round, playerId).force();
+  const takenCards = findRow(round, rowIndex).force().cards;
+  const cardPlacement: CardPlacement = {
+    rows: round.rows.map((row, index) =>
+      index === rowIndex ? createRow(card) : row,
+    ),
+    takenCards,
+  };
+  const nextRound = takeCardsIntoPenaltyPile(
+    placeRevealedCard(round, { playerId, card }, cardPlacement),
+    playerId,
+    takenCards,
+  );
+  const penaltyAccrual = createPenaltyAccrual(playerId, takenCards);
+  if (reachesPenaltyLimit(players, penaltyAccrual)) {
+    return {
+      round: nextRound,
+      penaltyAccruals: [penaltyAccrual],
+      phase: GamePhase.GameOver,
+    };
+  }
+  const restOfReveal = resolveReveal(nextRound, players);
+  return {
+    ...restOfReveal,
+    penaltyAccruals: [penaltyAccrual, ...restOfReveal.penaltyAccruals],
   };
 }
 

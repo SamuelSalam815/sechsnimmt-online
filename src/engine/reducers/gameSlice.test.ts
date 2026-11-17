@@ -12,11 +12,13 @@ import { addPenaltyToPlayer, createPlayer } from '#engine/dataTypes/player.ts';
 import {
   createRound,
   findPickedCardId,
+  pickCardInRound,
   type Round,
 } from '#engine/dataTypes/round.ts';
 import {
   gameSlice,
   pickCard,
+  pickRow,
   revealPickedCards,
   startGame,
   startRound,
@@ -140,6 +142,44 @@ describe('revealPickedCards', () => {
     assert(next.phase !== GamePhase.PreStart);
     // The row counts 1 penalty for each card and 2 for the 5.
     expect(next.players.map((player) => player.penaltyScore)).toEqual([0, 6]);
+  });
+});
+
+describe('pickRow', () => {
+  // Ada picked 1, which is lower than the 50 of the only row.
+  const rowPick = createGameState(
+    GamePhase.RowPick,
+    INITIAL_GAME_STATE_VERSION,
+    players,
+    pickCardInRound(
+      createRound(
+        [rowOf(50)],
+        [createHand('a', [aceOfAda, otherOfAda]), createHand('b', [])],
+      ),
+      'a',
+      aceOfAda,
+    ),
+  );
+  const pickRowOfAda = pickRow({ playerId: 'a', rowIndex: 0 });
+
+  // resolveRowPick decides the phase and places the cards. See
+  // dataTypes/round.test.ts.
+  test('takes the phase from the resolved row pick', () => {
+    const next = gameSlice.reducer(rowPick, pickRowOfAda);
+    expect(next.phase).toBe(GamePhase.CardPick);
+    expect(roundOf(next).rows).toEqual([rowOf(1)]);
+  });
+
+  test('grows the penalty score of the player by the taken row', () => {
+    const next = gameSlice.reducer(rowPick, pickRowOfAda);
+    assert(next.phase !== GamePhase.PreStart);
+    // The 50 counts 3 penalty.
+    expect(next.players.map((player) => player.penaltyScore)).toEqual([3, 0]);
+  });
+
+  test('makes a major version change', () => {
+    const next = gameSlice.reducer(rowPick, pickRowOfAda);
+    expect(next.version).toEqual({ sequence: 1, major: true });
   });
 });
 

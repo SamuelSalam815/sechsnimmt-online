@@ -51,7 +51,7 @@ function handleInPhase(
     case GamePhase.CardPick:
       return handleCardPickPhase(state, request);
     case GamePhase.RowPick:
-      return handleRowPickPhase(request);
+      return handleRowPickPhase(state, request);
     case GamePhase.EndOfRound:
       return handleEndOfRoundPhase(state, request);
     case GamePhase.GameOver:
