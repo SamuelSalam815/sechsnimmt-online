@@ -39,8 +39,14 @@ describe('isHandEmpty', () => {
 
 describe('removeCardFromHand', () => {
   test('gives the hand without the card', () => {
+    expect(
+      removeCardFromHand(createHand('a', [ace, other]), ace).cards,
+    ).toEqual([other]);
+  });
+
+  test('leaves the hand that it was given unchanged', () => {
     const hand = createHand('a', [ace, other]);
-    expect(removeCardFromHand(hand, ace).cards).toEqual([other]);
+    removeCardFromHand(hand, ace);
     expect(hand.cards).toEqual([ace, other]);
   });
 
