@@ -11,7 +11,7 @@ import {
   findHand,
   findPick,
   findPickedCardId,
-} from '#engine/dataTypes/table/round.ts';
+} from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
   abandonGame,
   type GameAction,

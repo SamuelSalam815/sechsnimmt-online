@@ -4,7 +4,7 @@ import {
   INITIAL_GAME_STATE_VERSION,
 } from '#engine/dataTypes/game/gameStateVersion.ts';
 import type { Player } from '#engine/dataTypes/playerState/player.ts';
-import type { Round } from '#engine/dataTypes/table/round.ts';
+import type { Round } from '#engine/dataTypes/table/roundLifecycle.ts';
 
 export enum GamePhase {
   PreStart = 'preStart',

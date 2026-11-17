@@ -34,7 +34,7 @@ The moves come first, so later edits land in the final paths.
 
 ### Round split
 
-- [ ] Split `round.ts` into three modules in the `table` folder.
+- [x] Split `round.ts` into three modules in the `table` folder.
       The third module is an experiment: keep it if it reads well, else fold it back into the others.
 
 | Draft module       | Concern                       | Functions and types now in `round.ts`                                                                                                                                                                           |

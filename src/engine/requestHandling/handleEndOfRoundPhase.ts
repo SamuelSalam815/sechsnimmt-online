@@ -1,6 +1,6 @@
 import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';
 import { findPlayer } from '#engine/dataTypes/playerState/player.ts';
-import { dealRound } from '#engine/dataTypes/table/round.ts';
+import { dealRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { abandonGame, startRound } from '#engine/reducers/gameSlice.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';

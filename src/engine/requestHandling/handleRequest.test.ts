@@ -6,7 +6,7 @@ import {
 } from '#engine/dataTypes/game/gameState.ts';
 import { createHand } from '#engine/dataTypes/playerState/hand.ts';
 import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
-import { createRound } from '#engine/dataTypes/table/round.ts';
+import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { pickCard } from '#engine/reducers/gameSlice.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
 import { handleRequest } from '#engine/requestHandling/handleRequest.ts';

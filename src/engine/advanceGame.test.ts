@@ -14,7 +14,7 @@ import {
   addPenaltyToPlayer,
   createPlayer,
 } from '#engine/dataTypes/playerState/player.ts';
-import { createRound } from '#engine/dataTypes/table/round.ts';
+import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
 import type { RootState } from '#engine/store.ts';

@@ -20,14 +20,16 @@ import {
   removePlayer,
 } from '#engine/dataTypes/playerState/player.ts';
 import {
-  pickCardInRound,
-  type Round,
   type RowPick,
-  removePlayerFromRound,
   resolveReveal,
   resolveRowPick,
+} from '#engine/dataTypes/table/revealResolution.ts';
+import {
+  pickCardInRound,
+  type Round,
+  removePlayerFromRound,
   unpickCardInRound,
-} from '#engine/dataTypes/table/round.ts';
+} from '#engine/dataTypes/table/roundLifecycle.ts';
 
 export interface StartGamePayload {
   gameRules: GameRules;

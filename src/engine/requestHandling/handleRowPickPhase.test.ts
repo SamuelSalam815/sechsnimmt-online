@@ -15,7 +15,10 @@ import {
   type Player,
   type PlayerId,
 } from '#engine/dataTypes/playerState/player.ts';
-import { createRound, pickCardInRound } from '#engine/dataTypes/table/round.ts';
+import {
+  createRound,
+  pickCardInRound,
+} from '#engine/dataTypes/table/roundLifecycle.ts';
 import { abandonGame, pickRow } from '#engine/reducers/gameSlice.ts';
 import { handleRowPickPhase } from '#engine/requestHandling/handleRowPickPhase.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';

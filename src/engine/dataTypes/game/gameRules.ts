@@ -4,7 +4,7 @@ import {
   MIN_PLAYER_COUNT,
   type PlayerProfile,
 } from '#engine/dataTypes/playerState/player.ts';
-import { ROW_COUNT } from '#engine/dataTypes/table/round.ts';
+import { ROW_COUNT } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { ErrorCode, fail, type Result, success } from '#engine/result.ts';
 
 // The values that the rules fix and that a game can vary. A small game in a

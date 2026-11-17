@@ -8,10 +8,10 @@ import {
 } from '#engine/dataTypes/playerState/player.ts';
 import {
   findCardForRowPick,
-  findRow,
   findRowIndexOfLargestPenalty,
   resolveRowPick,
-} from '#engine/dataTypes/table/round.ts';
+} from '#engine/dataTypes/table/revealResolution.ts';
+import { findRow } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
   abandonGame,
   type GameAction,

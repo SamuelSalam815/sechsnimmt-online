@@ -8,7 +8,10 @@ import {
 } from '#engine/dataTypes/game/gameState.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
 import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
-import { createRound, dealRound } from '#engine/dataTypes/table/round.ts';
+import {
+  createRound,
+  dealRound,
+} from '#engine/dataTypes/table/roundLifecycle.ts';
 import { abandonGame, startRound } from '#engine/reducers/gameSlice.ts';
 import { handleEndOfRoundPhase } from '#engine/requestHandling/handleEndOfRoundPhase.ts';
 import { RequestType } from '#engine/requests/requestType.ts';

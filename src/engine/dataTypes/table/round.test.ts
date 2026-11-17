@@ -15,21 +15,23 @@ import {
   type PlayerId,
 } from '#engine/dataTypes/playerState/player.ts';
 import {
+  findCardForRowPick,
+  findRowIndexOfLargestPenalty,
+  resolveReveal,
+  resolveRowPick,
+} from '#engine/dataTypes/table/revealResolution.ts';
+import {
   createRound,
   dealRound,
-  findCardForRowPick,
   findHand,
   findPick,
   findPickedCardId,
   findRow,
-  findRowIndexOfLargestPenalty,
   pickCardInRound,
   type Round,
   removePlayerFromRound,
-  resolveReveal,
-  resolveRowPick,
   unpickCardInRound,
-} from '#engine/dataTypes/table/round.ts';
+} from '#engine/dataTypes/table/roundLifecycle.ts';
 import { ErrorCode } from '#engine/result.ts';
 import { cardOf, rowOf } from '#testSupport/cards.ts';
 
