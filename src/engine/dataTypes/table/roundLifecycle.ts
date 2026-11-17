@@ -1,8 +1,5 @@
 import type { Card, CardId } from '#engine/dataTypes/cards/card.ts';
-import {
-  type Deck,
-  drawCardsFromDeck as drawCards,
-} from '#engine/dataTypes/cards/deck.ts';
+import { type Deck, drawCardsFromDeck } from '#engine/dataTypes/cards/deck.ts';
 import {
   createHand,
   type Hand,
@@ -64,11 +61,11 @@ export function dealRound(
   handSize: number,
 ): Round {
   const hands = players.map((player) => {
-    const deckDraw = drawCards(deck, handSize);
+    const deckDraw = drawCardsFromDeck(deck, handSize);
     deck = deckDraw.newDeck;
     return createHand(player.id, deckDraw.cards);
   });
-  const rows = drawCards(deck, ROW_COUNT).cards.map(createRow);
+  const rows = drawCardsFromDeck(deck, ROW_COUNT).cards.map(createRow);
   return createRound(rows, hands);
 }
 
