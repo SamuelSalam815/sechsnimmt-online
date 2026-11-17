@@ -2,11 +2,14 @@ import { createServer } from 'node:http';
 import { networkInterfaces } from 'node:os';
 import express from 'express';
 import { builtClient, viteClient } from '#server/clientServing.ts';
-import { eventStreamActor } from '#server/eventStream.ts';
-import { gameRunnerActor } from '#server/gameRunner.ts';
-import { developmentLogger, productionLogger } from '#server/logger.ts';
-import { restHandlerRouter } from '#server/restHandler.ts';
-import { roomActor } from '#server/room.ts';
+import { eventStreamActor } from '#server/eventStream/eventStream.ts';
+import { gameRunnerActor } from '#server/gameRunner/gameRunner.ts';
+import {
+  developmentLogger,
+  productionLogger,
+} from '#server/infrastructure/logger.ts';
+import { restHandlerRouter } from '#server/restHandler/restHandler.ts';
+import { roomActor } from '#server/room/room.ts';
 
 const port = 3000;
 

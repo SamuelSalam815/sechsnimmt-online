@@ -1,7 +1,7 @@
 import pino from 'pino';
 import { describe, expect, test } from 'vitest';
-import { type Actor, createActor } from '#server/actor.ts';
-import { LogLevel } from '#server/message.ts';
+import { type Actor, createActor } from '#server/infrastructure/actor.ts';
+import { LogLevel } from '#server/infrastructure/message.ts';
 
 interface Reply {
   readonly logLevel: LogLevel;

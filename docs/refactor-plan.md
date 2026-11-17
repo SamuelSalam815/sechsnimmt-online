@@ -92,7 +92,7 @@ The rule: assert that an error occurs and, at most, its error code. Test each ru
 
 ### Folders
 
-- [ ] Put the files of `src/server` into folders. Tests move with their modules. Update `docs/server-architecture.md` if it names paths.
+- [x] Put the files of `src/server` into folders. Tests move with their modules. Update `docs/server-architecture.md` if it names paths.
 
 | Folder               | Files                                                       |
 | -------------------- | ----------------------------------------------------------- |

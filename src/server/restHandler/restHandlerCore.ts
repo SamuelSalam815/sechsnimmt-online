@@ -1,5 +1,5 @@
-import type { Step } from '#server/actor.ts';
-import { LogLevel, type MessageBase } from '#server/message.ts';
+import type { Step } from '#server/infrastructure/actor.ts';
+import { LogLevel, type MessageBase } from '#server/infrastructure/message.ts';
 
 export enum RestHandlerMessageType {
   Ping = 'restHandler/ping',

@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'vitest';
-import { LogLevel } from '#server/message.ts';
+import { LogLevel } from '#server/infrastructure/message.ts';
 import {
   initialRestHandlerCoreContext,
   RestHandlerMessageType,
   RestHandlerShellMessageType,
   restHandlerStep,
-} from '#server/restHandlerCore.ts';
+} from '#server/restHandler/restHandlerCore.ts';
 
 describe('restHandlerStep', () => {
   test('a ping gets a pong', () => {

@@ -9,13 +9,13 @@ import type {
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { initialRootState, type RootState } from '#engine/store.ts';
-import type { Step } from '#server/actor.ts';
 import {
   type EventStreamMessage,
   EventStreamMessageType,
-} from '#server/eventStreamCore.ts';
-import { LogLevel, type MessageBase } from '#server/message.ts';
-import { readInteger, readString } from '#server/requestBody.ts';
+} from '#server/eventStream/eventStreamCore.ts';
+import type { Step } from '#server/infrastructure/actor.ts';
+import { LogLevel, type MessageBase } from '#server/infrastructure/message.ts';
+import { readInteger, readString } from '#server/infrastructure/requestBody.ts';
 
 export enum GameRunnerMessageType {
   GameStartRequested = 'gameRunner/gameStartRequested',

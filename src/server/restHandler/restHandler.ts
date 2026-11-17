@@ -1,14 +1,14 @@
 import { type Response, Router } from 'express';
 import type { Logger } from 'pino';
-import { createActor } from '#server/actor.ts';
-import { LogLevel } from '#server/message.ts';
-import { requireValue } from '#server/requireValue.ts';
+import { createActor } from '#server/infrastructure/actor.ts';
+import { LogLevel } from '#server/infrastructure/message.ts';
+import { requireValue } from '#server/infrastructure/requireValue.ts';
 import {
   initialRestHandlerCoreContext,
   RestHandlerMessageType,
   RestHandlerShellMessageType,
   restHandlerStep,
-} from '#server/restHandlerCore.ts';
+} from '#server/restHandler/restHandlerCore.ts';
 
 export function restHandlerRouter(logger: Logger): Router {
   const actor = createActor({

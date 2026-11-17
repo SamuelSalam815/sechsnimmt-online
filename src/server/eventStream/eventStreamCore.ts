@@ -1,15 +1,15 @@
 import type { AppliedAction } from '#engine/reducers/history.ts';
-import type { Step } from '#server/actor.ts';
 import {
   type GameRunnerMessage,
   GameRunnerMessageType,
-} from '#server/gameRunnerCore.ts';
-import { LogLevel, type MessageBase } from '#server/message.ts';
+} from '#server/gameRunner/gameRunnerCore.ts';
+import type { Step } from '#server/infrastructure/actor.ts';
+import { LogLevel, type MessageBase } from '#server/infrastructure/message.ts';
 import {
   type RoomMessage,
   RoomMessageType,
   type RoomView,
-} from '#server/roomCore.ts';
+} from '#server/room/roomCore.ts';
 
 export enum EventStreamMessageType {
   StreamRequested = 'eventStream/streamRequested',

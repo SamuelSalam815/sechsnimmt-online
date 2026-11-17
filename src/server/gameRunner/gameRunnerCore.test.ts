@@ -11,7 +11,7 @@ import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
 import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { initialRootState } from '#engine/store.ts';
-import { EventStreamMessageType } from '#server/eventStreamCore.ts';
+import { EventStreamMessageType } from '#server/eventStream/eventStreamCore.ts';
 import {
   type GameRunnerCoreContext,
   type GameRunnerMessage,
@@ -21,8 +21,8 @@ import {
   initialGameRunnerCoreContext,
   type PlayerRequestType,
   type Seat,
-} from '#server/gameRunnerCore.ts';
-import { LogLevel } from '#server/message.ts';
+} from '#server/gameRunner/gameRunnerCore.ts';
+import { LogLevel } from '#server/infrastructure/message.ts';
 import { cardOf, orderedDeck, rowOf } from '#testSupport/cards.ts';
 
 const seats: Seat[] = [

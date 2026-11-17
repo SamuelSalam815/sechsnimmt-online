@@ -2,9 +2,8 @@ import { type Response, Router } from 'express';
 import type { Logger } from 'pino';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { buildShuffledDeck } from '#engine/shuffledDeck.ts';
-import { type Actor, createActor } from '#server/actor.ts';
-import type { EventStreamMessage } from '#server/eventStreamCore.ts';
-import { EventStreamMessageType } from '#server/eventStreamCore.ts';
+import type { EventStreamMessage } from '#server/eventStream/eventStreamCore.ts';
+import { EventStreamMessageType } from '#server/eventStream/eventStreamCore.ts';
 import {
   type GameRunnerMessage,
   GameRunnerMessageType,
@@ -12,9 +11,10 @@ import {
   gameRunnerStep,
   initialGameRunnerCoreContext,
   type PlayerRequestType,
-} from '#server/gameRunnerCore.ts';
-import { LogLevel } from '#server/message.ts';
-import { requireValue } from '#server/requireValue.ts';
+} from '#server/gameRunner/gameRunnerCore.ts';
+import { type Actor, createActor } from '#server/infrastructure/actor.ts';
+import { LogLevel } from '#server/infrastructure/message.ts';
+import { requireValue } from '#server/infrastructure/requireValue.ts';
 
 export interface GameRunner {
   readonly actor: Actor<GameRunnerMessage, Response>;

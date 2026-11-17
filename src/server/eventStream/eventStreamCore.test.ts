@@ -9,10 +9,10 @@ import {
   type OpenStream,
   type StreamEvent,
   StreamStatus,
-} from '#server/eventStreamCore.ts';
-import { GameRunnerMessageType } from '#server/gameRunnerCore.ts';
-import { LogLevel } from '#server/message.ts';
-import { RoomMessageType, type RoomView } from '#server/roomCore.ts';
+} from '#server/eventStream/eventStreamCore.ts';
+import { GameRunnerMessageType } from '#server/gameRunner/gameRunnerCore.ts';
+import { LogLevel } from '#server/infrastructure/message.ts';
+import { RoomMessageType, type RoomView } from '#server/room/roomCore.ts';
 
 function appliedAction(sequence: number): AppliedAction {
   return {

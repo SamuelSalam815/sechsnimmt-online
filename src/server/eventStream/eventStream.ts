@@ -1,6 +1,5 @@
 import { type Response, Router } from 'express';
 import type { Logger } from 'pino';
-import { type Actor, createActor } from '#server/actor.ts';
 import {
   type EventStreamMessage,
   EventStreamMessageType,
@@ -8,14 +7,15 @@ import {
   eventStreamStep,
   initialEventStreamCoreContext,
   type StreamEvent,
-} from '#server/eventStreamCore.ts';
+} from '#server/eventStream/eventStreamCore.ts';
 import {
   type GameRunnerMessage,
   GameRunnerMessageType,
-} from '#server/gameRunnerCore.ts';
-import { LogLevel } from '#server/message.ts';
-import { requireValue } from '#server/requireValue.ts';
-import { type RoomMessage, RoomMessageType } from '#server/roomCore.ts';
+} from '#server/gameRunner/gameRunnerCore.ts';
+import { type Actor, createActor } from '#server/infrastructure/actor.ts';
+import { LogLevel } from '#server/infrastructure/message.ts';
+import { requireValue } from '#server/infrastructure/requireValue.ts';
+import { type RoomMessage, RoomMessageType } from '#server/room/roomCore.ts';
 
 export interface EventStream {
   readonly actor: Actor<EventStreamMessage, Response>;

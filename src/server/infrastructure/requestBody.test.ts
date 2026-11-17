@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { readInteger, readString } from '#server/requestBody.ts';
+import { readInteger, readString } from '#server/infrastructure/requestBody.ts';
 
 describe('readString', () => {
   test('gives the string of the field', () => {

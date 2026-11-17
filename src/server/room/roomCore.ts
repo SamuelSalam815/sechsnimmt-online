@@ -3,17 +3,17 @@ import {
   MIN_PLAYER_COUNT,
   type PlayerId,
 } from '#engine/dataTypes/playerState/player.ts';
-import type { Step } from '#server/actor.ts';
 import {
   type EventStreamMessage,
   EventStreamMessageType,
-} from '#server/eventStreamCore.ts';
+} from '#server/eventStream/eventStreamCore.ts';
 import {
   type GameRunnerMessage,
   GameRunnerMessageType,
-} from '#server/gameRunnerCore.ts';
-import { LogLevel, type MessageBase } from '#server/message.ts';
-import { readString } from '#server/requestBody.ts';
+} from '#server/gameRunner/gameRunnerCore.ts';
+import type { Step } from '#server/infrastructure/actor.ts';
+import { LogLevel, type MessageBase } from '#server/infrastructure/message.ts';
+import { readString } from '#server/infrastructure/requestBody.ts';
 
 const MAX_NAME_LENGTH = 24;
 

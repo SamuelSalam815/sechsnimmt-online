@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
-import { EventStreamMessageType } from '#server/eventStreamCore.ts';
-import { GameRunnerMessageType } from '#server/gameRunnerCore.ts';
-import { LogLevel } from '#server/message.ts';
+import { EventStreamMessageType } from '#server/eventStream/eventStreamCore.ts';
+import { GameRunnerMessageType } from '#server/gameRunner/gameRunnerCore.ts';
+import { LogLevel } from '#server/infrastructure/message.ts';
 import {
   initialRoomCoreContext,
   type RoomCoreContext,
@@ -11,7 +11,7 @@ import {
   RoomShellMessageType,
   roomStep,
   roomView,
-} from '#server/roomCore.ts';
+} from '#server/room/roomCore.ts';
 
 function roomPlayer(
   playerNumber: number,

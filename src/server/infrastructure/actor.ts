@@ -1,5 +1,5 @@
 import type { Logger } from 'pino';
-import { LogLevel, type MessageBase } from '#server/message.ts';
+import { LogLevel, type MessageBase } from '#server/infrastructure/message.ts';
 
 export interface Step<OutboundMessage, CoreContext> {
   readonly coreContext: CoreContext;

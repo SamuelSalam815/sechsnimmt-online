@@ -1,24 +1,24 @@
 import { randomUUID } from 'node:crypto';
 import { type Response, Router } from 'express';
 import type { Logger } from 'pino';
-import { type Actor, createActor } from '#server/actor.ts';
 import {
   type EventStreamMessage,
   EventStreamMessageType,
-} from '#server/eventStreamCore.ts';
+} from '#server/eventStream/eventStreamCore.ts';
 import {
   type GameRunnerMessage,
   GameRunnerMessageType,
-} from '#server/gameRunnerCore.ts';
-import { LogLevel } from '#server/message.ts';
-import { requireValue } from '#server/requireValue.ts';
+} from '#server/gameRunner/gameRunnerCore.ts';
+import { type Actor, createActor } from '#server/infrastructure/actor.ts';
+import { LogLevel } from '#server/infrastructure/message.ts';
+import { requireValue } from '#server/infrastructure/requireValue.ts';
 import {
   initialRoomCoreContext,
   type RoomMessage,
   RoomMessageType,
   RoomShellMessageType,
   roomStep,
-} from '#server/roomCore.ts';
+} from '#server/room/roomCore.ts';
 
 // Long enough for a page reload or a short drop of the network.
 const GRACE_PERIOD_MILLISECONDS = 30_000;
