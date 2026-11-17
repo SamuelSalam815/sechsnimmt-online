@@ -10,6 +10,8 @@ import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingR
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { ErrorCode, fail, type Result, success } from '#engine/result.ts';
 
+// The staleness check runs before every other check. A StaleRequest rejection
+// therefore says nothing about whether the request is otherwise good.
 export function handleRequest(
   state: GameState,
   history: readonly AppliedAction[],
