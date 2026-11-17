@@ -71,7 +71,7 @@ The line numbers are from before the moves.
 
 ### Reducers and request handling
 
-- [ ] In `src/engine/reducers/gameSlice.ts`, move the body of each of the 7 reducers into a local function, so the `reducers` object reads as a list. Export nothing new.
+- [x] In `src/engine/reducers/gameSlice.ts`, move the body of each of the 7 reducers into a local function, so the `reducers` object reads as a list. Export nothing new.
 - [ ] Keep the name `doesGameHaveEnoughPlayers` (`player.ts`). Rename its test block in `player.test.ts`, which is still named `hasEnoughPlayers`, to match.
 - [ ] In `src/engine/requestHandling/handleRequest.ts`, replace `staleMaker` and the comment over `checkRequestStillGood`. Query the last major change in the history. Then set `isRequestStale` to whether its version is greater than `request.lastVersionSeen`. `isRequestStale` in `gameStateVersion.ts` may then be unused.
 
