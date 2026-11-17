@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { ErrorCode, fail, lookup, success } from '#engine/dataTypes/result.ts';
+import { ErrorCode, fail, lookup, success } from '#engine/result.ts';
 
 const ace = success('ace');
 const noCard = fail<string>(ErrorCode.UnknownEntity, 'no card');

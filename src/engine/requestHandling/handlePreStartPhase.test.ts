@@ -2,11 +2,11 @@ import { expect, test } from 'vitest';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
 import { createPlayer } from '#engine/dataTypes/player.ts';
-import { ErrorCode } from '#engine/dataTypes/result.ts';
 import { dealRound } from '#engine/dataTypes/round.ts';
 import { startGame } from '#engine/reducers/gameSlice.ts';
 import { handlePreStartPhase } from '#engine/requestHandling/handlePreStartPhase.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
+import { ErrorCode } from '#engine/result.ts';
 import { orderedDeck } from '#testSupport/cards.ts';
 import { startGameRequest } from '#testSupport/requests.ts';
 

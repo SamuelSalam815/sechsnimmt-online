@@ -4,13 +4,8 @@ import {
   MIN_PLAYER_COUNT,
   type PlayerProfile,
 } from '#engine/dataTypes/player.ts';
-import {
-  ErrorCode,
-  fail,
-  type Result,
-  success,
-} from '#engine/dataTypes/result.ts';
 import { ROW_COUNT } from '#engine/dataTypes/round.ts';
+import { ErrorCode, fail, type Result, success } from '#engine/result.ts';
 
 // The values that the rules fix and that a game can vary. A small game in a
 // test is easier to follow than a game of the full rules.

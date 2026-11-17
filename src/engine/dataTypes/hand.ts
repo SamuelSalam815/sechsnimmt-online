@@ -1,6 +1,6 @@
 import type { Card, CardId } from '#engine/dataTypes/card.ts';
 import type { PlayerId } from '#engine/dataTypes/player.ts';
-import { ErrorCode, lookup, type Result } from '#engine/dataTypes/result.ts';
+import { ErrorCode, lookup, type Result } from '#engine/result.ts';
 
 declare const handBrand: unique symbol;
 

@@ -1,11 +1,11 @@
 import { checkGameStart } from '#engine/dataTypes/gameRules.ts';
 import { createPlayer } from '#engine/dataTypes/player.ts';
-import { ErrorCode } from '#engine/dataTypes/result.ts';
 import { dealRound } from '#engine/dataTypes/round.ts';
 import { startGame } from '#engine/reducers/gameSlice.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
+import { ErrorCode } from '#engine/result.ts';
 
 export function handlePreStartPhase(request: GameRequest): PhaseHandlingResult {
   if (request.type === RequestType.StartGame) {

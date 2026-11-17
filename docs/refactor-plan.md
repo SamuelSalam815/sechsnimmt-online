@@ -22,7 +22,7 @@ The moves come first, so later edits land in the final paths.
 
 - [x] Move `getDeckFaceValues` out of `src/engine/dataTypes/card.ts`. Its one caller is `src/engine/shuffledDeck.ts`. Put it into that module or into `deck.ts`.
 - [x] Rename `PenaltyAccrual` to `PenaltyTotal`, and `penaltyAccrual.ts` to `penaltyTotal.ts`. Update `docs/data-type-design.md`, which names `penaltyAccrual.ts`.
-- [ ] Move `src/engine/dataTypes/result.ts` to `src/engine/result.ts`. Make an `infrastructure` folder only when a second type of its kind comes.
+- [x] Move `src/engine/dataTypes/result.ts` to `src/engine/result.ts`. Make an `infrastructure` folder only when a second type of its kind comes.
 - [ ] Put the data types into folders under `src/engine/dataTypes`:
 
 | Folder        | Modules                                         |

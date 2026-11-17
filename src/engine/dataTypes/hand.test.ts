@@ -6,7 +6,7 @@ import {
   isHandEmpty,
   removeCardFromHand,
 } from '#engine/dataTypes/hand.ts';
-import { ErrorCode } from '#engine/dataTypes/result.ts';
+import { ErrorCode } from '#engine/result.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
 const ace = cardOf(1);

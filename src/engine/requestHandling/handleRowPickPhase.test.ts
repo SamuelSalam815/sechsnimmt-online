@@ -15,12 +15,12 @@ import {
   type Player,
   type PlayerId,
 } from '#engine/dataTypes/player.ts';
-import { ErrorCode } from '#engine/dataTypes/result.ts';
 import { createRound, pickCardInRound } from '#engine/dataTypes/round.ts';
 import { abandonGame, pickRow } from '#engine/reducers/gameSlice.ts';
 import { handleRowPickPhase } from '#engine/requestHandling/handleRowPickPhase.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
+import { ErrorCode } from '#engine/result.ts';
 import { cardOf, rowOf } from '#testSupport/cards.ts';
 import { abandonRequest, startGameRequest } from '#testSupport/requests.ts';
 

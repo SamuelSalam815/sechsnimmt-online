@@ -31,13 +31,13 @@ import {
   type Player,
   type PlayerId,
 } from '#engine/dataTypes/player.ts';
-import { ErrorCode, lookup, type Result } from '#engine/dataTypes/result.ts';
 import {
   addCardToRow,
   createRow,
   getLastCardOfRow,
   type Row,
 } from '#engine/dataTypes/row.ts';
+import { ErrorCode, lookup, type Result } from '#engine/result.ts';
 
 export const ROW_COUNT = 4;
 

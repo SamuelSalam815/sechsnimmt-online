@@ -4,7 +4,7 @@ import {
   checkGameStart,
   STANDARD_GAME_RULES,
 } from '#engine/dataTypes/gameRules.ts';
-import { ErrorCode } from '#engine/dataTypes/result.ts';
+import { ErrorCode } from '#engine/result.ts';
 import { orderedDeck } from '#testSupport/cards.ts';
 
 const ada = { id: 'a', name: 'Ada' };

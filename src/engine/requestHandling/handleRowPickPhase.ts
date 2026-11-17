@@ -1,6 +1,5 @@
 import { GamePhase, type RoundGameState } from '#engine/dataTypes/gameState.ts';
 import { findPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
-import { ErrorCode } from '#engine/dataTypes/result.ts';
 import {
   findCardForRowPick,
   findRow,
@@ -15,6 +14,7 @@ import {
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
+import { ErrorCode } from '#engine/result.ts';
 
 export function handleRowPickPhase(
   state: RoundGameState,

@@ -3,13 +3,13 @@ import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
 import { createGameState, GamePhase } from '#engine/dataTypes/gameState.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
 import { createPlayer } from '#engine/dataTypes/player.ts';
-import { ErrorCode } from '#engine/dataTypes/result.ts';
 import { createRound } from '#engine/dataTypes/round.ts';
 import { pickCard } from '#engine/reducers/gameSlice.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
 import { handleRequest } from '#engine/requestHandling/handleRequest.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
+import { ErrorCode } from '#engine/result.ts';
 import { cardOf } from '#testSupport/cards.ts';
 import { startGameRequest } from '#testSupport/requests.ts';
 

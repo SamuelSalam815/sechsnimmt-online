@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { ErrorCode } from '#engine/dataTypes/result.ts';
 import { handleGameOverPhase } from '#engine/requestHandling/handleGameOverPhase.ts';
+import { ErrorCode } from '#engine/result.ts';
 import { startGameRequest } from '#testSupport/requests.ts';
 
 test('returns an error for every request', () => {

@@ -10,7 +10,7 @@ import {
   hasReachedPenaltyLimit,
   removePlayer,
 } from '#engine/dataTypes/player.ts';
-import { ErrorCode } from '#engine/dataTypes/result.ts';
+import { ErrorCode } from '#engine/result.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
 const ada = createPlayer({ id: 'a', name: 'Ada' });

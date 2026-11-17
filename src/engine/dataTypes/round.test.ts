@@ -14,7 +14,6 @@ import {
   createPlayer,
   type PlayerId,
 } from '#engine/dataTypes/player.ts';
-import { ErrorCode } from '#engine/dataTypes/result.ts';
 import {
   createRound,
   dealRound,
@@ -31,6 +30,7 @@ import {
   resolveRowPick,
   unpickCardInRound,
 } from '#engine/dataTypes/round.ts';
+import { ErrorCode } from '#engine/result.ts';
 import { cardOf, rowOf } from '#testSupport/cards.ts';
 
 const ada = createPlayer({ id: 'a', name: 'Ada' });
