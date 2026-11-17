@@ -6,6 +6,7 @@ import { eventStreamActor } from '#server/eventStream.ts';
 import { gameRunnerActor } from '#server/gameRunner.ts';
 import { developmentLogger, productionLogger } from '#server/logger.ts';
 import { restHandlerRouter } from '#server/restHandler.ts';
+import { roomActor } from '#server/room.ts';
 
 const port = 3000;
 
@@ -15,10 +16,16 @@ const clientServing = inProduction ? builtClient : viteClient;
 
 const eventStream = eventStreamActor(
   (message) => gameRunner.actor.send(message),
+  (message) => room.actor.send(message),
   logger,
 );
 const gameRunner = gameRunnerActor(
   (message) => eventStream.actor.send(message),
+  logger,
+);
+const room = roomActor(
+  (message) => eventStream.actor.send(message),
+  (message) => gameRunner.actor.send(message),
   logger,
 );
 const restHandler = restHandlerRouter(logger);
@@ -30,6 +37,7 @@ app.use('/api', express.json());
 app.use('/api', restHandler);
 app.use('/api', eventStream.router);
 app.use('/api', gameRunner.router);
+app.use('/api', room.router);
 await clientServing.attach(app, httpServer);
 
 httpServer.listen(port, () => {

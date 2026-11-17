@@ -1,6 +1,5 @@
 import { type Response, Router } from 'express';
 import type { Logger } from 'pino';
-import type { AppliedAction } from '#engine/reducers/history.ts';
 import { type Actor, createActor } from '#server/actor.ts';
 import {
   type EventStreamMessage,
@@ -8,6 +7,7 @@ import {
   EventStreamShellMessageType,
   eventStreamStep,
   initialEventStreamCoreContext,
+  type StreamEvent,
 } from '#server/eventStreamCore.ts';
 import {
   type GameRunnerMessage,
@@ -15,6 +15,7 @@ import {
 } from '#server/gameRunnerCore.ts';
 import { LogLevel } from '#server/message.ts';
 import { requireValue } from '#server/requireValue.ts';
+import { type RoomMessage, RoomMessageType } from '#server/roomCore.ts';
 
 export interface EventStream {
   readonly actor: Actor<EventStreamMessage, Response>;
@@ -23,6 +24,7 @@ export interface EventStream {
 
 export function eventStreamActor(
   sendToGameRunner: (message: GameRunnerMessage) => void,
+  sendToRoom: (message: RoomMessage) => void,
   logger: Logger,
 ): EventStream {
   const streams = new Map<number, Response>();
@@ -36,6 +38,11 @@ export function eventStreamActor(
           sendToGameRunner(outboundMessage);
           return;
 
+        case RoomMessageType.StreamOpened:
+        case RoomMessageType.StreamClosed:
+          sendToRoom(outboundMessage);
+          return;
+
         case EventStreamShellMessageType.StreamOpen:
           openStream(
             outboundMessage.streamId,
@@ -44,7 +51,7 @@ export function eventStreamActor(
           return;
 
         case EventStreamShellMessageType.StreamWrite:
-          writeActions(outboundMessage.streamId, outboundMessage.actions);
+          writeEvent(outboundMessage.streamId, outboundMessage.streamEvent);
           return;
 
         case EventStreamShellMessageType.StreamClose:
@@ -72,24 +79,31 @@ export function eventStreamActor(
     });
   }
 
-  function writeActions(
-    streamId: number,
-    actions: readonly AppliedAction[],
-  ): void {
+  function writeEvent(streamId: number, streamEvent: StreamEvent): void {
     const stream = streams.get(streamId);
     if (stream === undefined) {
       logger.error({ streamId }, 'a write found no open stream for its ID');
       return;
     }
-    stream.write(`data: ${JSON.stringify(actions)}\n\n`);
+    const data =
+      streamEvent.eventName === 'gameActions'
+        ? streamEvent.actions
+        : streamEvent.roomView;
+    stream.write(
+      `event: ${streamEvent.eventName}\ndata: ${JSON.stringify(data)}\n\n`,
+    );
   }
 
   const router = Router();
-  router.get('/events', (_request, response) => {
+  // An EventSource sends no body and no custom header, so the client token
+  // travels in the query.
+  router.get('/events', (request, response) => {
+    const clientToken = request.query.clientToken;
     actor.send(
       {
         type: EventStreamMessageType.StreamRequested,
         logLevel: LogLevel.Debug,
+        clientToken: typeof clientToken === 'string' ? clientToken : undefined,
       },
       response,
     );

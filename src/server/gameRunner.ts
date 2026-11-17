@@ -33,6 +33,7 @@ export function gameRunnerActor(
         case EventStreamMessageType.StreamRequested:
         case EventStreamMessageType.HistoryResponse:
         case EventStreamMessageType.BroadcastActions:
+        case EventStreamMessageType.BroadcastRoomView:
         case EventStreamMessageType.StreamClosed:
           sendToEventStream(outboundMessage);
           return;

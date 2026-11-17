@@ -1,7 +1,7 @@
 # Server architecture
 
 The server is a functional core in an imperative shell.
-Three actors divide it: the REST handler, the event stream and the game runner.
+Four actors divide it: the REST handler, the room, the game runner and the event stream.
 
 ## Actors
 
@@ -61,10 +61,23 @@ A log entry therefore needs no code of its own, and the levels are part of what 
 The REST handler owns the HTTP routes of plain requests.
 It answers a ping.
 
+The room owns the players before the game, their client tokens and the routes to join and to get ready.
+A join gives the client a secret client token and a public player ID.
+The client sends the token with each request, and it opens its event stream with the token in the query.
+When every player is ready, and the room holds 2 to 10 players, the room hands the seats to the game runner and the game starts.
+
+The room also tracks whether the client of each player is responsive.
+A player with no open event stream is not responsive.
+When the last stream of a player closes, and at the join, the room starts a grace timer in its shell.
+A stream that opens with the token of the player before the timer expires reconnects the player, and the timer then changes nothing.
+A timer that expires before the start of the game removes the player from the room.
+
 The event stream owns the route that opens an event stream, and the open event streams.
 A stream request makes a pending stream, and the event stream asks the game runner for the history.
 The history response makes the stream active.
 The game runner sends the new actions of each change to the event stream, which broadcasts them to the active streams.
+The event stream tells the room when a stream opens or closes, with the client token of the stream.
+The room sends its view to the event stream after each change, which writes it to every open stream.
 
 The game runner owns the game state, its action history and the routes of the game requests.
 A client request names its seat with the client token, and the game runner turns it into a request of the engine with the player ID of that seat.
@@ -78,6 +91,9 @@ The answer to a rejected request carries an HTTP status: 400 for a malformed bod
 
 ## Wire format
 
-Each event of the stream carries a JSON array of applied actions.
+The stream carries two named events.
+A `gameActions` event carries a JSON array of applied actions.
 A new stream first gets the full history, then the new actions of each change.
 The client replays the actions to get the state.
+A `roomView` event carries the whole view of the room, which replaces the one before it.
+A pending stream therefore gets room views as well.

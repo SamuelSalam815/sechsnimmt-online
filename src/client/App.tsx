@@ -14,10 +14,10 @@ export default function App() {
     // The server sends the full history on every connection, a reconnection
     // included. The replay therefore starts again from nothing.
     events.onopen = () => setHistory([]);
-    events.onmessage = (event) => {
+    events.addEventListener('gameActions', (event) => {
       const actions: AppliedAction[] = JSON.parse(event.data);
       setHistory((earlier) => [...(earlier ?? []), ...actions]);
-    };
+    });
     return () => events.close();
   }, []);
 

@@ -5,11 +5,17 @@ import {
   GameRunnerMessageType,
 } from '#server/gameRunnerCore.ts';
 import { LogLevel, type MessageBase } from '#server/message.ts';
+import {
+  type RoomMessage,
+  RoomMessageType,
+  type RoomView,
+} from '#server/roomCore.ts';
 
 export enum EventStreamMessageType {
   StreamRequested = 'eventStream/streamRequested',
   HistoryResponse = 'eventStream/historyResponse',
   BroadcastActions = 'eventStream/broadcastActions',
+  BroadcastRoomView = 'eventStream/broadcastRoomView',
   StreamClosed = 'eventStream/streamClosed',
 }
 
@@ -19,14 +25,30 @@ export enum EventStreamShellMessageType {
   StreamClose = 'eventStreamShell/streamClose',
 }
 
+export interface OpenStream {
+  readonly status: 'pending' | 'active';
+  // Undefined for a client that watches without a seat.
+  readonly clientToken: string | undefined;
+}
+
 export interface EventStreamCoreContext {
   readonly nextStreamId: number;
-  readonly streams: ReadonlyMap<number, 'pending' | 'active'>;
+  readonly streams: ReadonlyMap<number, OpenStream>;
 }
+
+export type StreamEvent =
+  | {
+      readonly eventName: 'gameActions';
+      readonly actions: readonly AppliedAction[];
+    }
+  | { readonly eventName: 'roomView'; readonly roomView: RoomView };
 
 export type EventStreamMessage = MessageBase &
   (
-    | { readonly type: EventStreamMessageType.StreamRequested }
+    | {
+        readonly type: EventStreamMessageType.StreamRequested;
+        readonly clientToken: string | undefined;
+      }
     | {
         readonly type: EventStreamMessageType.HistoryResponse;
         readonly streamId: number;
@@ -35,6 +57,10 @@ export type EventStreamMessage = MessageBase &
     | {
         readonly type: EventStreamMessageType.BroadcastActions;
         readonly actions: readonly AppliedAction[];
+      }
+    | {
+        readonly type: EventStreamMessageType.BroadcastRoomView;
+        readonly roomView: RoomView;
       }
     | {
         readonly type: EventStreamMessageType.StreamClosed;
@@ -51,7 +77,7 @@ export type EventStreamShellMessage = MessageBase &
     | {
         readonly type: EventStreamShellMessageType.StreamWrite;
         readonly streamId: number;
-        readonly actions: readonly AppliedAction[];
+        readonly streamEvent: StreamEvent;
       }
     | {
         readonly type: EventStreamShellMessageType.StreamClose;
@@ -67,14 +93,21 @@ export const initialEventStreamCoreContext: EventStreamCoreContext = {
 export function eventStreamStep(
   coreContext: EventStreamCoreContext,
   inboundMessage: EventStreamMessage,
-): Step<GameRunnerMessage | EventStreamShellMessage, EventStreamCoreContext> {
+): Step<
+  GameRunnerMessage | RoomMessage | EventStreamShellMessage,
+  EventStreamCoreContext
+> {
   switch (inboundMessage.type) {
     case EventStreamMessageType.StreamRequested: {
       const streamId = coreContext.nextStreamId;
+      const { clientToken } = inboundMessage;
       return {
         coreContext: {
           nextStreamId: streamId + 1,
-          streams: new Map(coreContext.streams).set(streamId, 'pending'),
+          streams: new Map(coreContext.streams).set(streamId, {
+            status: 'pending',
+            clientToken,
+          }),
         },
         outboundMessages: [
           {
@@ -87,28 +120,33 @@ export function eventStreamStep(
             logLevel: LogLevel.Debug,
             streamId,
           },
+          {
+            type: RoomMessageType.StreamOpened,
+            logLevel: LogLevel.Debug,
+            streamId,
+            clientToken,
+          },
         ],
       };
     }
 
     case EventStreamMessageType.HistoryResponse: {
       const { streamId, history } = inboundMessage;
+      const stream = coreContext.streams.get(streamId);
       // The stream can close before its history arrives.
-      if (coreContext.streams.get(streamId) !== 'pending') {
+      if (stream?.status !== 'pending') {
         return { coreContext, outboundMessages: [] };
       }
       return {
         coreContext: {
           ...coreContext,
-          streams: new Map(coreContext.streams).set(streamId, 'active'),
+          streams: new Map(coreContext.streams).set(streamId, {
+            ...stream,
+            status: 'active',
+          }),
         },
         outboundMessages: [
-          {
-            type: EventStreamShellMessageType.StreamWrite,
-            logLevel: LogLevel.Debug,
-            streamId,
-            actions: history,
-          },
+          streamWrite(streamId, { eventName: 'gameActions', actions: history }),
         ],
       };
     }
@@ -117,22 +155,38 @@ export function eventStreamStep(
       // Mailboxes keep their order. An action that reaches a pending
       // stream is therefore already in the history that it waits for.
       const outboundMessages: EventStreamShellMessage[] = [];
-      for (const [streamId, status] of coreContext.streams) {
-        if (status === 'active') {
-          outboundMessages.push({
-            type: EventStreamShellMessageType.StreamWrite,
-            logLevel: LogLevel.Debug,
-            streamId,
-            actions: inboundMessage.actions,
-          });
+      for (const [streamId, stream] of coreContext.streams) {
+        if (stream.status === 'active') {
+          outboundMessages.push(
+            streamWrite(streamId, {
+              eventName: 'gameActions',
+              actions: inboundMessage.actions,
+            }),
+          );
         }
+      }
+      return { coreContext, outboundMessages };
+    }
+
+    case EventStreamMessageType.BroadcastRoomView: {
+      // A room view replaces the one before it, so a pending stream takes it
+      // as well.
+      const outboundMessages: EventStreamShellMessage[] = [];
+      for (const streamId of coreContext.streams.keys()) {
+        outboundMessages.push(
+          streamWrite(streamId, {
+            eventName: 'roomView',
+            roomView: inboundMessage.roomView,
+          }),
+        );
       }
       return { coreContext, outboundMessages };
     }
 
     case EventStreamMessageType.StreamClosed: {
       const { streamId } = inboundMessage;
-      if (!coreContext.streams.has(streamId)) {
+      const stream = coreContext.streams.get(streamId);
+      if (stream === undefined) {
         return { coreContext, outboundMessages: [] };
       }
       const streams = new Map(coreContext.streams);
@@ -145,8 +199,26 @@ export function eventStreamStep(
             logLevel: LogLevel.Info,
             streamId,
           },
+          {
+            type: RoomMessageType.StreamClosed,
+            logLevel: LogLevel.Debug,
+            streamId,
+            clientToken: stream.clientToken,
+          },
         ],
       };
     }
   }
+}
+
+function streamWrite(
+  streamId: number,
+  streamEvent: StreamEvent,
+): EventStreamShellMessage {
+  return {
+    type: EventStreamShellMessageType.StreamWrite,
+    logLevel: LogLevel.Debug,
+    streamId,
+    streamEvent,
+  };
 }
