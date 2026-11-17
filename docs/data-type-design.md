@@ -95,7 +95,7 @@ The rest of the engine does not yet, so the two styles stand side by side until 
 
 Each module names its brand constructor `brandAsRound`, `brandAsPlayer`, `brandAsRow`.
 The name states the one thing that the function does, which the earlier `toRound` did not.
-`card.ts` and `penaltyAccrual.ts` hold no such function: their public constructor carries the assertion itself.
+`card.ts` and `penaltyTotal.ts` hold no such function: their public constructor carries the assertion itself.
 
 `createRound` takes the rows and the hands that a caller already holds.
 `dealRound` deals them from a deck, which is the act that the rules name.

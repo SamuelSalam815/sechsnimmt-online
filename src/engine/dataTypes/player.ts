@@ -1,4 +1,4 @@
-import type { PenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
+import type { PenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
 import { ErrorCode, lookup, type Result } from '#engine/dataTypes/result.ts';
 
 // 6 nimmt! is a game for 2 players or more.
@@ -50,31 +50,31 @@ export function findPlayer(
   );
 }
 
-// An accrual that names another player is a bug in the caller: it would add
-// the penalty of that player to this one.
+// A penalty total that names another player is a bug in the caller: it would
+// add the penalty of that player to this one.
 export function addPenaltyToPlayer(
   player: Player,
-  accrual: PenaltyAccrual,
+  penaltyTotal: PenaltyTotal,
 ): Player {
-  if (accrual.playerId !== player.id) {
+  if (penaltyTotal.playerId !== player.id) {
     throw new Error(
-      `The penalty of the player ${accrual.playerId} does not belong to the player ${player.id}`,
+      `The penalty of the player ${penaltyTotal.playerId} does not belong to the player ${player.id}`,
     );
   }
   return brandAsPlayer(
     player.id,
     player.name,
-    player.penaltyScore + accrual.penaltyIncrease,
+    player.penaltyScore + penaltyTotal.penaltyIncrease,
   );
 }
 
 export function addPenaltiesToPlayers(
   players: readonly Player[],
-  accruals: readonly PenaltyAccrual[],
+  penaltyTotals: readonly PenaltyTotal[],
 ): readonly Player[] {
   return players.map((player) =>
-    accruals
-      .filter((accrual) => accrual.playerId === player.id)
+    penaltyTotals
+      .filter((penaltyTotal) => penaltyTotal.playerId === player.id)
       .reduce(addPenaltyToPlayer, player),
   );
 }

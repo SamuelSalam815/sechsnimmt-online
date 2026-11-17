@@ -8,7 +8,7 @@ import {
 } from '#engine/dataTypes/gameState.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
-import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
+import { createPenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
 import {
   addPenaltyToPlayer,
   createPlayer,
@@ -106,7 +106,7 @@ test('keeps the player who must pick a row in the game when that row ends it', (
   // A score of 63 for Ada. The row of 10 adds 3, which reaches the limit.
   const scoredAda = addPenaltyToPlayer(
     players[0],
-    createPenaltyAccrual(
+    createPenaltyTotal(
       'a',
       [11, 22, 33, 44, 66, 77, 88, 99, 55, 20, 30, 40, 50, 15, 35].map(cardOf),
     ),

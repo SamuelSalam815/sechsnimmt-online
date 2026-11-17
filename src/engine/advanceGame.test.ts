@@ -8,8 +8,8 @@ import {
 } from '#engine/dataTypes/gameState.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
-import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
 import { createPenaltyPile } from '#engine/dataTypes/penaltyPile.ts';
+import { createPenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
 import { addPenaltyToPlayer, createPlayer } from '#engine/dataTypes/player.ts';
 import { ErrorCode } from '#engine/dataTypes/result.ts';
 import { createRound } from '#engine/dataTypes/round.ts';
@@ -42,7 +42,7 @@ function started(): RootState {
 const lastCard = cardOf(50);
 const scored = addPenaltyToPlayer(
   createPlayer({ id: 'a', name: 'Ada' }),
-  createPenaltyAccrual('a', [cardOf(55)]),
+  createPenaltyTotal('a', [cardOf(55)]),
 );
 const lastTurn: RootState = {
   game: createGameState(

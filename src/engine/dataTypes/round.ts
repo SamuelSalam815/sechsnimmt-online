@@ -16,14 +16,14 @@ import {
   removeCardFromHand,
 } from '#engine/dataTypes/hand.ts';
 import {
-  createPenaltyAccrual,
-  type PenaltyAccrual,
-} from '#engine/dataTypes/penaltyAccrual.ts';
-import {
   addCardsToPenaltyPile,
   createPenaltyPile,
   type PenaltyPile,
 } from '#engine/dataTypes/penaltyPile.ts';
+import {
+  createPenaltyTotal,
+  type PenaltyTotal,
+} from '#engine/dataTypes/penaltyTotal.ts';
 import {
   addPenaltyToPlayer,
   findPlayer,
@@ -67,7 +67,7 @@ export interface RowPick {
 
 export interface RevealOutcome {
   readonly round: Round;
-  readonly penaltyAccruals: readonly PenaltyAccrual[];
+  readonly penaltyTotals: readonly PenaltyTotal[];
   readonly phase: RoundPhase;
 }
 
@@ -188,11 +188,11 @@ export function resolveReveal(
   penaltyLimit: number,
 ): RevealOutcome {
   let nextRound = round;
-  const penaltyAccruals: PenaltyAccrual[] = [];
+  const penaltyTotals: PenaltyTotal[] = [];
   for (const revealedCard of revealedCardsLowestFirst(round)) {
     const cardPlacement = placeCardInRows(nextRound.rows, revealedCard.card);
     if (!cardPlacement) {
-      return { round: nextRound, penaltyAccruals, phase: GamePhase.RowPick };
+      return { round: nextRound, penaltyTotals, phase: GamePhase.RowPick };
     }
     nextRound = placeRevealedCard(nextRound, revealedCard, cardPlacement);
     const takenCards = cardPlacement.takenCards;
@@ -204,18 +204,15 @@ export function resolveReveal(
       revealedCard.playerId,
       takenCards,
     );
-    const penaltyAccrual = createPenaltyAccrual(
-      revealedCard.playerId,
-      takenCards,
-    );
-    penaltyAccruals.push(penaltyAccrual);
-    if (reachesPenaltyLimit(players, penaltyAccrual, penaltyLimit)) {
-      return { round: nextRound, penaltyAccruals, phase: GamePhase.GameOver };
+    const penaltyTotal = createPenaltyTotal(revealedCard.playerId, takenCards);
+    penaltyTotals.push(penaltyTotal);
+    if (reachesPenaltyLimit(players, penaltyTotal, penaltyLimit)) {
+      return { round: nextRound, penaltyTotals, phase: GamePhase.GameOver };
     }
   }
   return {
     round: nextRound,
-    penaltyAccruals,
+    penaltyTotals,
     phase: everyHandIsEmpty(nextRound)
       ? GamePhase.EndOfRound
       : GamePhase.CardPick,
@@ -258,7 +255,7 @@ export function findCardForRowPick(
 
 // Rule 4 of docs/game-rules.md, and then the rest of the reveal. The player
 // who takes the row has placed their one picked card, so the rest of the
-// reveal gives that player no second accrual.
+// reveal gives that player no second penalty total.
 export function resolveRowPick(
   round: Round,
   players: readonly Player[],
@@ -281,31 +278,31 @@ export function resolveRowPick(
     playerId,
     takenCards,
   );
-  const penaltyAccrual = createPenaltyAccrual(playerId, takenCards);
-  if (reachesPenaltyLimit(players, penaltyAccrual, penaltyLimit)) {
+  const penaltyTotal = createPenaltyTotal(playerId, takenCards);
+  if (reachesPenaltyLimit(players, penaltyTotal, penaltyLimit)) {
     return {
       round: nextRound,
-      penaltyAccruals: [penaltyAccrual],
+      penaltyTotals: [penaltyTotal],
       phase: GamePhase.GameOver,
     };
   }
   const restOfReveal = resolveReveal(nextRound, players, penaltyLimit);
   return {
     ...restOfReveal,
-    penaltyAccruals: [penaltyAccrual, ...restOfReveal.penaltyAccruals],
+    penaltyTotals: [penaltyTotal, ...restOfReveal.penaltyTotals],
   };
 }
 
-// A player holds one picked card, so a reveal gives that player one accrual.
-// The score with this one accrual therefore decides whether the game ends.
+// A player holds one picked card, so a reveal gives that player one penalty total.
+// The score with this one penalty total therefore decides whether the game ends.
 function reachesPenaltyLimit(
   players: readonly Player[],
-  accrual: PenaltyAccrual,
+  penaltyTotal: PenaltyTotal,
   penaltyLimit: number,
 ): boolean {
-  const player = findPlayer(players, accrual.playerId).force();
+  const player = findPlayer(players, penaltyTotal.playerId).force();
   return hasReachedPenaltyLimit(
-    addPenaltyToPlayer(player, accrual),
+    addPenaltyToPlayer(player, penaltyTotal),
     penaltyLimit,
   );
 }

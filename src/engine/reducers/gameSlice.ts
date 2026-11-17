@@ -101,11 +101,7 @@ export const gameSlice = createSlice({
 
     revealPickedCards: (state): GameState => {
       assertRoundInProgress(state);
-      const {
-        round,
-        penaltyAccruals: accruals,
-        phase,
-      } = resolveReveal(
+      const { round, penaltyTotals, phase } = resolveReveal(
         state.round,
         state.players,
         state.gameRules.penaltyLimit,
@@ -116,14 +112,14 @@ export const gameSlice = createSlice({
         // chose its card without knowing the revealed cards.
         majorVersionBump(state.version),
         state.gameRules,
-        addPenaltiesToPlayers(state.players, accruals),
+        addPenaltiesToPlayers(state.players, penaltyTotals),
         round,
       );
     },
 
     pickRow: (state, action: PayloadAction<RowPick>): GameState => {
       assertRoundInProgress(state);
-      const { round, penaltyAccruals, phase } = resolveRowPick(
+      const { round, penaltyTotals, phase } = resolveRowPick(
         state.round,
         state.players,
         action.payload,
@@ -135,7 +131,7 @@ export const gameSlice = createSlice({
         // left picked.
         majorVersionBump(state.version),
         state.gameRules,
-        addPenaltiesToPlayers(state.players, penaltyAccruals),
+        addPenaltiesToPlayers(state.players, penaltyTotals),
         round,
       );
     },

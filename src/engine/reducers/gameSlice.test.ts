@@ -8,7 +8,7 @@ import {
 } from '#engine/dataTypes/gameState.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
 import { createHand } from '#engine/dataTypes/hand.ts';
-import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
+import { createPenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
 import { addPenaltyToPlayer, createPlayer } from '#engine/dataTypes/player.ts';
 import {
   createRound,
@@ -236,7 +236,7 @@ describe('abandonGame', () => {
 // keeps the players as they are.
 test('moves to the card pick phase with the next round on startRound', () => {
   const scored = players.map((player) =>
-    addPenaltyToPlayer(player, createPenaltyAccrual(player.id, [aceOfAda])),
+    addPenaltyToPlayer(player, createPenaltyTotal(player.id, [aceOfAda])),
   );
   const nextRound = createRound([rowOf(3)], [createHand('a', [otherOfAda])]);
   const endOfRound = createGameState(

@@ -4,11 +4,11 @@ import { createDeck, getDeckFaceValues } from '#engine/dataTypes/deck.ts';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/gameRules.ts';
 import { GamePhase } from '#engine/dataTypes/gameState.ts';
 import { createHand, type Hand } from '#engine/dataTypes/hand.ts';
-import { createPenaltyAccrual } from '#engine/dataTypes/penaltyAccrual.ts';
 import {
   addCardsToPenaltyPile,
   createPenaltyPile,
 } from '#engine/dataTypes/penaltyPile.ts';
+import { createPenaltyTotal } from '#engine/dataTypes/penaltyTotal.ts';
 import {
   addPenaltyToPlayer,
   createPlayer,
@@ -234,7 +234,7 @@ describe('resolveReveal', () => {
     ].map((player) =>
       addPenaltyToPlayer(
         player,
-        createPenaltyAccrual(player.id, (taken[player.id] ?? []).map(cardOf)),
+        createPenaltyTotal(player.id, (taken[player.id] ?? []).map(cardOf)),
       ),
     );
     const hands = players.map((player) => {
@@ -263,7 +263,7 @@ describe('resolveReveal', () => {
       ),
       picks: outcome.round.picks,
       penaltyPiles: outcome.round.penaltyPiles,
-      accruals: outcome.penaltyAccruals,
+      penaltyTotals: outcome.penaltyTotals,
     };
   }
 
@@ -281,7 +281,7 @@ describe('resolveReveal', () => {
     expect(next.rows).toEqual([[12, 14, 15], [37], [43, 44], [58, 61]]);
     expect(next.picks).toEqual({});
     // No row was full, so no player accrued a penalty.
-    expect(next.accruals).toEqual([]);
+    expect(next.penaltyTotals).toEqual([]);
     expect(next.phase).toBe(GamePhase.CardPick);
   });
 
@@ -295,12 +295,12 @@ describe('resolveReveal', () => {
         [1, 2, 3, 4, 5].map(cardOf),
       ),
     ]);
-    // The row counts 1 penalty for each card and 2 for the 5. The accrual of
-    // the player names that increase alone, not the score that it grows.
-    expect(next.accruals).toEqual([
-      createPenaltyAccrual('b', [1, 2, 3, 4, 5].map(cardOf)),
+    // The row counts 1 penalty for each card and 2 for the 5. The penalty total
+    // of the player names that increase alone, not the score that it grows.
+    expect(next.penaltyTotals).toEqual([
+      createPenaltyTotal('b', [1, 2, 3, 4, 5].map(cardOf)),
     ]);
-    expect(next.accruals[0].penaltyIncrease).toBe(6);
+    expect(next.penaltyTotals[0].penaltyIncrease).toBe(6);
     expect(next.phase).toBe(GamePhase.CardPick);
   });
 
@@ -330,8 +330,8 @@ describe('resolveReveal', () => {
     );
     expect(next.phase).toBe(GamePhase.GameOver);
     expect(next.rows).toEqual([[7], [50]]);
-    expect(next.accruals).toEqual([
-      createPenaltyAccrual('b', [1, 2, 3, 4, 6].map(cardOf)),
+    expect(next.penaltyTotals).toEqual([
+      createPenaltyTotal('b', [1, 2, 3, 4, 6].map(cardOf)),
     ]);
     // The cards that follow are not placed.
     expect(next.picks).toEqual({ a: cardOf(51).id });
@@ -406,8 +406,8 @@ describe('resolveRowPick', () => {
       addCardsToPenaltyPile(createPenaltyPile('a'), [cardOf(20), cardOf(21)]),
       createPenaltyPile('b'),
     ]);
-    expect(outcome.penaltyAccruals).toEqual([
-      createPenaltyAccrual('a', [cardOf(20), cardOf(21)]),
+    expect(outcome.penaltyTotals).toEqual([
+      createPenaltyTotal('a', [cardOf(20), cardOf(21)]),
     ]);
     expect(outcome.phase).toBe(GamePhase.CardPick);
   });
@@ -416,7 +416,7 @@ describe('resolveRowPick', () => {
     // A score of 63 for Ada. The row of 10 adds 3, which reaches the limit of 66.
     const scoredAda = addPenaltyToPlayer(
       ada,
-      createPenaltyAccrual(
+      createPenaltyTotal(
         'a',
         [11, 22, 33, 44, 66, 77, 88, 99, 55, 20, 30, 40, 50, 15, 35].map(
           cardOf,
