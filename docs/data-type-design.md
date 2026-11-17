@@ -98,7 +98,7 @@ A caller therefore asks the question before it reads the value or the message, a
 
 A name states the type of the thing that it holds.
 A local is `nextRound`, `cardPlacement`, `revealedCard`, not `next`, `placement`, `revealed`.
-`round.ts` follows this rule.
+`roundLifecycle.ts` and `revealResolution.ts` follow this rule.
 The rest of the engine does not yet, so the two styles stand side by side until a pass over the other modules closes the gap.
 
 Each module names its brand constructor `brandAsRound`, `brandAsPlayer`, `brandAsRow`.
