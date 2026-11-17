@@ -85,7 +85,7 @@ The rule: assert that an error occurs and, at most, its error code. Test each ru
 - [x] Remove the `message` assertions. There are about 21 in these test files: `hand`, `player`, `round`, `handleCardPickPhase`, `handleRowPickPhase`, `handleRequest`, `handlePreStartPhase`, `handleEndOfRoundPhase`, `handleGameOverPhase`, `advanceGame`. Keep the messages in `result.test.ts`, because there the message is the subject of the test.
 - [x] Move the immutability assertion in the `removeCardFromHand` test of `hand.test.ts` into its own test. Look for the same pattern in the other data type tests.
 - [x] Remove tests that repeat a lower module. Example: "uses all 104 cards for 10 players" in `round.test.ts` repeats the dealing test of the deck. Also check `gameRules.test.ts` and `shuffledDeck.test.ts`, which compare against `getDeckFaceValues`.
-- [ ] Write the rule in `docs/testing-strategy.md`.
+- [x] Write the rule in `docs/testing-strategy.md`.
 - [ ] From `TODO.md`: add a fairness test for the shuffle. See `docs/testing-strategy.md`.
 
 ## Session 3: Server
