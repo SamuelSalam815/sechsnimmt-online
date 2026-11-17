@@ -160,8 +160,8 @@ export function removePlayerFromRound(round: Round, playerId: PlayerId): Round {
   });
 }
 
-// A revealed card pairs the pick of a player with the card that it names, so
-// that the reveal can place the cards in order.
+// A revealed card keeps its player, so that the cards that its placement takes
+// go to the penalty pile of that player.
 interface RevealedCard {
   readonly playerId: PlayerId;
   readonly card: Card;
