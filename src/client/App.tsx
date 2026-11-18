@@ -1,45 +1,37 @@
 import { useEffect, useState } from 'react';
-import type { AppliedAction } from '#engine/reducers/history.ts';
-import { initialRootState, rootReducer } from '#engine/store.ts';
+import { GameDisplay } from '#client/GameDisplay.tsx';
+import { useAppSelector } from '#client/hooks.ts';
+import { NamePrompt } from '#client/NamePrompt.tsx';
+import { RoomDisplay } from '#client/RoomDisplay.tsx';
+import { COUNTDOWN_MILLISECONDS, chooseScreen } from '#client/screenChoice.ts';
+import { useEventStream } from '#client/useEventStream.ts';
 
 export default function App() {
-  const [history, setHistory] = useState<AppliedAction[] | null>(null);
+  const session = useAppSelector((state) => state.session);
+  const room = useAppSelector((state) => state.room);
+  const [now, setNow] = useState(Date.now);
+  useEventStream(session?.clientToken);
 
+  const { countdownStartedAt } = room;
+  // No store change marks the end of the countdown, so a timer renders the
+  // screen again then.
   useEffect(() => {
-    fetch('/api/ping');
-  }, []);
+    if (countdownStartedAt === null) {
+      return;
+    }
+    const timeout = setTimeout(
+      () => setNow(Date.now()),
+      countdownStartedAt + COUNTDOWN_MILLISECONDS - Date.now(),
+    );
+    return () => clearTimeout(timeout);
+  }, [countdownStartedAt]);
 
-  useEffect(() => {
-    const events = new EventSource('/api/events');
-    // The server sends the full history on every connection, a reconnection
-    // included. The replay therefore starts again from nothing.
-    events.onopen = () => setHistory([]);
-    events.addEventListener('gameActions', (event) => {
-      const actions: AppliedAction[] = JSON.parse(event.data);
-      setHistory((earlier) => [...(earlier ?? []), ...actions]);
-    });
-    return () => events.close();
-  }, []);
-
-  const game =
-    history === null
-      ? undefined
-      : history
-          .map((appliedAction) => appliedAction.action)
-          .reduce(rootReducer, initialRootState).game;
-
+  const screen = chooseScreen({ session, room }, now);
   return (
-    <div
-      style={{
-        maxWidth: 'fit-content',
-        marginInline: 'auto',
-      }}
-    >
-      <p>
-        {game === undefined
-          ? 'waiting for the server'
-          : `${game.phase}, version ${game.version.sequence}`}
-      </p>
+    <div style={{ maxWidth: 'fit-content', marginInline: 'auto' }}>
+      {screen === 'namePrompt' && <NamePrompt />}
+      {screen === 'roomDisplay' && <RoomDisplay />}
+      {screen === 'gameDisplay' && <GameDisplay />}
     </div>
   );
 }
