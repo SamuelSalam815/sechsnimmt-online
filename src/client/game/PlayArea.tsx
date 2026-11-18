@@ -51,10 +51,7 @@ export function PlayArea() {
             <CardView key={card.id} card={card} />
           ))}
           {emptySlotIndexes(row.cards.length).map((slotIndex) => (
-            <EmptyCardSlot
-              key={`empty ${slotIndex}`}
-              marked={slotIndex === rowCapacity - 1}
-            />
+            <EmptyCardSlot key={`empty ${slotIndex}`} />
           ))}
         </div>
       ))}

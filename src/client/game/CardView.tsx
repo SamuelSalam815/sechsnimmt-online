@@ -16,14 +16,9 @@ const CARD_SPACE = {
   margin: '0.1em',
 } as const;
 
-export function EmptyCardSlot({ marked }: { marked: boolean }) {
+export function EmptyCardSlot() {
   return (
-    <div
-      style={{
-        ...CARD_SPACE,
-        border: marked ? '1px dashed var(--color-accent)' : 'none',
-      }}
-    />
+    <div style={{ ...CARD_SPACE, background: 'var(--color-locked-slot)' }} />
   );
 }
 
