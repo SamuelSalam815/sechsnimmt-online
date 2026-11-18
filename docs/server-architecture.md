@@ -70,7 +70,7 @@ A listener that ran between two of them would see a state that the request handl
 The I/O of a room is in `RoomEffects`: the shuffle, the grace timers, the writes to the streams and the logger.
 A listener of the store reacts to a change of the state and calls an effect:
 
-- A new entry in the history goes to every open stream as a `gameActions` event.
+- A new entry in the history goes to every open stream as a `gameActions` event, projected for the player of the stream.
 - A change of the room goes to every open stream as a `roomView` event.
 - A new grace timer ID starts a grace timer.
 - A deal that falls due shuffles a deck and applies the start game or the start round request with it.
@@ -118,7 +118,8 @@ The ready requests come before the game, so they reject a client token that hold
 
 The shell names each stream and holds its response, because a response is not data.
 The store holds only the ID and the client token of each open stream.
-A new stream first gets the full history.
+The client token names the viewer of the stream, whose history hides the hands of the other players.
+A new stream first gets that history in full.
 It gets the room view from the broadcast of the change that it makes to the room, or directly when it makes no change, for example a stream without a client token.
 
 ## Logging
@@ -137,7 +138,7 @@ No other path logs a token: the server has no request logging, and the event str
 
 The stream carries two named events.
 A `gameActions` event carries a JSON array of applied actions.
-A new stream first gets the full history, then the new actions of each change.
+A new stream first gets the history of its viewer, then the new actions of each change.
 The client replays the actions to get the state.
 A `roomView` event carries the whole view of the room, which replaces the one before it.
 

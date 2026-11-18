@@ -24,6 +24,6 @@ Three layers; they separate responsibility, not imports.
 - Game over mid-placement leaves remaining picked cards unplaced, intentionally.
 - Test-only invariant check `testSupport/gameStateInvariants.ts` (card in one place, pick in hand; no rule restated). Integration test writes a text trace to `__snapshots__/advanceGame.integration.txt`.
 
-## Not implemented
+## Hidden information
 
-Hidden information is not yet hidden from clients (see `TODO.md`).
+`RoundSeat.hand: HandCard[]` (`Card | HiddenCard`, `card.ts`). Server state holds no `HiddenCard`. `projectHistoryForViewer` (`reducers/historyProjection.ts`) hides other hands in `startGame`/`startRound`; `hideOtherHands` in `roundLifecycle.ts`. Server projects per stream (`findViewerId`, `roomSlice.ts`). Logs keep full info on purpose. Docs: `docs/game-flow-architecture.md` "Hidden information".

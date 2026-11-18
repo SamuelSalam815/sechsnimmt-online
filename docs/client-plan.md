@@ -16,7 +16,7 @@ The room, the room view and the engine hold the full name.
 
 ### Hidden information
 
-This plan does not hide the hands of the other players; see `TODO.md`.
+The server hides the hands of the other players; see "Hidden information" in `docs/game-flow-architecture.md`.
 The client reads only its own hand.
 It reads whether another player has picked from `pickedCardId !== undefined`, so it keeps working when the server filters the history.
 

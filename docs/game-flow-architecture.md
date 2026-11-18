@@ -106,6 +106,25 @@ Two copies of a fact can disagree inside one state, for example an `endRound` wh
 The decisions are tested by example in the request handling tests.
 The test support also checks the properties that no rule computes: each card is in one place, and a picked card is in the hand of its seat.
 
+## Hidden information
+
+A client must not learn the hands of the other players.
+`Round` holds the rows and the seats and no deck, so the hand of a seat is the one hidden part of the game state.
+The rows, the penalty piles and the revealed cards are public.
+Card IDs are assigned after the shuffle, so a card ID does not reveal the face value.
+
+The server sends each client the history of its viewer: `projectHistoryForViewer` puts a `HiddenCard` in place of each card in the hand of another player.
+A hidden card holds only its card ID.
+Only the deal, `startGame` and `startRound`, puts cards into a hand, so the projection changes no other action.
+A viewer without a seat sees every hand hidden.
+
+The server and the client share one game slice, so a hand holds `HandCard = Card | HiddenCard` on both.
+A generic game state over the card type was rejected: its type parameter goes into the slice, the history, the selectors and the tests.
+The reducers find a card in a hand by its card ID, so they apply an action to a hand of hidden cards.
+The request handling reads face values from a hand only on the server, where no hand holds a hidden card.
+
+The integration test replays the projected history of each viewer after each request and compares it with the game state with the other hands hidden.
+
 ## Game state version
 
 Several requests can be in flight at once.
