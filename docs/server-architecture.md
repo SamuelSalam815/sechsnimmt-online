@@ -89,6 +89,14 @@ A test runs a room store with fake effects and examines the replies, the state a
 
 A join gives the client a secret client token and a public player ID.
 The client sends the token with each request, and it opens its event stream with the token in the query.
+
+The join puts a code name adjective in front of the chosen name, for example "Cheeky Sam".
+The adjective is one of `CODE_NAME_ADJECTIVES` that no player in the room uses, so two players who choose the same name still differ on the screen.
+The router gives the join thunk a random fraction next to the client token, because a random value is impure.
+The room stores the full name, and after the join no part of the system knows about code names.
+
+Ready is a toggle: a player gets ready and gets unready again.
+The room rejects both requests after the start of the game.
 When every player is ready, and the room holds 2 to 10 players, the game starts.
 
 The room also tracks whether the client of each player is responsive.
