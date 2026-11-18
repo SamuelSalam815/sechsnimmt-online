@@ -9,17 +9,35 @@ import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
   abandonGame,
+  endGame,
+  endRound,
   pickCard,
+  placeCard,
   revealPickedCards,
   unpickCard,
 } from '#engine/reducers/gameSlice.ts';
 import { handleCardPickPhase } from '#engine/requestHandling/handleCardPickPhase.ts';
+import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
 import { cardOf, placementOf, rowOf, seatOf } from '#testSupport/cards.ts';
+import { applyActionsCheckingInvariants } from '#testSupport/gameStateInvariants.ts';
 import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 import { abandonRequest, startGameRequest } from '#testSupport/requests.ts';
+
+// The actions of an accepted request also run, with the invariant check after
+// each of them.
+function handleCardPickPhaseChecked(
+  state: RoundGameState,
+  request: GameRequest,
+): PhaseHandlingResult {
+  const result = handleCardPickPhase(state, request);
+  if ('actions' in result) {
+    applyActionsCheckingInvariants(state, result.actions);
+  }
+  return result;
+}
 
 const ada = { id: 'a', name: 'Ada' };
 const ben = { id: 'b', name: 'Ben' };
@@ -63,7 +81,9 @@ function unpickRequest(playerId: PlayerId, cardId: CardId): GameRequest {
 }
 
 test('returns an error for the start game request', () => {
-  expect(handleCardPickPhase(cardPick(), startGameRequest)).toMatchObject({
+  expect(
+    handleCardPickPhaseChecked(cardPick(), startGameRequest),
+  ).toMatchObject({
     errorCode: ErrorCode.WrongPhase,
   });
 });
@@ -72,20 +92,20 @@ test.each([
   ['pick card', pickRequest('nobody', aceOfAda.id)],
   ['unpick card', unpickRequest('nobody', aceOfAda.id)],
 ])('returns an error for the %s request of an unknown player', (_, request) => {
-  expect(handleCardPickPhase(cardPick(), request)).toMatchObject({
+  expect(handleCardPickPhaseChecked(cardPick(), request)).toMatchObject({
     errorCode: ErrorCode.UnknownEntity,
   });
 });
 
 test('handles the pick card request with the pick card action', () => {
   expect(
-    handleCardPickPhase(cardPick(), pickRequest('a', aceOfAda.id)),
+    handleCardPickPhaseChecked(cardPick(), pickRequest('a', aceOfAda.id)),
   ).toEqual({ actions: [pickCard({ playerId: 'a', card: aceOfAda })] });
 });
 
 test('returns an error if the card is not in the hand of the player', () => {
   expect(
-    handleCardPickPhase(cardPick(), pickRequest('a', aceOfBen.id)),
+    handleCardPickPhaseChecked(cardPick(), pickRequest('a', aceOfBen.id)),
   ).toMatchObject({
     errorCode: ErrorCode.RuleViolation,
   });
@@ -93,14 +113,16 @@ test('returns an error if the card is not in the hand of the player', () => {
 
 test('handles the unpick card request with the unpick card action', () => {
   const state = cardPick([['a', aceOfAda]]);
-  expect(handleCardPickPhase(state, unpickRequest('a', aceOfAda.id))).toEqual({
+  expect(
+    handleCardPickPhaseChecked(state, unpickRequest('a', aceOfAda.id)),
+  ).toEqual({
     actions: [unpickCard({ playerId: 'a' })],
   });
 });
 
 test('returns an error if the card is not picked', () => {
   expect(
-    handleCardPickPhase(cardPick(), unpickRequest('a', aceOfAda.id)),
+    handleCardPickPhaseChecked(cardPick(), unpickRequest('a', aceOfAda.id)),
   ).toMatchObject({
     errorCode: ErrorCode.RuleViolation,
   });
@@ -109,7 +131,7 @@ test('returns an error if the card is not picked', () => {
 test('returns an error if another player owns the picked card', () => {
   const state = cardPick([['b', aceOfBen]]);
   expect(
-    handleCardPickPhase(state, unpickRequest('a', aceOfBen.id)),
+    handleCardPickPhaseChecked(state, unpickRequest('a', aceOfBen.id)),
   ).toMatchObject({
     errorCode: ErrorCode.RuleViolation,
   });
@@ -124,25 +146,43 @@ test('reveals the picked cards with their placements once every player has picke
       [seatOf('a', [cardOf(12)]), seatOf('b', [cardOf(11)], cardOf(11))],
     ),
   );
-  expect(handleCardPickPhase(state, pickRequest('a', cardOf(12).id))).toEqual({
+  expect(
+    handleCardPickPhaseChecked(state, pickRequest('a', cardOf(12).id)),
+  ).toEqual({
     actions: [
       pickCard({ playerId: 'a', card: cardOf(12) }),
       revealPickedCards({
-        placements: [placementOf('b', 11, 0), placementOf('a', 12, 0)],
+        revealedCards: [
+          { playerId: 'b', card: cardOf(11) },
+          { playerId: 'a', card: cardOf(12) },
+        ],
       }),
+      placeCard(placementOf('b', 11, 0)),
+      placeCard(placementOf('a', 12, 0)),
+      endRound(),
     ],
   });
 });
 
 test('handles the abandon game request with the abandon game action', () => {
-  expect(handleCardPickPhase(cardPick(), abandonRequest('a'))).toEqual({
-    actions: [abandonGame({ playerId: 'a' })],
-  });
+  const threePlayers = roundGameStateOf(
+    GamePhase.CardPick,
+    playersOf([ada, ben, { id: 'c', name: 'Cy' }]),
+    createRound(
+      [rowOf(50)],
+      [seatOf('a', [aceOfAda]), seatOf('b', [aceOfBen]), seatOf('c', [])],
+    ),
+  );
+  expect(handleCardPickPhaseChecked(threePlayers, abandonRequest('a'))).toEqual(
+    {
+      actions: [abandonGame({ playerId: 'a' })],
+    },
+  );
 });
 
 test('returns an error for the abandon game request of an unknown player', () => {
   expect(
-    handleCardPickPhase(cardPick(), abandonRequest('nobody')),
+    handleCardPickPhaseChecked(cardPick(), abandonRequest('nobody')),
   ).toMatchObject({
     errorCode: ErrorCode.UnknownEntity,
   });
@@ -162,26 +202,34 @@ test('reveals the picked cards when every player who stays has picked one', () =
       ],
     ),
   );
-  expect(handleCardPickPhase(state, abandonRequest('a'))).toEqual({
+  expect(handleCardPickPhaseChecked(state, abandonRequest('a'))).toEqual({
     actions: [
       abandonGame({ playerId: 'a' }),
       revealPickedCards({
-        placements: [placementOf('b', 3, 0), placementOf('c', 4, 0)],
+        revealedCards: [
+          { playerId: 'b', card: aceOfBen },
+          { playerId: 'c', card: aceOfCy },
+        ],
       }),
+      placeCard(placementOf('b', 3, 0)),
+      placeCard(placementOf('c', 4, 0)),
+      endRound(),
     ],
   });
 });
 
-test('does not reveal when the abandon leaves too few players', () => {
+test('ends the game and does not reveal when the abandon leaves too few players', () => {
   const state = cardPick([['b', aceOfBen]]);
-  expect(handleCardPickPhase(state, abandonRequest('a'))).toEqual({
-    actions: [abandonGame({ playerId: 'a' })],
+  expect(handleCardPickPhaseChecked(state, abandonRequest('a'))).toEqual({
+    actions: [abandonGame({ playerId: 'a' }), endGame()],
   });
 });
 
 test('does not reveal when a pick only replaces the pick of the player', () => {
   const state = cardPick([['a', aceOfAda]]);
-  expect(handleCardPickPhase(state, pickRequest('a', otherOfAda.id))).toEqual({
+  expect(
+    handleCardPickPhaseChecked(state, pickRequest('a', otherOfAda.id)),
+  ).toEqual({
     actions: [pickCard({ playerId: 'a', card: otherOfAda })],
   });
 });

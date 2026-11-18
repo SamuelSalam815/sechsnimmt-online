@@ -9,7 +9,11 @@ import {
   createRound,
   dealRound,
 } from '#engine/dataTypes/table/roundLifecycle.ts';
-import { abandonGame, startRound } from '#engine/reducers/gameSlice.ts';
+import {
+  abandonGame,
+  endGame,
+  startRound,
+} from '#engine/reducers/gameSlice.ts';
 import { handleEndOfRoundPhase } from '#engine/requestHandling/handleEndOfRoundPhase.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
@@ -48,9 +52,9 @@ test('handles the start round request with a start round action that deals the d
   });
 });
 
-test('handles the abandon game request', () => {
+test('ends the game when the abandon game request leaves too few players', () => {
   expect(handleEndOfRoundPhase(endOfRound(), abandonRequest('a'))).toEqual({
-    actions: [abandonGame({ playerId: 'a' })],
+    actions: [abandonGame({ playerId: 'a' }), endGame()],
   });
 });
 

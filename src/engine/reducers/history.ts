@@ -1,11 +1,17 @@
 import type { UnknownAction } from '@reduxjs/toolkit';
+import type { Card } from '#engine/dataTypes/cards/card.ts';
+import {
+  assertRoundInProgress,
+  type GameState,
+  INITIAL_GAME_STATE,
+} from '#engine/dataTypes/game/gameState.ts';
 import type { GameStateVersion } from '#engine/dataTypes/game/gameStateVersion.ts';
-import type { CardPlacement } from '#engine/dataTypes/table/revealResolution.ts';
 import {
   type GameAction,
   gameSlice,
-  pickRow,
+  placeCard,
   revealPickedCards,
+  takeRow,
 } from '#engine/reducers/gameSlice.ts';
 
 // An applied action with the old version of the game state, which the action
@@ -32,20 +38,34 @@ export function appendToHistory(
   return [...history, { oldVersion, newVersion, action }];
 }
 
-// A row pick only follows a reveal, and it places the cards that the reveal
-// left picked. Its placements therefore extend the reveal.
-export function selectLastRevealPlacements(
+// The payload of a take names no taken cards, so the event holds the cards that
+// the replay finds in the row.
+export type RevealEvent =
+  | { action: ReturnType<typeof revealPickedCards> }
+  | { action: ReturnType<typeof placeCard> }
+  | { action: ReturnType<typeof takeRow>; takenCards: Card[] };
+
+// The reveal and the placements after it. A row pick only follows a reveal,
+// and it places the cards that the reveal left picked, so its placements
+// extend the reveal.
+export function selectLastRevealEvents(
   history: readonly AppliedAction[],
-): CardPlacement[] {
-  let placements: CardPlacement[] = [];
+): RevealEvent[] {
+  let revealEvents: RevealEvent[] = [];
+  let game: GameState = INITIAL_GAME_STATE;
   for (const { action } of history) {
     if (revealPickedCards.match(action)) {
-      placements = [...action.payload.placements];
-    } else if (pickRow.match(action)) {
-      placements.push(...action.payload.placements);
+      revealEvents = [{ action }];
+    } else if (placeCard.match(action)) {
+      revealEvents.push({ action });
+    } else if (takeRow.match(action)) {
+      assertRoundInProgress(game);
+      const takenCards = game.round.rows[action.payload.rowIndex].cards;
+      revealEvents.push({ action, takenCards });
     }
+    game = gameSlice.reducer(game, action);
   }
-  return placements;
+  return revealEvents;
 }
 
 // An allowlist of the actions that the game slice creates. Everything else that

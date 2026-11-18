@@ -1,0 +1,99 @@
+request: start the game with {"penaltyLimit":15,"handSize":1,"rowCapacity":5}
+  response: start game: ada, ben, cy
+
+  === state at the start of the game ===
+    phase: cardPick
+    row 0: (id 9, faceValue 10, penalty 3)
+    row 1: (id 19, faceValue 20, penalty 3)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 39, faceValue 40, penalty 3)
+    ada:
+      hand: (id 20, faceValue 21, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    ben:
+      hand: (id 21, faceValue 22, penalty 5)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 22, faceValue 23, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+
+request: ada picks (id 20, faceValue 21, penalty 1)
+  response: ada picks (id 20, faceValue 21, penalty 1)
+request: ben picks (id 21, faceValue 22, penalty 5)
+  response: ben picks (id 21, faceValue 22, penalty 5)
+request: cy picks (id 22, faceValue 23, penalty 1)
+  response: cy picks (id 22, faceValue 23, penalty 1)
+
+  === picks before the reveal ===
+    ada: (id 20, faceValue 21, penalty 1)
+    ben: (id 21, faceValue 22, penalty 5)
+    cy: (id 22, faceValue 23, penalty 1)
+
+  response: reveal
+
+  === rows before the placements ===
+    row 0: (id 9, faceValue 10, penalty 3)
+    row 1: (id 19, faceValue 20, penalty 3)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 39, faceValue 40, penalty 3)
+
+  response: ada places (id 20, faceValue 21, penalty 1) in row 1
+  response: ben places (id 21, faceValue 22, penalty 5) in row 1
+  response: cy places (id 22, faceValue 23, penalty 1) in row 1
+  response: end round · scores ada 0, ben 0, cy 0
+
+  === state after the reveal ===
+    phase: endOfRound
+    row 0: (id 9, faceValue 10, penalty 3)
+    row 1: (id 19, faceValue 20, penalty 3), (id 20, faceValue 21, penalty 1), (id 21, faceValue 22, penalty 5), (id 22, faceValue 23, penalty 1)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 39, faceValue 40, penalty 3)
+    ada:
+      hand: none
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    ben:
+      hand: none
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: none
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+
+request: ada picks (id 20, faceValue 21, penalty 1)
+  response: rejected wrongPhase: The end of round phase rejects the pickCard request: it accepts only the start round and abandon game requests
+request: start a round
+  response: start round
+
+  === state at the start of the round ===
+    phase: cardPick
+    row 0: (id 49, faceValue 50, penalty 3)
+    row 1: (id 59, faceValue 60, penalty 3)
+    row 2: (id 69, faceValue 70, penalty 3)
+    row 3: (id 79, faceValue 80, penalty 3)
+    ada:
+      hand: (id 50, faceValue 51, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    ben:
+      hand: (id 51, faceValue 52, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 52, faceValue 53, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+

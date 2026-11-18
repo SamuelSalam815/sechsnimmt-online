@@ -40,26 +40,21 @@ On an immer draft they give a copy, and a write into that copy is lost.
 ## Reducers write into the draft
 
 A case reducer of `gameSlice` writes into its immer draft.
-A rule that changes the state, for example `resolveReveal`, takes a draft and changes it in place.
-It gives back only what its caller cannot read from the state, for example the card placements.
+The small writes that it uses, for example `playPickedCard` and `addPenaltyToPlayer`, take a draft and change it in place.
+A rule only reads: it takes a plain state and gives a value, for example `findRowIndexForCard`.
+See "Decide and apply" in docs/game-flow-architecture.md.
 
 The state types therefore hold no `readonly`.
 A request type and an action payload keep `readonly`, because nothing writes into them.
 
-A rule function runs only on a draft.
-A test therefore runs it inside `createNextState`, as its caller does.
 A value that an adapter built is frozen, and a write into it outside a draft throws.
-
-Request handling sometimes needs to foresee the outcome of an action, for example whether an abandon ends the game.
-It runs the reducer on the current state and reads the outcome.
-A second copy of the rules could disagree with the reducer.
+A test of a write therefore builds its value with an object literal, which is not frozen.
 
 ## The module holds the invariants of its type
 
 A caller must not have to observe an invariant.
-An operation therefore reports everything that follows from the change that it makes.
-`addCardToRow` gives the cards that the player takes, empty when the card joined the row.
-A row holds between one and five cards at all times, and no caller asks about the capacity.
+A row holds between one card and the row capacity at all times.
+`isRowFull` says whether a card takes the row, so no caller compares the card count with the capacity.
 
 ## An operation reports its own failure
 

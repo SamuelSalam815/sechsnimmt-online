@@ -24,6 +24,12 @@ It ends with the round.
 The penalty score of a player counts the penalty of every card that the player has taken in the game, the cards of the running round included.
 The game therefore ends as soon as a score reaches the limit, in the middle of a round.
 
+## Row capacity
+
+The rules summary says that a row holds a maximum of 5 cards, so that the 6th card takes the row.
+The code calls that maximum the row capacity, a rule of the game.
+The standard rules set it to 5.
+
 ## Game
 
 A game is one or more rounds.

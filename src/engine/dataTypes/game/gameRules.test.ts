@@ -44,6 +44,13 @@ describe('checkGameStart', () => {
     ).toBe(ErrorCode.InvalidGameRules);
   });
 
+  test.each([0, -1, 1.5])('rejects the row capacity %s', (rowCapacity) => {
+    const gameRules = { ...STANDARD_GAME_RULES, rowCapacity };
+    expect(
+      errorCodeOf(checkGameStart(gameRules, [ada, ben], orderedDeck())),
+    ).toBe(ErrorCode.InvalidGameRules);
+  });
+
   test('rejects a game of 1 player', () => {
     expect(
       errorCodeOf(checkGameStart(STANDARD_GAME_RULES, [ada], orderedDeck())),

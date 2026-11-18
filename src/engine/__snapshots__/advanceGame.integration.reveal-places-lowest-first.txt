@@ -1,0 +1,72 @@
+request: start the game with {"penaltyLimit":15,"handSize":3,"rowCapacity":5}
+  response: start game: ada, ben, cy
+
+  === state at the start of the game ===
+    phase: cardPick
+    row 0: (id 9, faceValue 10, penalty 3)
+    row 1: (id 19, faceValue 20, penalty 3)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 39, faceValue 40, penalty 3)
+    ada:
+      hand: (id 12, faceValue 13, penalty 1), (id 30, faceValue 31, penalty 1), (id 40, faceValue 41, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    ben:
+      hand: (id 10, faceValue 11, penalty 5), (id 31, faceValue 32, penalty 1), (id 41, faceValue 42, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 20, faceValue 21, penalty 1), (id 32, faceValue 33, penalty 5), (id 42, faceValue 43, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+
+request: ada picks (id 12, faceValue 13, penalty 1)
+  response: ada picks (id 12, faceValue 13, penalty 1)
+request: ben picks (id 10, faceValue 11, penalty 5)
+  response: ben picks (id 10, faceValue 11, penalty 5)
+request: cy picks (id 20, faceValue 21, penalty 1)
+  response: cy picks (id 20, faceValue 21, penalty 1)
+
+  === picks before the reveal ===
+    ben: (id 10, faceValue 11, penalty 5)
+    ada: (id 12, faceValue 13, penalty 1)
+    cy: (id 20, faceValue 21, penalty 1)
+
+  response: reveal
+
+  === rows before the placements ===
+    row 0: (id 9, faceValue 10, penalty 3)
+    row 1: (id 19, faceValue 20, penalty 3)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 39, faceValue 40, penalty 3)
+
+  response: ben places (id 10, faceValue 11, penalty 5) in row 0
+  response: ada places (id 12, faceValue 13, penalty 1) in row 0
+  response: cy places (id 20, faceValue 21, penalty 1) in row 1
+  response: await card pick
+
+  === state after the reveal ===
+    phase: cardPick
+    row 0: (id 9, faceValue 10, penalty 3), (id 10, faceValue 11, penalty 5), (id 12, faceValue 13, penalty 1)
+    row 1: (id 19, faceValue 20, penalty 3), (id 20, faceValue 21, penalty 1)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 39, faceValue 40, penalty 3)
+    ada:
+      hand: (id 30, faceValue 31, penalty 1), (id 40, faceValue 41, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    ben:
+      hand: (id 31, faceValue 32, penalty 1), (id 41, faceValue 42, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 32, faceValue 33, penalty 5), (id 42, faceValue 43, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+

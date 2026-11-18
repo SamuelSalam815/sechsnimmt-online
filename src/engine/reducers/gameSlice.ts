@@ -6,7 +6,6 @@ import {
   GamePhase,
   type GameState,
   INITIAL_GAME_STATE,
-  type RoundGameState,
   type RoundPhase,
 } from '#engine/dataTypes/game/gameState.ts';
 import {
@@ -16,23 +15,17 @@ import {
 import {
   addPenaltyToPlayer,
   findPlayer,
-  hasEnoughPlayers,
   type PlayerId,
   type Players,
   playersAdapter,
 } from '#engine/dataTypes/playerState/player.ts';
-import type {
-  CardPlacement,
-  RowPick,
-} from '#engine/dataTypes/table/revealResolution.ts';
+import type { RevealedCard } from '#engine/dataTypes/table/revealResolution.ts';
 import {
-  everyHandIsEmpty,
   findRow,
   findSeat,
   type Round,
 } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
-  listRoundSeats,
   playPickedCard,
   roundSeatsAdapter,
 } from '#engine/dataTypes/table/roundSeat.ts';
@@ -58,13 +51,18 @@ export interface UnpickCardPayload {
   playerId: PlayerId;
 }
 
+// The state already holds the picks. The payload is for a client whose history
+// lacks the picks of the other players: it learns the revealed cards here.
 export interface RevealPickedCardsPayload {
-  placements: CardPlacement[];
+  revealedCards: RevealedCard[];
 }
 
-// The first placement is the row pick itself.
-export interface PickRowPayload extends RowPick {
-  placements: CardPlacement[];
+// No list of taken cards: the row holds them, and a payload that repeated them
+// could disagree with it.
+export interface CardPlacementPayload {
+  playerId: PlayerId;
+  card: Card;
+  rowIndex: number;
 }
 
 export interface AbandonGamePayload {
@@ -96,19 +94,46 @@ export const gameSlice = createSlice({
         .pickedCardId;
       state.version = minorVersionBump(state.version);
     },
-    revealPickedCards(state, action: PayloadAction<RevealPickedCardsPayload>) {
+    revealPickedCards(state, _action: PayloadAction<RevealPickedCardsPayload>) {
       assertRoundInProgress(state);
-      applyCardPlacements(state, action.payload.placements);
       // The reveal is a major change: a request that saw an earlier version
       // chose its card without knowing the revealed cards.
       state.version = majorVersionBump(state.version);
     },
-    pickRow(state, action: PayloadAction<PickRowPayload>) {
+    placeCard(state, action: PayloadAction<CardPlacementPayload>) {
       assertRoundInProgress(state);
-      applyCardPlacements(state, action.payload.placements);
-      // The row pick is a major change: it places the cards that the reveal
-      // left picked.
+      const { playerId, card, rowIndex } = action.payload;
+      playPickedCard(findSeat(state.round, playerId).force(), card);
+      findRow(state.round, rowIndex).force().cards.push(card);
+      // A placement is a major change: it takes a card out of a hand.
       state.version = majorVersionBump(state.version);
+    },
+    takeRow(state, action: PayloadAction<CardPlacementPayload>) {
+      assertRoundInProgress(state);
+      const { playerId, card, rowIndex } = action.payload;
+      const seat = findSeat(state.round, playerId).force();
+      playPickedCard(seat, card);
+      const row = findRow(state.round, rowIndex).force();
+      seat.penaltyPile.push(...row.cards);
+      addPenaltyToPlayer(
+        findPlayer(state.players, playerId).force(),
+        row.cards,
+      );
+      row.cards = [card];
+      // A placement is a major change: it takes a card out of a hand.
+      state.version = majorVersionBump(state.version);
+    },
+    awaitCardPick(state) {
+      moveToPhase(state, GamePhase.CardPick);
+    },
+    awaitRowPick(state) {
+      moveToPhase(state, GamePhase.RowPick);
+    },
+    endRound(state) {
+      moveToPhase(state, GamePhase.EndOfRound);
+    },
+    endGame(state) {
+      moveToPhase(state, GamePhase.GameOver);
     },
     // The cards of the hand, the pick and the penalty pile of the player leave
     // the game with the player.
@@ -117,9 +142,6 @@ export const gameSlice = createSlice({
       const { playerId } = action.payload;
       playersAdapter.removeOne(state.players, playerId);
       roundSeatsAdapter.removeOne(state.round.seats, playerId);
-      if (!hasEnoughPlayers(state.players)) {
-        state.phase = GamePhase.GameOver;
-      }
       // A player who leaves changes which picks the reveal waits for.
       state.version = majorVersionBump(state.version);
     },
@@ -135,56 +157,12 @@ export const gameSlice = createSlice({
   },
 });
 
-function applyCardPlacements(
-  game: RoundGameState,
-  placements: readonly CardPlacement[],
-): void {
-  for (const placement of placements) {
-    applyCardPlacement(game, placement);
-  }
-  game.phase = findPhaseAfterPlacements(game);
-}
-
-function applyCardPlacement(
-  game: RoundGameState,
-  placement: CardPlacement,
-): void {
-  const { playerId, card, rowIndex, takenCards } = placement;
-  const seat = findSeat(game.round, playerId).force();
-  playPickedCard(seat, card);
-  const row = findRow(game.round, rowIndex).force();
-  if (takenCards.length === 0) {
-    row.cards.push(card);
-    return;
-  }
-  row.cards = [card];
-  seat.penaltyPile.push(...takenCards);
-  const player = findPlayer(game.players, playerId).force();
-  addPenaltyToPlayer(player, takenCards, game.gameRules.penaltyLimit);
-}
-
-// A placement that reaches the penalty limit leaves the cards that follow it
-// picked, so the score comes before the picks.
-function findPhaseAfterPlacements(game: RoundGameState): RoundPhase {
-  const { penaltyLimit } = game.gameRules;
-  const players = game.players;
-  if (
-    players.ids.some(
-      (playerId) => players.entities[playerId].penaltyScore >= penaltyLimit,
-    )
-  ) {
-    return GamePhase.GameOver;
-  }
-  if (
-    listRoundSeats(game.round.seats).some(
-      (seat) => seat.pickedCardId !== undefined,
-    )
-  ) {
-    return GamePhase.RowPick;
-  }
-  return everyHandIsEmpty(game.round)
-    ? GamePhase.EndOfRound
-    : GamePhase.CardPick;
+function moveToPhase(state: GameState, phase: RoundPhase): void {
+  assertRoundInProgress(state);
+  state.phase = phase;
+  // A phase change is a major change: the phase decides which requests the
+  // game accepts.
+  state.version = majorVersionBump(state.version);
 }
 
 export const {
@@ -192,7 +170,12 @@ export const {
   pickCard,
   unpickCard,
   revealPickedCards,
-  pickRow,
+  placeCard,
+  takeRow,
+  awaitCardPick,
+  awaitRowPick,
+  endRound,
+  endGame,
   abandonGame,
   startRound,
 } = gameSlice.actions;

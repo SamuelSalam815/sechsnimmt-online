@@ -1,4 +1,3 @@
-import { createNextState } from '@reduxjs/toolkit';
 import {
   GamePhase,
   type RoundGameState,
@@ -8,20 +7,15 @@ import {
   type PlayerId,
 } from '#engine/dataTypes/playerState/player.ts';
 import {
-  type CardPlacement,
   findCardForRowPick,
   findRowIndexOfLargestPenalty,
-  type RowPick,
-  resolveRowPick,
 } from '#engine/dataTypes/table/revealResolution.ts';
 import { findRow } from '#engine/dataTypes/table/roundLifecycle.ts';
-import {
-  abandonGame,
-  type GameAction,
-  gameSlice,
-  pickRow,
-} from '#engine/reducers/gameSlice.ts';
+import type { GameAction } from '#engine/reducers/gameSlice.ts';
+import { applyActions } from '#engine/requestHandling/applyActions.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
+import { resolveAbandon } from '#engine/requestHandling/resolveAbandon.ts';
+import { resolveRowPick } from '#engine/requestHandling/resolveReveal.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
@@ -36,7 +30,7 @@ export function handleRowPickPhase(
       return { actions: rowPickerAbandonActions(state, playerId) };
     }
     return findPlayer(state.players, playerId).use(() => ({
-      actions: [abandonGame({ playerId })],
+      actions: resolveAbandon(state, playerId),
     }));
   }
   if (request.type !== RequestType.PickRow) {
@@ -50,7 +44,7 @@ export function handleRowPickPhase(
   return findPlayer(state.players, playerId)
     .andThen(() => findRow(round, rowIndex))
     .andThen(() => findCardForRowPick(round, playerId))
-    .use(() => ({ actions: [pickRowAction(state, { playerId, rowIndex })] }));
+    .use(() => ({ actions: resolveRowPick(state, playerId, rowIndex) }));
 }
 
 // The game waits for the row of the player who abandons, so the row with the
@@ -60,21 +54,14 @@ function rowPickerAbandonActions(
   state: RoundGameState,
   playerId: PlayerId,
 ): GameAction[] {
-  const rowPickAction = pickRowAction(state, {
+  const rowPickActions = resolveRowPick(
+    state,
     playerId,
-    rowIndex: findRowIndexOfLargestPenalty(state.round),
-  });
-  const stateAfterRowPick = gameSlice.reducer(state, rowPickAction);
+    findRowIndexOfLargestPenalty(state.round),
+  );
+  const stateAfterRowPick = applyActions(state, rowPickActions);
   if (stateAfterRowPick.phase === GamePhase.GameOver) {
-    return [rowPickAction];
+    return rowPickActions;
   }
-  return [rowPickAction, abandonGame({ playerId })];
-}
-
-function pickRowAction(state: RoundGameState, rowPick: RowPick): GameAction {
-  let placements: CardPlacement[] = [];
-  createNextState(state, (draft) => {
-    placements = resolveRowPick(draft, rowPick);
-  });
-  return pickRow({ ...rowPick, placements });
+  return [...rowPickActions, ...resolveAbandon(stateAfterRowPick, playerId)];
 }

@@ -2,16 +2,12 @@
 import { type Card, createCards } from '#engine/dataTypes/cards/card.ts';
 import { type Deck, getDeckFaceValues } from '#engine/dataTypes/cards/deck.ts';
 import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
-import type { CardPlacement } from '#engine/dataTypes/table/revealResolution.ts';
 import {
   createRoundSeat,
   type RoundSeat,
 } from '#engine/dataTypes/table/roundSeat.ts';
-import {
-  addCardToRow,
-  createRow,
-  type Row,
-} from '#engine/dataTypes/table/row.ts';
+import type { Row } from '#engine/dataTypes/table/row.ts';
+import type { CardPlacementPayload } from '#engine/reducers/gameSlice.ts';
 
 const standardDeck = new Map(
   createCards(getDeckFaceValues()).map((card) => [card.faceValue, card]),
@@ -28,12 +24,7 @@ export function cardOf(faceValue: number): Card {
 }
 
 export function rowOf(...faceValues: number[]): Row {
-  const [first, ...rest] = faceValues.map(cardOf);
-  const row = createRow(first);
-  for (const card of rest) {
-    addCardToRow(row, card);
-  }
-  return row;
+  return { cards: faceValues.map(cardOf) };
 }
 
 // The deck in the order of the face values. A deal from it therefore gives
@@ -58,12 +49,6 @@ export function placementOf(
   playerId: PlayerId,
   faceValue: number,
   rowIndex: number,
-  takenFaceValues: number[] = [],
-): CardPlacement {
-  return {
-    playerId,
-    card: cardOf(faceValue),
-    rowIndex,
-    takenCards: takenFaceValues.map(cardOf),
-  };
+): CardPlacementPayload {
+  return { playerId, card: cardOf(faceValue), rowIndex };
 }

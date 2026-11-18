@@ -1,17 +1,25 @@
 import { describe, expect, test } from 'vitest';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import type { GameStateVersion } from '#engine/dataTypes/game/gameStateVersion.ts';
+import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
+  awaitCardPick,
+  awaitRowPick,
   type GameAction,
   pickCard,
-  pickRow,
+  placeCard,
   revealPickedCards,
+  startGame,
+  takeRow,
 } from '#engine/reducers/gameSlice.ts';
 import {
   type AppliedAction,
   appendToHistory,
-  selectLastRevealPlacements,
+  selectLastRevealEvents,
 } from '#engine/reducers/history.ts';
-import { cardOf, placementOf } from '#testSupport/cards.ts';
+import { initialRootState, rootReducer } from '#engine/store.ts';
+import { cardOf, placementOf, rowOf, seatOf } from '#testSupport/cards.ts';
+import { playersOf } from '#testSupport/gameStates.ts';
 
 const oldVersion: GameStateVersion = { sequence: 1, major: false };
 const newVersion: GameStateVersion = { sequence: 2, major: true };
@@ -49,45 +57,93 @@ describe('appendToHistory', () => {
   });
 });
 
-describe('selectLastRevealPlacements', () => {
+describe('selectLastRevealEvents', () => {
   function historyOf(actions: GameAction[]): AppliedAction[] {
-    return actions.reduce<AppliedAction[]>(
-      (history, nextAction) =>
-        appendToHistory(history, nextAction, oldVersion, newVersion),
-      [],
-    );
+    return actions.reduce(rootReducer, initialRootState).history;
   }
 
+  // Ada holds 5 and 25, Ben holds 30 and 41. The second row is full.
+  const start = startGame({
+    gameRules: STANDARD_GAME_RULES,
+    players: playersOf([
+      { id: 'a', name: 'Ada' },
+      { id: 'b', name: 'Ben' },
+    ]),
+    round: createRound(
+      [rowOf(10), rowOf(20, 21, 22, 23, 24)],
+      [seatOf('a', [5, 25].map(cardOf)), seatOf('b', [30, 41].map(cardOf))],
+    ),
+  });
+  // 25 is the sixth card of the second row, and 30 follows it.
   const firstReveal = revealPickedCards({
-    placements: [placementOf('a', 11, 0), placementOf('b', 12, 0)],
+    revealedCards: [
+      { playerId: 'a', card: cardOf(25) },
+      { playerId: 'b', card: cardOf(30) },
+    ],
+  });
+  const firstRevealActions = [
+    pickCard({ playerId: 'a', card: cardOf(25) }),
+    pickCard({ playerId: 'b', card: cardOf(30) }),
+    firstReveal,
+    takeRow(placementOf('a', 25, 1)),
+    placeCard(placementOf('b', 30, 1)),
+    awaitCardPick(),
+  ];
+  // 5 fits no row, so Ada picks the first row, and 41 then follows 30.
+  const secondReveal = revealPickedCards({
+    revealedCards: [
+      { playerId: 'a', card: cardOf(5) },
+      { playerId: 'b', card: cardOf(41) },
+    ],
+  });
+  const secondRevealActions = [
+    pickCard({ playerId: 'a', card: cardOf(5) }),
+    pickCard({ playerId: 'b', card: cardOf(41) }),
+    secondReveal,
+    awaitRowPick(),
+  ];
+  const rowPickActions = [
+    takeRow(placementOf('a', 5, 0)),
+    placeCard(placementOf('b', 41, 1)),
+  ];
+
+  test('gives no events before the first reveal', () => {
+    expect(selectLastRevealEvents(historyOf([start]))).toEqual([]);
   });
 
-  test('gives no placements before the first reveal', () => {
-    expect(selectLastRevealPlacements(historyOf([action]))).toEqual([]);
-  });
-
-  test('gives the placements of the last reveal', () => {
-    const lastReveal = revealPickedCards({
-      placements: [placementOf('a', 21, 1)],
-    });
+  test('gives the reveal and its placements, with the cards that a take takes', () => {
     expect(
-      selectLastRevealPlacements(
-        historyOf([firstReveal, action, lastReveal, action]),
-      ),
-    ).toEqual([placementOf('a', 21, 1)]);
+      selectLastRevealEvents(historyOf([start, ...firstRevealActions])),
+    ).toEqual([
+      { action: firstReveal },
+      {
+        action: takeRow(placementOf('a', 25, 1)),
+        takenCards: [20, 21, 22, 23, 24].map(cardOf),
+      },
+      { action: placeCard(placementOf('b', 30, 1)) },
+    ]);
   });
 
-  test('adds the placements of the row pick that follows the last reveal', () => {
-    const revealThatWaits = revealPickedCards({ placements: [] });
-    const rowPick = pickRow({
-      playerId: 'a',
-      rowIndex: 1,
-      placements: [placementOf('a', 1, 1, [12]), placementOf('b', 30, 0)],
-    });
+  test('gives only the last reveal, extended by the row pick that follows it', () => {
+    const history = historyOf([
+      start,
+      ...firstRevealActions,
+      ...secondRevealActions,
+    ]);
+    expect(selectLastRevealEvents(history)).toEqual([{ action: secondReveal }]);
     expect(
-      selectLastRevealPlacements(
-        historyOf([firstReveal, revealThatWaits, rowPick]),
+      selectLastRevealEvents(
+        historyOf([
+          start,
+          ...firstRevealActions,
+          ...secondRevealActions,
+          ...rowPickActions,
+        ]),
       ),
-    ).toEqual([placementOf('a', 1, 1, [12]), placementOf('b', 30, 0)]);
+    ).toEqual([
+      { action: secondReveal },
+      { action: takeRow(placementOf('a', 5, 0)), takenCards: [cardOf(10)] },
+      { action: placeCard(placementOf('b', 41, 1)) },
+    ]);
   });
 });
