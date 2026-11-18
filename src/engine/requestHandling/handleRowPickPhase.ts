@@ -9,12 +9,12 @@ import {
 import {
   findCardForRowPick,
   findRowIndexOfLargestPenalty,
-  resolveRowPick,
 } from '#engine/dataTypes/table/revealResolution.ts';
 import { findRow } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
   abandonGame,
   type GameAction,
+  gameSlice,
   pickRow,
 } from '#engine/reducers/gameSlice.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
@@ -60,13 +60,8 @@ function rowPickerAbandonActions(
     playerId,
     rowIndex: findRowIndexOfLargestPenalty(state.round),
   };
-  const outcome = resolveRowPick(
-    state.round,
-    state.players,
-    rowPick,
-    state.gameRules.penaltyLimit,
-  );
-  if (outcome.phase === GamePhase.GameOver) {
+  const stateAfterRowPick = gameSlice.reducer(state, pickRow(rowPick));
+  if (stateAfterRowPick.phase === GamePhase.GameOver) {
     return [pickRow(rowPick)];
   }
   return [pickRow(rowPick), abandonGame({ playerId })];

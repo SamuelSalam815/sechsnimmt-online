@@ -1,13 +1,7 @@
 import { assert, describe, expect, test } from 'vitest';
 import { advanceGame } from '#engine/advanceGame.ts';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
-import {
-  createGameState,
-  GamePhase,
-} from '#engine/dataTypes/game/gameState.ts';
-import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
-import { createHand } from '#engine/dataTypes/playerState/hand.ts';
-import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
+import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
 import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { initialRootState } from '#engine/store.ts';
@@ -24,7 +18,8 @@ import {
 } from '#server/gameRunner/gameRunnerCore.ts';
 import { LogLevel } from '#server/infrastructure/message.ts';
 import { RoomMessageType } from '#server/room/roomCore.ts';
-import { cardOf, orderedDeck, rowOf } from '#testSupport/cards.ts';
+import { cardOf, orderedDeck, rowOf, seatOf } from '#testSupport/cards.ts';
+import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 
 const seats: Seat[] = [
   { clientToken: 'secret-a', playerProfile: { id: 'a', name: 'Ada' } },
@@ -69,12 +64,10 @@ function rejection(statusCode: number, message: string) {
 const lastTurn: GameRunnerCoreContext = {
   seats: [seats[0]],
   rootState: {
-    game: createGameState(
+    game: roundGameStateOf(
       GamePhase.CardPick,
-      INITIAL_GAME_STATE_VERSION,
-      STANDARD_GAME_RULES,
-      [createPlayer({ id: 'a', name: 'Ada' })],
-      createRound([rowOf(10)], [createHand('a', [cardOf(50)])]),
+      playersOf([{ id: 'a', name: 'Ada' }]),
+      createRound([rowOf(10)], [seatOf('a', [cardOf(50)])]),
     ),
     history: [],
   },

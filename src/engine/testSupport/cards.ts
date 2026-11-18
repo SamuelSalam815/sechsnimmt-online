@@ -1,11 +1,11 @@
-// Test support. It builds cards and rows through their constructors, so a test
-// needs no cast to hold one.
+// Test support. It builds the cards, rows and seats that the tests share.
 import { type Card, createCards } from '#engine/dataTypes/cards/card.ts';
+import { type Deck, getDeckFaceValues } from '#engine/dataTypes/cards/deck.ts';
+import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 import {
-  createDeck,
-  type Deck,
-  getDeckFaceValues,
-} from '#engine/dataTypes/cards/deck.ts';
+  createRoundSeat,
+  type RoundSeat,
+} from '#engine/dataTypes/table/roundSeat.ts';
 import {
   addCardToRow,
   createRow,
@@ -28,14 +28,27 @@ export function cardOf(faceValue: number): Card {
 
 export function rowOf(...faceValues: number[]): Row {
   const [first, ...rest] = faceValues.map(cardOf);
-  return rest.reduce(
-    (row, card) => addCardToRow(row, card).row,
-    createRow(first),
-  );
+  const row = createRow(first);
+  for (const card of rest) {
+    addCardToRow(row, card);
+  }
+  return row;
 }
 
 // The deck in the order of the face values. A deal from it therefore gives
 // each player a run of cards: the first player 1 to 10, the next 11 to 20.
 export function orderedDeck(): Deck {
-  return createDeck([...standardDeck.values()]);
+  return { cards: [...standardDeck.values()] };
+}
+
+export function seatOf(
+  playerId: PlayerId,
+  hand: readonly Card[],
+  pickedCard?: Card,
+): RoundSeat {
+  const seat = createRoundSeat(playerId, hand);
+  if (pickedCard !== undefined) {
+    seat.pickedCardId = pickedCard.id;
+  }
+  return seat;
 }

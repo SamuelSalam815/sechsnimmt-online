@@ -1,5 +1,5 @@
 import { checkGameStart } from '#engine/dataTypes/game/gameRules.ts';
-import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
+import { createPlayers } from '#engine/dataTypes/playerState/player.ts';
 import { dealRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { startGame } from '#engine/reducers/gameSlice.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
@@ -12,8 +12,12 @@ export function handlePreStartPhase(request: GameRequest): PhaseHandlingResult {
     const { gameRules, newShuffledDeck } = request;
     return checkGameStart(gameRules, request.players, newShuffledDeck).use(
       () => {
-        const players = request.players.map((profile) => createPlayer(profile));
-        const round = dealRound(players, newShuffledDeck, gameRules.handSize);
+        const players = createPlayers(request.players);
+        const round = dealRound(
+          players.ids,
+          newShuffledDeck,
+          gameRules.handSize,
+        );
         return { actions: [startGame({ gameRules, players, round })] };
       },
     );

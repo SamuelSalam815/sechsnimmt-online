@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
-import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
+import { createPlayers } from '#engine/dataTypes/playerState/player.ts';
 import { dealRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { startGame } from '#engine/reducers/gameSlice.ts';
 import { handlePreStartPhase } from '#engine/requestHandling/handlePreStartPhase.ts';
@@ -11,15 +11,17 @@ import { orderedDeck } from '#testSupport/cards.ts';
 import { startGameRequest } from '#testSupport/requests.ts';
 
 test('handles the start game request with a start game action that deals the deck of the request', () => {
-  const players = startGameRequest.players.map((profile) =>
-    createPlayer(profile),
-  );
+  const players = createPlayers(startGameRequest.players);
   expect(handlePreStartPhase(startGameRequest)).toEqual({
     actions: [
       startGame({
         gameRules: STANDARD_GAME_RULES,
         players,
-        round: dealRound(players, orderedDeck(), STANDARD_GAME_RULES.handSize),
+        round: dealRound(
+          players.ids,
+          orderedDeck(),
+          STANDARD_GAME_RULES.handSize,
+        ),
       }),
     ],
   });

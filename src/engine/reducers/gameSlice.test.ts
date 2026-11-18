@@ -1,24 +1,13 @@
 import { assert, describe, expect, test } from 'vitest';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
-  createGameState,
-  createInitialGameState,
   GamePhase,
   type GameState,
+  INITIAL_GAME_STATE,
+  type RoundGameState,
 } from '#engine/dataTypes/game/gameState.ts';
-import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
-import { createHand } from '#engine/dataTypes/playerState/hand.ts';
-import { createPenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
-import {
-  addPenaltyToPlayer,
-  createPlayer,
-} from '#engine/dataTypes/playerState/player.ts';
-import {
-  createRound,
-  findPickedCardId,
-  pickCardInRound,
-  type Round,
-} from '#engine/dataTypes/table/roundLifecycle.ts';
+import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
+import { listRoundSeats } from '#engine/dataTypes/table/roundSeat.ts';
 import {
   abandonGame,
   gameSlice,
@@ -29,12 +18,13 @@ import {
   startRound,
   unpickCard,
 } from '#engine/reducers/gameSlice.ts';
-import { cardOf, rowOf } from '#testSupport/cards.ts';
+import { cardOf, rowOf, seatOf } from '#testSupport/cards.ts';
+import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 
-const players = [
-  createPlayer({ id: 'a', name: 'Ada' }),
-  createPlayer({ id: 'b', name: 'Ben' }),
-];
+const ada = { id: 'a', name: 'Ada' };
+const ben = { id: 'b', name: 'Ben' };
+const cy = { id: 'c', name: 'Cy' };
+const players = playersOf([ada, ben]);
 const aceOfAda = cardOf(1);
 const otherOfAda = cardOf(2);
 // Higher than the card of the only row, so the reveal places it.
@@ -42,52 +32,77 @@ const cardOfBen = cardOf(60);
 
 // Ada holds two cards and Ben holds one.
 function cardPick(): GameState {
-  const hands = [
-    createHand('a', [aceOfAda, otherOfAda]),
-    createHand('b', [cardOfBen]),
-  ];
-  return createGameState(
+  return roundGameStateOf(
     GamePhase.CardPick,
-    INITIAL_GAME_STATE_VERSION,
-    STANDARD_GAME_RULES,
     players,
-    createRound([rowOf(50)], hands),
+    createRound(
+      [rowOf(50)],
+      [seatOf('a', [aceOfAda, otherOfAda]), seatOf('b', [cardOfBen])],
+    ),
   );
 }
 
-function roundOf(state: GameState): Round {
+function roundStateOf(state: GameState): RoundGameState {
   assert(state.phase !== GamePhase.PreStart);
-  return state.round;
+  return state;
+}
+
+function picksOf(state: GameState) {
+  return listRoundSeats(roundStateOf(state).round.seats).map(
+    (seat) => seat.pickedCardId,
+  );
+}
+
+function penaltyScoresOf(state: GameState): number[] {
+  const { players: nextPlayers } = roundStateOf(state);
+  return nextPlayers.ids.map(
+    (playerId) => nextPlayers.entities[playerId].penaltyScore,
+  );
 }
 
 test('moves to the card pick phase with the players and the round on startGame', () => {
-  const round = createRound([], [createHand('a', [aceOfAda])]);
+  const round = createRound([], [seatOf('a', [aceOfAda])]);
+  const onePlayer = playersOf([ada]);
   const next = gameSlice.reducer(
-    createInitialGameState(),
-    startGame({
-      gameRules: STANDARD_GAME_RULES,
-      players: [players[0]],
-      round,
-    }),
+    INITIAL_GAME_STATE,
+    startGame({ gameRules: STANDARD_GAME_RULES, players: onePlayer, round }),
   );
   expect(next).toEqual(
-    createGameState(
-      GamePhase.CardPick,
-      { sequence: 1, major: true },
-      STANDARD_GAME_RULES,
-      [players[0]],
-      round,
-    ),
+    roundGameStateOf(GamePhase.CardPick, onePlayer, round, {
+      sequence: 1,
+      major: true,
+    }),
   );
 });
 
 describe('pickCard', () => {
   const pickAceOfAda = pickCard({ playerId: 'a', card: aceOfAda });
 
-  test('picks the card of the player', () => {
+  test('picks the card of the player and leaves it in the hand', () => {
     const next = gameSlice.reducer(cardPick(), pickAceOfAda);
     expect(next.phase).toBe(GamePhase.CardPick);
-    expect(findPickedCardId(roundOf(next), 'a')).toBe(aceOfAda.id);
+    expect(picksOf(next)).toEqual([aceOfAda.id, undefined]);
+    expect(roundStateOf(next).round.seats.entities.a.hand).toEqual([
+      aceOfAda,
+      otherOfAda,
+    ]);
+  });
+
+  test('replaces the pick if the player has already picked a card', () => {
+    const picked = gameSlice.reducer(
+      cardPick(),
+      pickCard({ playerId: 'a', card: otherOfAda }),
+    );
+    expect(picksOf(gameSlice.reducer(picked, pickAceOfAda))).toEqual([
+      aceOfAda.id,
+      undefined,
+    ]);
+  });
+
+  test('leaves the state it was given', () => {
+    const state = cardPick();
+    gameSlice.reducer(state, pickAceOfAda);
+    expect(picksOf(state)).toEqual([undefined, undefined]);
   });
 
   test('makes a minor version change', () => {
@@ -102,9 +117,13 @@ describe('unpickCard', () => {
     pickCard({ playerId: 'a', card: aceOfAda }),
   );
 
-  test('drops the pick of the player', () => {
+  test('drops the pick of the player and keeps the hand', () => {
     const next = gameSlice.reducer(picked, unpickCard({ playerId: 'a' }));
-    expect(roundOf(next).picks).toEqual({});
+    expect(picksOf(next)).toEqual([undefined, undefined]);
+    expect(roundStateOf(next).round.seats.entities.a.hand).toEqual([
+      aceOfAda,
+      otherOfAda,
+    ]);
   });
 
   test('makes a minor version change', () => {
@@ -120,11 +139,11 @@ describe('revealPickedCards', () => {
   );
 
   // resolveReveal decides the phase and places the cards. See
-  // dataTypes/table/round.test.ts.
+  // dataTypes/table/revealResolution.test.ts.
   test('takes the phase from the resolved reveal', () => {
     const next = gameSlice.reducer(picked, revealPickedCards());
     expect(next.phase).toBe(GamePhase.CardPick);
-    expect(roundOf(next).picks).toEqual({});
+    expect(picksOf(next)).toEqual([undefined, undefined]);
   });
 
   test('makes a major version change', () => {
@@ -133,61 +152,45 @@ describe('revealPickedCards', () => {
     expect(next.version).toEqual({ sequence: 2, major: true });
   });
 
-  // The reveal reports the penalty that a player accrued. The reducer adds it
-  // to the score of that player, which outlives the round.
   test('grows the penalty score of a player that takes a row', () => {
-    const fullRow = createGameState(
+    const fullRow = roundGameStateOf(
       GamePhase.CardPick,
-      INITIAL_GAME_STATE_VERSION,
-      STANDARD_GAME_RULES,
       players,
       createRound(
         [rowOf(1, 2, 3, 4, 5)],
-        [createHand('a', [aceOfAda]), createHand('b', [cardOfBen])],
+        [seatOf('a', [aceOfAda]), seatOf('b', [cardOfBen], cardOfBen)],
       ),
     );
-    const pickOfBen = gameSlice.reducer(
-      fullRow,
-      pickCard({ playerId: 'b', card: cardOfBen }),
-    );
-    const next = gameSlice.reducer(pickOfBen, revealPickedCards());
-    assert(next.phase !== GamePhase.PreStart);
+    const next = gameSlice.reducer(fullRow, revealPickedCards());
     // The row counts 1 penalty for each card and 2 for the 5.
-    expect(next.players.map((player) => player.penaltyScore)).toEqual([0, 6]);
+    expect(penaltyScoresOf(next)).toEqual([0, 6]);
   });
 });
 
 describe('pickRow', () => {
   // Ada picked 1, which is lower than the 50 of the only row.
-  const rowPick = createGameState(
+  const rowPick = roundGameStateOf(
     GamePhase.RowPick,
-    INITIAL_GAME_STATE_VERSION,
-    STANDARD_GAME_RULES,
     players,
-    pickCardInRound(
-      createRound(
-        [rowOf(50)],
-        [createHand('a', [aceOfAda, otherOfAda]), createHand('b', [])],
-      ),
-      'a',
-      aceOfAda,
+    createRound(
+      [rowOf(50)],
+      [seatOf('a', [aceOfAda, otherOfAda], aceOfAda), seatOf('b', [])],
     ),
   );
   const pickRowOfAda = pickRow({ playerId: 'a', rowIndex: 0 });
 
   // resolveRowPick decides the phase and places the cards. See
-  // dataTypes/table/round.test.ts.
+  // dataTypes/table/revealResolution.test.ts.
   test('takes the phase from the resolved row pick', () => {
     const next = gameSlice.reducer(rowPick, pickRowOfAda);
     expect(next.phase).toBe(GamePhase.CardPick);
-    expect(roundOf(next).rows).toEqual([rowOf(1)]);
+    expect(roundStateOf(next).round.rows).toEqual([rowOf(1)]);
   });
 
   test('grows the penalty score of the player by the taken row', () => {
     const next = gameSlice.reducer(rowPick, pickRowOfAda);
-    assert(next.phase !== GamePhase.PreStart);
     // The 50 counts 3 penalty.
-    expect(next.players.map((player) => player.penaltyScore)).toEqual([3, 0]);
+    expect(penaltyScoresOf(next)).toEqual([3, 0]);
   });
 
   test('makes a major version change', () => {
@@ -197,34 +200,29 @@ describe('pickRow', () => {
 });
 
 describe('abandonGame', () => {
-  const cy = createPlayer({ id: 'c', name: 'Cy' });
-
-  test('takes the player and the cards of the player out of the game', () => {
-    const state = createGameState(
+  test('takes the player and the seat of the player out of the game', () => {
+    const state = roundGameStateOf(
       GamePhase.CardPick,
-      INITIAL_GAME_STATE_VERSION,
-      STANDARD_GAME_RULES,
-      [...players, cy],
+      playersOf([ada, ben, cy]),
       createRound(
         [rowOf(50)],
         [
-          createHand('a', [aceOfAda]),
-          createHand('b', [cardOfBen]),
-          createHand('c', []),
+          seatOf('a', [aceOfAda], aceOfAda),
+          seatOf('b', [cardOfBen], cardOfBen),
+          seatOf('c', []),
         ],
       ),
     );
     const next = gameSlice.reducer(state, abandonGame({ playerId: 'a' }));
     expect(next).toEqual(
-      createGameState(
+      roundGameStateOf(
         GamePhase.CardPick,
-        { sequence: 1, major: true },
-        STANDARD_GAME_RULES,
-        [players[1], cy],
+        playersOf([ben, cy]),
         createRound(
           [rowOf(50)],
-          [createHand('b', [cardOfBen]), createHand('c', [])],
+          [seatOf('b', [cardOfBen], cardOfBen), seatOf('c', [])],
         ),
+        { sequence: 1, major: true },
       ),
     );
   });
@@ -238,26 +236,19 @@ describe('abandonGame', () => {
 // The penalty score of a player sums the rounds of the game, so a new round
 // keeps the players as they are.
 test('moves to the card pick phase with the next round on startRound', () => {
-  const scored = players.map((player) =>
-    addPenaltyToPlayer(player, createPenaltyTotal(player.id, [aceOfAda])),
-  );
-  const nextRound = createRound([rowOf(3)], [createHand('a', [otherOfAda])]);
-  const endOfRound = createGameState(
+  const scored = playersOf([ada, ben], { a: 1, b: 1 });
+  const nextRound = createRound([rowOf(3)], [seatOf('a', [otherOfAda])]);
+  const endOfRound = roundGameStateOf(
     GamePhase.EndOfRound,
-    INITIAL_GAME_STATE_VERSION,
-    STANDARD_GAME_RULES,
     scored,
     createRound([], []),
   );
   const next = gameSlice.reducer(endOfRound, startRound({ round: nextRound }));
   expect(next).toEqual(
-    createGameState(
-      GamePhase.CardPick,
-      { sequence: 1, major: true },
-      STANDARD_GAME_RULES,
-      scored,
-      nextRound,
-    ),
+    roundGameStateOf(GamePhase.CardPick, scored, nextRound, {
+      sequence: 1,
+      major: true,
+    }),
   );
 });
 
@@ -267,7 +258,7 @@ test('moves to the card pick phase with the next round on startRound', () => {
 test('an action throws if the phase holds no round', () => {
   expect(() =>
     gameSlice.reducer(
-      createInitialGameState(),
+      INITIAL_GAME_STATE,
       pickCard({ playerId: 'a', card: aceOfAda }),
     ),
   ).toThrow();

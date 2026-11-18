@@ -16,7 +16,7 @@ export function handleEndOfRoundPhase(
       actions: [
         startRound({
           round: dealRound(
-            state.players,
+            state.players.ids,
             request.newShuffledDeck,
             state.gameRules.handSize,
           ),

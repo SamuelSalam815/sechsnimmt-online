@@ -1,20 +1,22 @@
 import type { Card } from '#engine/dataTypes/cards/card.ts';
-import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';
-import { findCardInHand } from '#engine/dataTypes/playerState/hand.ts';
 import {
-  doesGameHaveEnoughPlayers,
+  GamePhase,
+  type RoundGameState,
+} from '#engine/dataTypes/game/gameState.ts';
+import {
   findPlayer,
   type PlayerId,
-  removePlayer,
 } from '#engine/dataTypes/playerState/player.ts';
 import {
-  findHand,
   findPick,
-  findPickedCardId,
+  findSeat,
+  wouldEveryOtherSeatHavePicked,
 } from '#engine/dataTypes/table/roundLifecycle.ts';
+import { findCardInHand } from '#engine/dataTypes/table/roundSeat.ts';
 import {
   abandonGame,
   type GameAction,
+  gameSlice,
   pickCard,
   revealPickedCards,
   unpickCard,
@@ -52,8 +54,8 @@ export function handleCardPickPhase(
       .use(() => ({ actions: [unpickCard({ playerId })] }));
   }
   return checkPlayerExists
-    .andThen(() => findHand(round, playerId))
-    .andThen((hand) => findCardInHand(hand, cardId))
+    .andThen(() => findSeat(round, playerId))
+    .andThen((seat) => findCardInHand(seat, cardId))
     .use((card) => ({ actions: pickActions(state, playerId, card) }));
 }
 
@@ -63,7 +65,7 @@ function pickActions(
   card: Card,
 ): GameAction[] {
   const actions: GameAction[] = [pickCard({ playerId, card })];
-  if (wouldBeLastRemainingPlayerToPick(state, playerId)) {
+  if (wouldEveryOtherSeatHavePicked(state.round, playerId)) {
     actions.push(revealPickedCards());
   }
   return actions;
@@ -75,23 +77,13 @@ function abandonActions(
   state: RoundGameState,
   playerId: PlayerId,
 ): GameAction[] {
-  const actions: GameAction[] = [abandonGame({ playerId })];
+  const abandonAction = abandonGame({ playerId });
+  const stateAfterAbandon = gameSlice.reducer(state, abandonAction);
   if (
-    doesGameHaveEnoughPlayers(removePlayer(state.players, playerId)) &&
-    wouldBeLastRemainingPlayerToPick(state, playerId)
+    stateAfterAbandon.phase !== GamePhase.GameOver &&
+    wouldEveryOtherSeatHavePicked(state.round, playerId)
   ) {
-    actions.push(revealPickedCards());
+    return [abandonAction, revealPickedCards()];
   }
-  return actions;
-}
-
-function wouldBeLastRemainingPlayerToPick(
-  state: RoundGameState,
-  playerId: PlayerId,
-): boolean {
-  return state.players.every(
-    (player) =>
-      player.id === playerId ||
-      findPickedCardId(state.round, player.id) !== undefined,
-  );
+  return [abandonAction];
 }

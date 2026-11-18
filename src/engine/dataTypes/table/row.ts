@@ -3,13 +3,7 @@ import type { Card } from '#engine/dataTypes/cards/card.ts';
 const ROW_CAPACITY = 5;
 
 export interface Row {
-  readonly cards: readonly Card[];
-}
-
-// The outcome of placement rule 3 of docs/game-rules.md.
-export interface RowPlacementOutcome {
-  readonly row: Row;
-  readonly takenCards: readonly Card[];
+  cards: Card[];
 }
 
 export function createRow(card: Card): Row {
@@ -20,9 +14,19 @@ export function getLastCardOfRow(row: Row): Card {
   return row.cards[row.cards.length - 1];
 }
 
-export function addCardToRow(row: Row, card: Card): RowPlacementOutcome {
+// Placement rule 3 of docs/game-rules.md. The cards that the player takes
+// come back, so that no caller asks about the capacity of the row.
+export function addCardToRow(row: Row, card: Card): Card[] {
   if (row.cards.length < ROW_CAPACITY) {
-    return { row: { cards: [...row.cards, card] }, takenCards: [] };
+    row.cards.push(card);
+    return [];
   }
-  return { row: { cards: [card] }, takenCards: row.cards };
+  return takeRow(row, card);
+}
+
+// Rule 4 of docs/game-rules.md, and the full row of rule 3.
+export function takeRow(row: Row, card: Card): Card[] {
+  const takenCards = row.cards;
+  row.cards = [card];
+  return takenCards;
 }

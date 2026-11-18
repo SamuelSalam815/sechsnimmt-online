@@ -1,13 +1,10 @@
 import { expect, test } from 'vitest';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
-  assertRoundInProgress,
-  createGameState,
   GamePhase,
   type RoundGameState,
 } from '#engine/dataTypes/game/gameState.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
-import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
 import {
   createRound,
   dealRound,
@@ -17,23 +14,18 @@ import { handleEndOfRoundPhase } from '#engine/requestHandling/handleEndOfRoundP
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
 import { orderedDeck } from '#testSupport/cards.ts';
+import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 import { abandonRequest, startGameRequest } from '#testSupport/requests.ts';
 
-const players = [
-  createPlayer({ id: 'a', name: 'Ada' }),
-  createPlayer({ id: 'b', name: 'Ben' }),
-];
-
 function endOfRound(): RoundGameState {
-  const state = createGameState(
+  return roundGameStateOf(
     GamePhase.EndOfRound,
-    INITIAL_GAME_STATE_VERSION,
-    STANDARD_GAME_RULES,
-    players,
+    playersOf([
+      { id: 'a', name: 'Ada' },
+      { id: 'b', name: 'Ben' },
+    ]),
     createRound([], []),
   );
-  assertRoundInProgress(state);
-  return state;
 }
 
 test('handles the start round request with a start round action that deals the deck of the request', () => {
@@ -46,7 +38,11 @@ test('handles the start round request with a start round action that deals the d
   ).toEqual({
     actions: [
       startRound({
-        round: dealRound(players, orderedDeck(), STANDARD_GAME_RULES.handSize),
+        round: dealRound(
+          ['a', 'b'],
+          orderedDeck(),
+          STANDARD_GAME_RULES.handSize,
+        ),
       }),
     ],
   });

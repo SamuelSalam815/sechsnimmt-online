@@ -1,55 +1,42 @@
 import { expect, test } from 'vitest';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
-  assertRoundInProgress,
-  createGameState,
   GamePhase,
   type RoundGameState,
 } from '#engine/dataTypes/game/gameState.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
-import { createHand } from '#engine/dataTypes/playerState/hand.ts';
-import { createPenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
-import {
-  addPenaltyToPlayer,
-  createPlayer,
-  type Player,
-  type PlayerId,
+import type {
+  PlayerId,
+  Players,
 } from '#engine/dataTypes/playerState/player.ts';
-import {
-  createRound,
-  pickCardInRound,
-} from '#engine/dataTypes/table/roundLifecycle.ts';
+import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { abandonGame, pickRow } from '#engine/reducers/gameSlice.ts';
 import { handleRowPickPhase } from '#engine/requestHandling/handleRowPickPhase.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
-import { cardOf, rowOf } from '#testSupport/cards.ts';
+import { cardOf, rowOf, seatOf } from '#testSupport/cards.ts';
+import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 import { abandonRequest, startGameRequest } from '#testSupport/requests.ts';
 
-const players = [
-  createPlayer({ id: 'a', name: 'Ada' }),
-  createPlayer({ id: 'b', name: 'Ben' }),
+const profiles = [
+  { id: 'a', name: 'Ada' },
+  { id: 'b', name: 'Ben' },
 ];
 
 // Ada picked 1, which is lower than the last card of every row, and Ben
 // picked 60.
-function rowPick(statePlayers: readonly Player[] = players): RoundGameState {
-  let round = createRound(
-    [rowOf(10), rowOf(20)],
-    [createHand('a', [cardOf(1)]), createHand('b', [cardOf(60)])],
-  );
-  round = pickCardInRound(round, 'a', cardOf(1));
-  round = pickCardInRound(round, 'b', cardOf(60));
-  const state = createGameState(
+function rowPick(players: Players = playersOf(profiles)): RoundGameState {
+  return roundGameStateOf(
     GamePhase.RowPick,
-    INITIAL_GAME_STATE_VERSION,
-    STANDARD_GAME_RULES,
-    statePlayers,
-    round,
+    players,
+    createRound(
+      [rowOf(10), rowOf(20)],
+      [
+        seatOf('a', [cardOf(1)], cardOf(1)),
+        seatOf('b', [cardOf(60)], cardOf(60)),
+      ],
+    ),
   );
-  assertRoundInProgress(state);
-  return state;
 }
 
 function pickRowRequest(playerId: PlayerId, rowIndex: number): GameRequest {
@@ -106,15 +93,9 @@ test('gives the row with the largest penalty to the player who must pick a row a
 
 test('keeps the player who must pick a row in the game when that row ends it', () => {
   // A score of 63 for Ada. The row of 10 adds 3, which reaches the limit.
-  const scoredAda = addPenaltyToPlayer(
-    players[0],
-    createPenaltyTotal(
-      'a',
-      [11, 22, 33, 44, 66, 77, 88, 99, 55, 20, 30, 40, 50, 15, 35].map(cardOf),
-    ),
-  );
+  const scoredPlayers = playersOf(profiles, { a: 63 });
   expect(
-    handleRowPickPhase(rowPick([scoredAda, players[1]]), abandonRequest('a')),
+    handleRowPickPhase(rowPick(scoredPlayers), abandonRequest('a')),
   ).toEqual({
     actions: [pickRow({ playerId: 'a', rowIndex: 0 })],
   });

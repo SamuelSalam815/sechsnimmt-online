@@ -1,24 +1,12 @@
 import { expect, test } from 'vitest';
 import type { Card, CardId } from '#engine/dataTypes/cards/card.ts';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
-  assertRoundInProgress,
-  createGameState,
   GamePhase,
   type RoundGameState,
 } from '#engine/dataTypes/game/gameState.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
-import { createHand } from '#engine/dataTypes/playerState/hand.ts';
-import {
-  createPlayer,
-  type Player,
-  type PlayerId,
-} from '#engine/dataTypes/playerState/player.ts';
-import {
-  createRound,
-  pickCardInRound,
-  type Round,
-} from '#engine/dataTypes/table/roundLifecycle.ts';
+import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
+import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
   abandonGame,
   pickCard,
@@ -29,43 +17,31 @@ import { handleCardPickPhase } from '#engine/requestHandling/handleCardPickPhase
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
-import { cardOf } from '#testSupport/cards.ts';
+import { cardOf, seatOf } from '#testSupport/cards.ts';
+import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 import { abandonRequest, startGameRequest } from '#testSupport/requests.ts';
 
-const players = [
-  createPlayer({ id: 'a', name: 'Ada' }),
-  createPlayer({ id: 'b', name: 'Ben' }),
-];
+const ada = { id: 'a', name: 'Ada' };
+const ben = { id: 'b', name: 'Ben' };
 const aceOfAda = cardOf(1);
 const otherOfAda = cardOf(2);
 const aceOfBen = cardOf(3);
 const version = INITIAL_GAME_STATE_VERSION;
 
-function inCardPick(
-  statePlayers: readonly Player[],
-  round: Round,
-): RoundGameState {
-  const state = createGameState(
-    GamePhase.CardPick,
-    version,
-    STANDARD_GAME_RULES,
-    statePlayers,
-    round,
-  );
-  assertRoundInProgress(state);
-  return state;
-}
-
 function cardPick(picks: [PlayerId, Card][] = []): RoundGameState {
-  const hands = [
-    createHand('a', [aceOfAda, otherOfAda]),
-    createHand('b', [aceOfBen]),
-  ];
-  let round = createRound([], hands);
-  for (const [playerId, card] of picks) {
-    round = pickCardInRound(round, playerId, card);
-  }
-  return inCardPick(players, round);
+  const pickOf = (playerId: PlayerId) =>
+    picks.find(([pickerId]) => pickerId === playerId)?.[1];
+  return roundGameStateOf(
+    GamePhase.CardPick,
+    playersOf([ada, ben]),
+    createRound(
+      [],
+      [
+        seatOf('a', [aceOfAda, otherOfAda], pickOf('a')),
+        seatOf('b', [aceOfBen], pickOf('b')),
+      ],
+    ),
+  );
 }
 
 function pickRequest(playerId: PlayerId, cardId: CardId): GameRequest {
@@ -161,19 +137,19 @@ test('returns an error for the abandon game request of an unknown player', () =>
 });
 
 test('reveals the picked cards when every player who stays has picked one', () => {
-  const cy = createPlayer({ id: 'c', name: 'Cy' });
   const aceOfCy = cardOf(4);
-  let round = createRound(
-    [],
-    [
-      createHand('a', [aceOfAda]),
-      createHand('b', [aceOfBen]),
-      createHand('c', [aceOfCy]),
-    ],
+  const state = roundGameStateOf(
+    GamePhase.CardPick,
+    playersOf([ada, ben, { id: 'c', name: 'Cy' }]),
+    createRound(
+      [],
+      [
+        seatOf('a', [aceOfAda]),
+        seatOf('b', [aceOfBen], aceOfBen),
+        seatOf('c', [aceOfCy], aceOfCy),
+      ],
+    ),
   );
-  round = pickCardInRound(round, 'b', aceOfBen);
-  round = pickCardInRound(round, 'c', aceOfCy);
-  const state = inCardPick([...players, cy], round);
   expect(handleCardPickPhase(state, abandonRequest('a'))).toEqual({
     actions: [abandonGame({ playerId: 'a' }), revealPickedCards()],
   });

@@ -1,4 +1,5 @@
-import type { PenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
+import { createEntityAdapter, type EntityState } from '@reduxjs/toolkit';
+import { type Card, getPenaltyTotal } from '#engine/dataTypes/cards/card.ts';
 import { ErrorCode, lookup, type Result } from '#engine/result.ts';
 
 // 6 nimmt! is a game for 2 players or more.
@@ -11,75 +12,50 @@ export const MAX_PLAYER_COUNT = 10;
 export type PlayerId = string;
 
 export interface Player {
-  readonly id: PlayerId;
-  readonly name: string;
+  id: PlayerId;
+  name: string;
   // Every card that the player has taken in the game counts here, including
   // the cards of the penalty pile of the running round. A penalty pile ends
   // with its round, while the penalty limit applies to the whole game.
-  readonly penaltyScore: number;
+  penaltyScore: number;
 }
 
 // What a client knows about a player when it starts the game. The penalty
 // score belongs to the game, so no request carries it.
 export type PlayerProfile = Pick<Player, 'id' | 'name'>;
 
-export function createPlayer(profile: PlayerProfile): Player {
-  return { id: profile.id, name: profile.name, penaltyScore: 0 };
+export type Players = EntityState<Player, PlayerId>;
+
+export const playersAdapter = createEntityAdapter<Player>();
+
+export function createPlayers(profiles: readonly PlayerProfile[]): Players {
+  return playersAdapter.setAll(
+    playersAdapter.getInitialState(),
+    profiles.map((profile) => ({ ...profile, penaltyScore: 0 })),
+  );
 }
 
 export function findPlayer(
-  players: readonly Player[],
+  players: Players,
   playerId: PlayerId,
 ): Result<Player> {
   return lookup(
-    players.find((player) => player.id === playerId),
+    players.entities[playerId],
     ErrorCode.UnknownEntity,
     `The game holds no player with the ID ${playerId}`,
   );
 }
 
-// A penalty total that names another player is a bug in the caller: it would
-// add the penalty of that player to this one.
+// Gives whether the penalty ends the game.
 export function addPenaltyToPlayer(
   player: Player,
-  penaltyTotal: PenaltyTotal,
-): Player {
-  if (penaltyTotal.playerId !== player.id) {
-    throw new Error(
-      `The penalty of the player ${penaltyTotal.playerId} does not belong to the player ${player.id}`,
-    );
-  }
-  return {
-    ...player,
-    penaltyScore: player.penaltyScore + penaltyTotal.penaltyIncrease,
-  };
-}
-
-export function addPenaltiesToPlayers(
-  players: readonly Player[],
-  penaltyTotals: readonly PenaltyTotal[],
-): readonly Player[] {
-  return players.map((player) =>
-    penaltyTotals
-      .filter((penaltyTotal) => penaltyTotal.playerId === player.id)
-      .reduce(addPenaltyToPlayer, player),
-  );
-}
-
-export function hasReachedPenaltyLimit(
-  player: Player,
+  takenCards: readonly Card[],
   penaltyLimit: number,
 ): boolean {
+  player.penaltyScore += getPenaltyTotal(takenCards);
   return player.penaltyScore >= penaltyLimit;
 }
 
-export function removePlayer(
-  players: readonly Player[],
-  playerId: PlayerId,
-): readonly Player[] {
-  return players.filter((player) => player.id !== playerId);
-}
-
-export function doesGameHaveEnoughPlayers(players: readonly Player[]): boolean {
-  return players.length >= MIN_PLAYER_COUNT;
+export function hasEnoughPlayers(players: Players): boolean {
+  return players.ids.length >= MIN_PLAYER_COUNT;
 }

@@ -3,21 +3,19 @@ import type { Card } from '#engine/dataTypes/cards/card.ts';
 import type { GameRules } from '#engine/dataTypes/game/gameRules.ts';
 import {
   assertRoundInProgress,
-  createGameState,
-  createInitialGameState,
   GamePhase,
   type GameState,
+  INITIAL_GAME_STATE,
 } from '#engine/dataTypes/game/gameState.ts';
 import {
   majorVersionBump,
   minorVersionBump,
 } from '#engine/dataTypes/game/gameStateVersion.ts';
 import {
-  addPenaltiesToPlayers,
-  doesGameHaveEnoughPlayers,
-  type Player,
+  hasEnoughPlayers,
   type PlayerId,
-  removePlayer,
+  type Players,
+  playersAdapter,
 } from '#engine/dataTypes/playerState/player.ts';
 import {
   type RowPick,
@@ -25,15 +23,14 @@ import {
   resolveRowPick,
 } from '#engine/dataTypes/table/revealResolution.ts';
 import {
-  pickCardInRound,
+  findSeat,
   type Round,
-  removePlayerFromRound,
-  unpickCardInRound,
 } from '#engine/dataTypes/table/roundLifecycle.ts';
+import { roundSeatsAdapter } from '#engine/dataTypes/table/roundSeat.ts';
 
 export interface StartGamePayload {
   gameRules: GameRules;
-  players: readonly Player[];
+  players: Players;
   round: Round;
 }
 
@@ -56,137 +53,67 @@ export interface AbandonGamePayload {
   playerId: PlayerId;
 }
 
-function reduceStartGame(
-  state: GameState,
-  action: PayloadAction<StartGamePayload>,
-): GameState {
-  return createGameState(
-    GamePhase.CardPick,
-    // The start of the game is a major change: a request that saw an
-    // earlier version worked off a game that holds no cards.
-    majorVersionBump(state.version),
-    action.payload.gameRules,
-    action.payload.players,
-    action.payload.round,
-  );
-}
-
-function reducePickCard(
-  state: GameState,
-  action: PayloadAction<PickCardPayload>,
-): GameState {
-  assertRoundInProgress(state);
-  const { playerId, card } = action.payload;
-  return createGameState(
-    state.phase,
-    minorVersionBump(state.version),
-    state.gameRules,
-    state.players,
-    pickCardInRound(state.round, playerId, card),
-  );
-}
-
-function reduceUnpickCard(
-  state: GameState,
-  action: PayloadAction<UnpickCardPayload>,
-): GameState {
-  assertRoundInProgress(state);
-  return createGameState(
-    state.phase,
-    minorVersionBump(state.version),
-    state.gameRules,
-    state.players,
-    unpickCardInRound(state.round, action.payload.playerId),
-  );
-}
-
-function reduceRevealPickedCards(state: GameState): GameState {
-  assertRoundInProgress(state);
-  const { round, penaltyTotals, phase } = resolveReveal(
-    state.round,
-    state.players,
-    state.gameRules.penaltyLimit,
-  );
-  return createGameState(
-    phase,
-    // The reveal is a major change: a request that saw an earlier version
-    // chose its card without knowing the revealed cards.
-    majorVersionBump(state.version),
-    state.gameRules,
-    addPenaltiesToPlayers(state.players, penaltyTotals),
-    round,
-  );
-}
-
-function reducePickRow(
-  state: GameState,
-  action: PayloadAction<RowPick>,
-): GameState {
-  assertRoundInProgress(state);
-  const { round, penaltyTotals, phase } = resolveRowPick(
-    state.round,
-    state.players,
-    action.payload,
-    state.gameRules.penaltyLimit,
-  );
-  return createGameState(
-    phase,
-    // The row pick is a major change: it places the cards that the reveal
-    // left picked.
-    majorVersionBump(state.version),
-    state.gameRules,
-    addPenaltiesToPlayers(state.players, penaltyTotals),
-    round,
-  );
-}
-
-function reduceAbandonGame(
-  state: GameState,
-  action: PayloadAction<AbandonGamePayload>,
-): GameState {
-  assertRoundInProgress(state);
-  const { playerId } = action.payload;
-  const players = removePlayer(state.players, playerId);
-  return createGameState(
-    doesGameHaveEnoughPlayers(players) ? state.phase : GamePhase.GameOver,
-    // A player who leaves changes which picks the reveal waits for.
-    majorVersionBump(state.version),
-    state.gameRules,
-    players,
-    removePlayerFromRound(state.round, playerId),
-  );
-}
-
-function reduceStartRound(
-  state: GameState,
-  action: PayloadAction<StartRoundPayload>,
-): GameState {
-  // A new round follows a round. A game starts with startGame.
-  assertRoundInProgress(state);
-  return createGameState(
-    GamePhase.CardPick,
-    // A new round is a major change: a request that saw an earlier version
-    // worked off cards that are no longer in the game.
-    majorVersionBump(state.version),
-    state.gameRules,
-    state.players,
-    action.payload.round,
-  );
-}
-
-const initialState = createInitialGameState();
-
 export const gameSlice = createSlice({
   name: 'game',
-  initialState,
+  initialState: INITIAL_GAME_STATE,
   reducers: {
-    startGame: reduceStartGame,
-    pickCard: reducePickCard,
-    unpickCard: reduceUnpickCard,
-    revealPickedCards: reduceRevealPickedCards,
-    pickRow: reducePickRow,
-    abandonGame: reduceAbandonGame,
-    startRound: reduceStartRound,
+    startGame(state, action: PayloadAction<StartGamePayload>): GameState {
+      return {
+        phase: GamePhase.CardPick,
+        // The start of the game is a major change: a request that saw an
+        // earlier version worked off a game that holds no cards.
+        version: majorVersionBump(state.version),
+        ...action.payload,
+      };
+    },
+    pickCard(state, action: PayloadAction<PickCardPayload>) {
+      assertRoundInProgress(state);
+      const { playerId, card } = action.payload;
+      findSeat(state.round, playerId).force().pickedCardId = card.id;
+      state.version = minorVersionBump(state.version);
+    },
+    unpickCard(state, action: PayloadAction<UnpickCardPayload>) {
+      assertRoundInProgress(state);
+      delete findSeat(state.round, action.payload.playerId).force()
+        .pickedCardId;
+      state.version = minorVersionBump(state.version);
+    },
+    revealPickedCards(state) {
+      assertRoundInProgress(state);
+      state.phase = resolveReveal(state);
+      // The reveal is a major change: a request that saw an earlier version
+      // chose its card without knowing the revealed cards.
+      state.version = majorVersionBump(state.version);
+    },
+    pickRow(state, action: PayloadAction<RowPick>) {
+      assertRoundInProgress(state);
+      state.phase = resolveRowPick(state, action.payload);
+      // The row pick is a major change: it places the cards that the reveal
+      // left picked.
+      state.version = majorVersionBump(state.version);
+    },
+    // The cards of the hand, the pick and the penalty pile of the player leave
+    // the game with the player.
+    abandonGame(state, action: PayloadAction<AbandonGamePayload>) {
+      assertRoundInProgress(state);
+      const { playerId } = action.payload;
+      playersAdapter.removeOne(state.players, playerId);
+      roundSeatsAdapter.removeOne(state.round.seats, playerId);
+      if (!hasEnoughPlayers(state.players)) {
+        state.phase = GamePhase.GameOver;
+      }
+      // A player who leaves changes which picks the reveal waits for.
+      state.version = majorVersionBump(state.version);
+    },
+    // A new round follows a round. A game starts with startGame.
+    startRound(state, action: PayloadAction<StartRoundPayload>) {
+      assertRoundInProgress(state);
+      state.phase = GamePhase.CardPick;
+      state.round = action.payload.round;
+      // A new round is a major change: a request that saw an earlier version
+      // worked off cards that are no longer in the game.
+      state.version = majorVersionBump(state.version);
+    },
   },
 });
 
@@ -201,11 +128,5 @@ export const {
 } = gameSlice.actions;
 
 export type GameAction = ReturnType<
-  | typeof startGame
-  | typeof pickCard
-  | typeof unpickCard
-  | typeof revealPickedCards
-  | typeof pickRow
-  | typeof abandonGame
-  | typeof startRound
+  (typeof gameSlice.actions)[keyof typeof gameSlice.actions]
 >;

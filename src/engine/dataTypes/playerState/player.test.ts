@@ -1,127 +1,86 @@
 import { describe, expect, test } from 'vitest';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
-import { createPenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
 import {
-  addPenaltiesToPlayers,
   addPenaltyToPlayer,
-  createPlayer,
-  doesGameHaveEnoughPlayers,
+  createPlayers,
   findPlayer,
-  hasReachedPenaltyLimit,
-  removePlayer,
+  hasEnoughPlayers,
+  type Player,
 } from '#engine/dataTypes/playerState/player.ts';
 import { ErrorCode } from '#engine/result.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
-const ada = createPlayer({ id: 'a', name: 'Ada' });
-const ben = createPlayer({ id: 'b', name: 'Ben' });
+const players = createPlayers([
+  { id: 'a', name: 'Ada' },
+  { id: 'b', name: 'Ben' },
+]);
 
-function penaltyTotalOf(playerId: string, faceValues: number[]) {
-  return createPenaltyTotal(playerId, faceValues.map(cardOf));
+function unscoredAda(): Player {
+  return { id: 'a', name: 'Ada', penaltyScore: 0 };
 }
 
-describe('createPlayer', () => {
-  test('starts the player of a profile without a penalty', () => {
-    expect(ada.id).toBe('a');
-    expect(ada.name).toBe('Ada');
-    expect(ada.penaltyScore).toBe(0);
+describe('createPlayers', () => {
+  test('starts the players of the profiles in order without a penalty', () => {
+    expect(players.ids).toEqual(['a', 'b']);
+    expect(players.entities.a).toEqual(unscoredAda());
   });
 });
 
 describe('findPlayer', () => {
   test('gives the player of an ID', () => {
-    expect(findPlayer([ada, ben], 'b')).toEqual({ ok: true, value: ben });
+    expect(findPlayer(players, 'b')).toEqual({
+      ok: true,
+      value: { id: 'b', name: 'Ben', penaltyScore: 0 },
+    });
   });
 
   test('fails for an unknown ID', () => {
-    expect(findPlayer([ada, ben], 'nobody')).toMatchObject({
+    expect(findPlayer(players, 'nobody')).toMatchObject({
       ok: false,
-      failure: {
-        errorCode: ErrorCode.UnknownEntity,
-      },
+      failure: { errorCode: ErrorCode.UnknownEntity },
     });
   });
 });
 
 describe('addPenaltyToPlayer', () => {
-  test('adds the penalty of the penalty total to the score of the player', () => {
-    const scored = addPenaltyToPlayer(ada, penaltyTotalOf('a', [55, 10]));
-    expect(scored.penaltyScore).toBe(10);
-    // The score sums the rounds of the game, so the next penalty total adds to it.
-    expect(
-      addPenaltyToPlayer(scored, penaltyTotalOf('a', [1])).penaltyScore,
-    ).toBe(11);
-  });
-
-  test('leaves the player that it was given unchanged', () => {
-    addPenaltyToPlayer(ada, penaltyTotalOf('a', [55]));
-    expect(ada.penaltyScore).toBe(0);
-  });
-
-  test('throws for the penalty total of another player', () => {
-    expect(() => addPenaltyToPlayer(ada, penaltyTotalOf('b', [55]))).toThrow();
-  });
-});
-
-describe('addPenaltiesToPlayers', () => {
-  test('gives each penalty total to the player that it names', () => {
-    const scored = addPenaltiesToPlayers(
-      [ada, ben],
-      [penaltyTotalOf('b', [55]), penaltyTotalOf('a', [10])],
-    );
-    expect(scored.map((player) => player.penaltyScore)).toEqual([3, 7]);
-  });
-
-  test('keeps a player that no penalty total names', () => {
-    expect(
-      addPenaltiesToPlayers([ada, ben], [penaltyTotalOf('b', [55])]),
-    ).toEqual([ada, addPenaltyToPlayer(ben, penaltyTotalOf('b', [55]))]);
-  });
-
-  test('sums several penalty totals of one player', () => {
-    const scored = addPenaltiesToPlayers(
-      [ada],
-      [penaltyTotalOf('a', [55]), penaltyTotalOf('a', [10])],
-    );
-    expect(scored[0].penaltyScore).toBe(10);
-  });
-});
-
-describe('hasReachedPenaltyLimit', () => {
+  const { penaltyLimit } = STANDARD_GAME_RULES;
   // 8 doublets of 5 penalties each. The limit is 66.
   const doublets = [11, 22, 33, 44, 66, 77, 88, 99];
 
-  test('is false below 66 penalties', () => {
-    const scored = addPenaltyToPlayer(ada, penaltyTotalOf('a', doublets));
-    expect(scored.penaltyScore).toBe(40);
-    expect(
-      hasReachedPenaltyLimit(scored, STANDARD_GAME_RULES.penaltyLimit),
-    ).toBe(false);
+  test('adds the penalty of the cards to the score of the player', () => {
+    const ada = unscoredAda();
+    addPenaltyToPlayer(ada, [55, 10].map(cardOf), penaltyLimit);
+    expect(ada.penaltyScore).toBe(10);
+    // The score sums the rounds of the game, so the next penalty adds to it.
+    addPenaltyToPlayer(ada, [cardOf(1)], penaltyLimit);
+    expect(ada.penaltyScore).toBe(11);
   });
 
-  test('is true at 66 penalties', () => {
+  test('gives false below 66 penalties', () => {
+    const ada = unscoredAda();
+    expect(addPenaltyToPlayer(ada, doublets.map(cardOf), penaltyLimit)).toBe(
+      false,
+    );
+    expect(ada.penaltyScore).toBe(40);
+  });
+
+  test('gives true at 66 penalties', () => {
+    const ada = unscoredAda();
     // 40 for the doublets, 7 for the 55, 15 for the multiples of ten and 4
     // for the cards of one penalty each.
-    const scored = addPenaltyToPlayer(
-      ada,
-      penaltyTotalOf('a', [...doublets, 55, 10, 20, 30, 40, 50, 1, 2, 3, 4]),
+    const faceValues = [...doublets, 55, 10, 20, 30, 40, 50, 1, 2, 3, 4];
+    expect(addPenaltyToPlayer(ada, faceValues.map(cardOf), penaltyLimit)).toBe(
+      true,
     );
-    expect(scored.penaltyScore).toBe(66);
-    expect(
-      hasReachedPenaltyLimit(scored, STANDARD_GAME_RULES.penaltyLimit),
-    ).toBe(true);
+    expect(ada.penaltyScore).toBe(66);
   });
 });
 
-describe('removePlayer', () => {
-  test('keeps every other player in order', () => {
-    expect(removePlayer([ada, ben], 'a')).toEqual([ben]);
-  });
-});
-
-describe('doesGameHaveEnoughPlayers', () => {
+describe('hasEnoughPlayers', () => {
   test('needs two players', () => {
-    expect(doesGameHaveEnoughPlayers([ada])).toBe(false);
-    expect(doesGameHaveEnoughPlayers([ada, ben])).toBe(true);
+    expect(hasEnoughPlayers(createPlayers([{ id: 'a', name: 'Ada' }]))).toBe(
+      false,
+    );
+    expect(hasEnoughPlayers(players)).toBe(true);
   });
 });

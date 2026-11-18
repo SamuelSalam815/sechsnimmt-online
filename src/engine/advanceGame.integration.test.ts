@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { advanceGame } from '#engine/advanceGame.ts';
-import { createDeck, type Deck } from '#engine/dataTypes/cards/deck.ts';
+import type { Deck } from '#engine/dataTypes/cards/deck.ts';
 import type { GameRules } from '#engine/dataTypes/game/gameRules.ts';
 import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
 import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
@@ -21,7 +21,7 @@ const players = [
 // The deal gives each player one hand in the order of the players, and then
 // one card to each row.
 function deckOf(hands: number[][], rows: number[]): Deck {
-  return createDeck([...hands.flat(), ...rows].map(cardOf));
+  return { cards: [...hands.flat(), ...rows].map(cardOf) };
 }
 
 type LogEntry =
@@ -192,7 +192,10 @@ test('plays a full game with stale and bad requests mixed in', () => {
   if (game.phase !== GamePhase.PreStart) {
     log.push({
       finalScores: Object.fromEntries(
-        game.players.map((player) => [player.id, player.penaltyScore]),
+        Object.values(game.players.entities).map((player) => [
+          player.id,
+          player.penaltyScore,
+        ]),
       ),
     });
   }

@@ -2,26 +2,20 @@ import { assert, expect, test } from 'vitest';
 import { advanceGame } from '#engine/advanceGame.ts';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
-  createGameState,
-  createInitialGameState,
   GamePhase,
+  INITIAL_GAME_STATE,
 } from '#engine/dataTypes/game/gameState.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
-import { createHand } from '#engine/dataTypes/playerState/hand.ts';
-import { createPenaltyPile } from '#engine/dataTypes/playerState/penaltyPile.ts';
-import { createPenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
-import {
-  addPenaltyToPlayer,
-  createPlayer,
-} from '#engine/dataTypes/playerState/player.ts';
 import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
+import { listRoundSeats } from '#engine/dataTypes/table/roundSeat.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
 import type { RootState } from '#engine/store.ts';
-import { cardOf, orderedDeck, rowOf } from '#testSupport/cards.ts';
+import { cardOf, orderedDeck, rowOf, seatOf } from '#testSupport/cards.ts';
+import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 
 const initialRootState: RootState = {
-  game: createInitialGameState(),
+  game: INITIAL_GAME_STATE,
   history: [],
 };
 
@@ -43,17 +37,12 @@ function started(): RootState {
 // Ada holds her last card, and the rounds before this one gave her a score
 // of 7.
 const lastCard = cardOf(50);
-const scored = addPenaltyToPlayer(
-  createPlayer({ id: 'a', name: 'Ada' }),
-  createPenaltyTotal('a', [cardOf(55)]),
-);
+const scored = playersOf([{ id: 'a', name: 'Ada' }], { a: 7 });
 const lastTurn: RootState = {
-  game: createGameState(
+  game: roundGameStateOf(
     GamePhase.CardPick,
-    INITIAL_GAME_STATE_VERSION,
-    STANDARD_GAME_RULES,
-    [scored],
-    createRound([rowOf(10)], [createHand('a', [lastCard])]),
+    scored,
+    createRound([rowOf(10)], [seatOf('a', [lastCard])]),
   ),
   history: [],
 };
@@ -61,7 +50,7 @@ const lastTurn: RootState = {
 test('the start game request deals the deck of the request', () => {
   const game = started().game;
   assert(game.phase === GamePhase.CardPick);
-  expect(game.round.hands.map((hand) => hand.cards)).toEqual([
+  expect(listRoundSeats(game.round.seats).map((seat) => seat.hand)).toEqual([
     orderedDeck().cards.slice(0, 10),
     orderedDeck().cards.slice(10, 20),
   ]);
@@ -72,12 +61,12 @@ test('a pick card request for every player reveals the picked cards', () => {
   let state = started();
   const startedGame = state.game;
   assert(startedGame.phase === GamePhase.CardPick);
-  for (const hand of startedGame.round.hands) {
+  for (const seat of listRoundSeats(startedGame.round.seats)) {
     const next = advanceGame(state, {
       type: RequestType.PickCard,
       lastVersionSeen: state.game.version.sequence,
-      playerId: hand.playerId,
-      cardId: hand.cards[0].id,
+      playerId: seat.playerId,
+      cardId: seat.hand[0].id,
     });
     assert(!('message' in next));
     state = next;
@@ -128,13 +117,12 @@ test('the start round request deals the next round and keeps the scores', () => 
   assert(!('message' in next));
   const game = next.game;
   assert(game.phase === GamePhase.CardPick);
-  expect(game.round.hands).toEqual([
-    createHand('a', orderedDeck().cards.slice(0, 10)),
+  // The seats start without a pick and with an empty pile in the new round,
+  // while the score carries over.
+  expect(listRoundSeats(game.round.seats)).toEqual([
+    seatOf('a', orderedDeck().cards.slice(0, 10)),
   ]);
-  expect(game.round.picks).toEqual({});
-  // The piles start empty in the new round, while the score carries over.
-  expect(game.round.penaltyPiles).toEqual([createPenaltyPile('a')]);
-  expect(game.players).toEqual([scored]);
+  expect(game.players).toEqual(scored);
   // The pick, the reveal and the start of the round.
   expect(game.version).toEqual({ sequence: 3, major: true });
 });

@@ -1,15 +1,14 @@
+import { createNextState } from '@reduxjs/toolkit';
 import { describe, expect, test } from 'vitest';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
-import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
-import { createHand } from '#engine/dataTypes/playerState/hand.ts';
 import {
-  addCardsToPenaltyPile,
-  createPenaltyPile,
-} from '#engine/dataTypes/playerState/penaltyPile.ts';
-import { createPenaltyTotal } from '#engine/dataTypes/playerState/penaltyTotal.ts';
+  GamePhase,
+  type RoundGameState,
+  type RoundPhase,
+} from '#engine/dataTypes/game/gameState.ts';
+import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
 import {
-  addPenaltyToPlayer,
-  createPlayer,
+  createPlayers,
   type PlayerId,
 } from '#engine/dataTypes/playerState/player.ts';
 import {
@@ -20,162 +19,203 @@ import {
 } from '#engine/dataTypes/table/revealResolution.ts';
 import {
   createRound,
-  pickCardInRound,
   type Round,
 } from '#engine/dataTypes/table/roundLifecycle.ts';
+import type { RoundSeat } from '#engine/dataTypes/table/roundSeat.ts';
 import { ErrorCode } from '#engine/result.ts';
-import { cardOf, rowOf } from '#testSupport/cards.ts';
+import { cardOf, rowOf, seatOf } from '#testSupport/cards.ts';
 
-const ada = createPlayer({ id: 'a', name: 'Ada' });
-const ben = createPlayer({ id: 'b', name: 'Ben' });
+// The penalty scores name the score that a player carries into the reveal.
+function gameOf(
+  round: Round,
+  penaltyScores: Record<PlayerId, number> = {},
+): RoundGameState {
+  const players = createPlayers(
+    round.seats.ids.map((playerId) => ({ id: playerId, name: playerId })),
+  );
+  return {
+    phase: GamePhase.CardPick,
+    version: INITIAL_GAME_STATE_VERSION,
+    gameRules: STANDARD_GAME_RULES,
+    players: createNextState(players, (draft) => {
+      for (const playerId of draft.ids) {
+        draft.entities[playerId].penaltyScore = penaltyScores[playerId] ?? 0;
+      }
+    }),
+    round,
+  };
+}
+
+// The rules run on the immer draft of a reducer, as they do in the game slice.
+function resolveOnDraft(
+  game: RoundGameState,
+  resolve: (draft: RoundGameState) => RoundPhase,
+): { phase: RoundPhase | undefined; game: RoundGameState } {
+  let phase: RoundPhase | undefined;
+  const nextGame = createNextState(game, (draft) => {
+    phase = resolve(draft);
+  });
+  return { phase, game: nextGame };
+}
+
+function faceValuesOfRows(round: Round): number[][] {
+  return round.rows.map((row) => row.cards.map((card) => card.faceValue));
+}
+
+function picksOf(round: Round): Record<PlayerId, number | undefined> {
+  return Object.fromEntries(
+    round.seats.ids.map((playerId) => [
+      playerId,
+      round.seats.entities[playerId].pickedCardId,
+    ]),
+  );
+}
+
+function penaltyFaceValuesOf(seat: RoundSeat): number[] {
+  return seat.penaltyPile.map((card) => card.faceValue);
+}
 
 describe('resolveReveal', () => {
   // Each player picks the one card named here. Ada also holds the cards of
-  // handOfAda, so the round goes on after the reveal. The cards of taken name
-  // the cards that a player took before this round.
-  function reveal(
+  // handOfAda, so the round goes on after the reveal.
+  function revealGame(
     rowValues: number[][],
     picks: [PlayerId, number][],
     {
-      taken = {},
+      penaltyScores = {},
       handOfAda = [100],
     }: {
-      taken?: Record<PlayerId, number[]>;
+      penaltyScores?: Record<PlayerId, number>;
       handOfAda?: number[];
     } = {},
-  ) {
-    const others = picks
-      .map(([playerId]) => playerId)
-      .filter((playerId) => playerId !== ada.id);
-    const players = [
-      ada,
-      ...others.map((id) => createPlayer({ id, name: id })),
-    ].map((player) =>
-      addPenaltyToPlayer(
-        player,
-        createPenaltyTotal(player.id, (taken[player.id] ?? []).map(cardOf)),
-      ),
+  ): RoundGameState {
+    const playerIds = ['a', ...picks.map(([playerId]) => playerId)].filter(
+      (playerId, index, all) => all.indexOf(playerId) === index,
     );
-    const hands = players.map((player) => {
-      const toPick = picks
-        .filter(([playerId]) => playerId === player.id)
-        .map(([, faceValue]) => cardOf(faceValue));
-      const rest = player.id === ada.id ? handOfAda.map(cardOf) : [];
-      return createHand(player.id, [...toPick, ...rest]);
+    const seats = playerIds.map((playerId) => {
+      const pick = picks.find(([pickerId]) => pickerId === playerId);
+      const pickedCard = pick === undefined ? undefined : cardOf(pick[1]);
+      const rest = playerId === 'a' ? handOfAda.map(cardOf) : [];
+      return seatOf(
+        playerId,
+        pickedCard === undefined ? rest : [pickedCard, ...rest],
+        pickedCard,
+      );
     });
-    let round = createRound(
-      rowValues.map((values) => rowOf(...values)),
-      hands,
-    );
-    for (const [playerId, faceValue] of picks) {
-      round = pickCardInRound(round, playerId, cardOf(faceValue));
-    }
-    const outcome = resolveReveal(
-      round,
-      players,
-      STANDARD_GAME_RULES.penaltyLimit,
-    );
-    return {
-      phase: outcome.phase,
-      rows: outcome.round.rows.map((row) =>
-        row.cards.map((card) => card.faceValue),
+    return gameOf(
+      createRound(
+        rowValues.map((values) => rowOf(...values)),
+        seats,
       ),
-      picks: outcome.round.picks,
-      penaltyPiles: outcome.round.penaltyPiles,
-      penaltyTotals: outcome.penaltyTotals,
-    };
+      penaltyScores,
+    );
   }
 
   test('places each card, lowest first, after the closest lower last card', () => {
     // The example of docs/game-rules.md.
-    const next = reveal(
-      [[12], [37], [43], [58]],
-      [
-        ['a', 61],
-        ['b', 44],
-        ['c', 15],
-        ['d', 14],
-      ],
+    const { phase, game } = resolveOnDraft(
+      revealGame(
+        [[12], [37], [43], [58]],
+        [
+          ['a', 61],
+          ['b', 44],
+          ['c', 15],
+          ['d', 14],
+        ],
+      ),
+      resolveReveal,
     );
-    expect(next.rows).toEqual([[12, 14, 15], [37], [43, 44], [58, 61]]);
-    expect(next.picks).toEqual({});
-    // No row was full, so no player accrued a penalty.
-    expect(next.penaltyTotals).toEqual([]);
-    expect(next.phase).toBe(GamePhase.CardPick);
+    expect(phase).toBe(GamePhase.CardPick);
+    expect(faceValuesOfRows(game.round)).toEqual([
+      [12, 14, 15],
+      [37],
+      [43, 44],
+      [58, 61],
+    ]);
+    expect(picksOf(game.round)).toEqual({
+      a: undefined,
+      b: undefined,
+      c: undefined,
+      d: undefined,
+    });
+    // No row was full, so no player took a penalty.
+    expect(
+      game.players.ids.map((id) => game.players.entities[id].penaltyScore),
+    ).toEqual([0, 0, 0, 0]);
   });
 
   test('gives a full row to the player whose card starts the new row', () => {
-    const next = reveal([[1, 2, 3, 4, 5], [50]], [['b', 6]]);
-    expect(next.rows).toEqual([[6], [50]]);
-    expect(next.penaltyPiles).toEqual([
-      createPenaltyPile('a'),
-      addCardsToPenaltyPile(
-        createPenaltyPile('b'),
-        [1, 2, 3, 4, 5].map(cardOf),
-      ),
+    const { phase, game } = resolveOnDraft(
+      revealGame([[1, 2, 3, 4, 5], [50]], [['b', 6]]),
+      resolveReveal,
+    );
+    expect(phase).toBe(GamePhase.CardPick);
+    expect(faceValuesOfRows(game.round)).toEqual([[6], [50]]);
+    expect(penaltyFaceValuesOf(game.round.seats.entities.a)).toEqual([]);
+    expect(penaltyFaceValuesOf(game.round.seats.entities.b)).toEqual([
+      1, 2, 3, 4, 5,
     ]);
-    // The row counts 1 penalty for each card and 2 for the 5. The penalty total
-    // of the player names that increase alone, not the score that it grows.
-    expect(next.penaltyTotals).toEqual([
-      createPenaltyTotal('b', [1, 2, 3, 4, 5].map(cardOf)),
-    ]);
-    expect(next.penaltyTotals[0].penaltyIncrease).toBe(6);
-    expect(next.phase).toBe(GamePhase.CardPick);
+    // The row counts 1 penalty for each card and 2 for the 5.
+    expect(game.players.entities.b.penaltyScore).toBe(6);
   });
 
   test('moves to the row pick phase if the lowest card fits no row', () => {
-    const next = reveal(
-      [[10], [20]],
-      [
-        ['b', 25],
-        ['a', 5],
-      ],
+    const { phase, game } = resolveOnDraft(
+      revealGame(
+        [[10], [20]],
+        [
+          ['b', 25],
+          ['a', 5],
+        ],
+      ),
+      resolveReveal,
     );
-    expect(next.phase).toBe(GamePhase.RowPick);
+    expect(phase).toBe(GamePhase.RowPick);
     // No card is placed, so both stay picked.
-    expect(next.picks).toEqual({ a: cardOf(5).id, b: cardOf(25).id });
-    expect(next.rows).toEqual([[10], [20]]);
+    expect(picksOf(game.round)).toEqual({ a: cardOf(5).id, b: cardOf(25).id });
+    expect(faceValuesOfRows(game.round)).toEqual([[10], [20]]);
   });
 
   test('moves to the game over phase when a taken row reaches the penalty limit', () => {
-    const next = reveal(
-      [[1, 2, 3, 4, 6], [50]],
-      [
-        ['a', 51],
-        ['b', 7],
-      ],
-      // A score of 61 for Ben. The row adds 5, which reaches the limit of 66.
-      { taken: { b: [11, 22, 33, 44, 66, 77, 88, 99, 55, 10, 20, 30, 40, 5] } },
+    const { phase, game } = resolveOnDraft(
+      revealGame(
+        [[1, 2, 3, 4, 6], [50]],
+        [
+          ['a', 51],
+          ['b', 7],
+        ],
+        // The row adds 5, which reaches the limit of 66.
+        { penaltyScores: { b: 61 } },
+      ),
+      resolveReveal,
     );
-    expect(next.phase).toBe(GamePhase.GameOver);
-    expect(next.rows).toEqual([[7], [50]]);
-    expect(next.penaltyTotals).toEqual([
-      createPenaltyTotal('b', [1, 2, 3, 4, 6].map(cardOf)),
-    ]);
+    expect(phase).toBe(GamePhase.GameOver);
+    expect(faceValuesOfRows(game.round)).toEqual([[7], [50]]);
+    expect(game.players.entities.b.penaltyScore).toBe(66);
     // The cards that follow are not placed.
-    expect(next.picks).toEqual({ a: cardOf(51).id });
+    expect(picksOf(game.round)).toEqual({ a: cardOf(51).id, b: undefined });
   });
 
   test('moves to the end of round phase when every hand is empty', () => {
-    const next = reveal([[10]], [['a', 11]], { handOfAda: [] });
-    expect(next.phase).toBe(GamePhase.EndOfRound);
-    expect(next.rows).toEqual([[10, 11]]);
+    const { phase, game } = resolveOnDraft(
+      revealGame([[10]], [['a', 11]], { handOfAda: [] }),
+      resolveReveal,
+    );
+    expect(phase).toBe(GamePhase.EndOfRound);
+    expect(faceValuesOfRows(game.round)).toEqual([[10, 11]]);
   });
 });
 
 // Ada picked 5, which fits no row, and Ben picked 25. Ada also holds 100, so
 // the round goes on after the reveal.
 function rowPickRound(): Round {
-  let round = createRound(
+  return createRound(
     [rowOf(10), rowOf(20, 21)],
-    [createHand('a', [cardOf(5), cardOf(100)]), createHand('b', [cardOf(25)])],
+    [
+      seatOf('a', [cardOf(5), cardOf(100)], cardOf(5)),
+      seatOf('b', [cardOf(25)], cardOf(25)),
+    ],
   );
-  round = pickCardInRound(round, 'a', cardOf(5));
-  return pickCardInRound(round, 'b', cardOf(25));
-}
-
-function faceValuesOfRows(round: Round): number[][] {
-  return round.rows.map((row) => row.cards.map((card) => card.faceValue));
 }
 
 describe('findCardForRowPick', () => {
@@ -193,56 +233,33 @@ describe('findCardForRowPick', () => {
 
 describe('resolveRowPick', () => {
   test('gives the row to the player, starts it with the card and places the rest', () => {
-    const outcome = resolveRowPick(
-      rowPickRound(),
-      [ada, ben],
-      {
-        playerId: 'a',
-        rowIndex: 1,
-      },
-      STANDARD_GAME_RULES.penaltyLimit,
+    const { phase, game } = resolveOnDraft(gameOf(rowPickRound()), (draft) =>
+      resolveRowPick(draft, { playerId: 'a', rowIndex: 1 }),
     );
+    expect(phase).toBe(GamePhase.CardPick);
     // 25 goes after 10, the closest lower last card.
-    expect(faceValuesOfRows(outcome.round)).toEqual([[10, 25], [5]]);
-    expect(outcome.round.picks).toEqual({});
-    expect(outcome.round.hands).toEqual([
-      createHand('a', [cardOf(100)]),
-      createHand('b', []),
-    ]);
-    expect(outcome.round.penaltyPiles).toEqual([
-      addCardsToPenaltyPile(createPenaltyPile('a'), [cardOf(20), cardOf(21)]),
-      createPenaltyPile('b'),
-    ]);
-    expect(outcome.penaltyTotals).toEqual([
-      createPenaltyTotal('a', [cardOf(20), cardOf(21)]),
-    ]);
-    expect(outcome.phase).toBe(GamePhase.CardPick);
+    expect(faceValuesOfRows(game.round)).toEqual([[10, 25], [5]]);
+    expect(game.round.seats.entities).toEqual({
+      a: {
+        playerId: 'a',
+        hand: [cardOf(100)],
+        penaltyPile: [20, 21].map(cardOf),
+      },
+      b: { playerId: 'b', hand: [], penaltyPile: [] },
+    });
+    expect(game.players.entities.a.penaltyScore).toBe(4);
   });
 
   test('moves to the game over phase when the taken row reaches the penalty limit', () => {
-    // A score of 63 for Ada. The row of 10 adds 3, which reaches the limit of 66.
-    const scoredAda = addPenaltyToPlayer(
-      ada,
-      createPenaltyTotal(
-        'a',
-        [11, 22, 33, 44, 66, 77, 88, 99, 55, 20, 30, 40, 50, 15, 35].map(
-          cardOf,
-        ),
-      ),
+    // The row of 10 adds 3, which reaches the limit of 66.
+    const { phase, game } = resolveOnDraft(
+      gameOf(rowPickRound(), { a: 63 }),
+      (draft) => resolveRowPick(draft, { playerId: 'a', rowIndex: 0 }),
     );
-    const outcome = resolveRowPick(
-      rowPickRound(),
-      [scoredAda, ben],
-      {
-        playerId: 'a',
-        rowIndex: 0,
-      },
-      STANDARD_GAME_RULES.penaltyLimit,
-    );
-    expect(outcome.phase).toBe(GamePhase.GameOver);
-    expect(faceValuesOfRows(outcome.round)).toEqual([[5], [20, 21]]);
+    expect(phase).toBe(GamePhase.GameOver);
+    expect(faceValuesOfRows(game.round)).toEqual([[5], [20, 21]]);
     // The card of Ben is not placed.
-    expect(outcome.round.picks).toEqual({ b: cardOf(25).id });
+    expect(picksOf(game.round)).toEqual({ a: undefined, b: cardOf(25).id });
   });
 });
 

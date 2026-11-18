@@ -1,11 +1,5 @@
 import { expect, test } from 'vitest';
-import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
-import {
-  createGameState,
-  GamePhase,
-} from '#engine/dataTypes/game/gameState.ts';
-import { createHand } from '#engine/dataTypes/playerState/hand.ts';
-import { createPlayer } from '#engine/dataTypes/playerState/player.ts';
+import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
 import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { pickCard } from '#engine/reducers/gameSlice.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
@@ -13,7 +7,8 @@ import { handleRequest } from '#engine/requestHandling/handleRequest.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
-import { cardOf } from '#testSupport/cards.ts';
+import { cardOf, seatOf } from '#testSupport/cards.ts';
+import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 import { startGameRequest } from '#testSupport/requests.ts';
 
 const card = cardOf(1);
@@ -41,15 +36,14 @@ const history: AppliedAction[] = [
     action,
   },
 ];
-const state = createGameState(
+const state = roundGameStateOf(
   GamePhase.CardPick,
+  playersOf([
+    { id: 'a', name: 'Ada' },
+    { id: 'b', name: 'Ben' },
+  ]),
+  createRound([], [seatOf('a', [card]), seatOf('b', [cardOf(2)])]),
   { sequence: 4, major: false },
-  STANDARD_GAME_RULES,
-  [
-    createPlayer({ id: 'a', name: 'Ada' }),
-    createPlayer({ id: 'b', name: 'Ben' }),
-  ],
-  createRound([], [createHand('a', [card]), createHand('b', [cardOf(2)])]),
 );
 
 function pickRequestSeeing(lastVersionSeen: number): GameRequest {
