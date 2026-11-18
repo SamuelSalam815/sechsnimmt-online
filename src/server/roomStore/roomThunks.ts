@@ -19,6 +19,7 @@ import {
   findRoomPlayer,
   isRoomFull,
   listRoomPlayers,
+  MAX_NAME_LENGTH,
   playerJoined,
   playerReady,
   playerRemoved,
@@ -27,8 +28,6 @@ import {
   selectRoomView,
 } from '#server/roomStore/roomSlice.ts';
 import type { RoomStoreState, RoomThunk } from '#server/roomStore/roomStore.ts';
-
-const MAX_NAME_LENGTH = 24;
 
 // The answer to an HTTP request. A request of a client is untrusted, so each
 // rejection names its status: 400 for a malformed body, 403 for an unknown

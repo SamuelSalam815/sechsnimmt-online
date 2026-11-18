@@ -34,6 +34,8 @@ export interface RoomState {
   gameStarted: boolean;
 }
 
+export const MAX_NAME_LENGTH = 24;
+
 // What every client sees of the room. It holds no client token.
 export interface RoomView {
   readonly gameStarted: boolean;
