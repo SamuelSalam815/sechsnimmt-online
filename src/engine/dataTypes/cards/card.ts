@@ -16,8 +16,8 @@ export interface HiddenCard {
 
 export type HandCard = Card | HiddenCard;
 
-export function hideCard(card: Card): HiddenCard {
-  return { id: card.id };
+export function hideCard(handCard: HandCard): HiddenCard {
+  return { id: handCard.id };
 }
 
 export function checkCardNotHidden(handCard: HandCard): Result<Card> {

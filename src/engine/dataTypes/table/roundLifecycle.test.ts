@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { createCards } from '#engine/dataTypes/cards/card.ts';
+import { createCards, hideCard } from '#engine/dataTypes/cards/card.ts';
 import { getDeckFaceValues } from '#engine/dataTypes/cards/deck.ts';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
@@ -9,6 +9,7 @@ import {
   findPick,
   findRow,
   findSeat,
+  hideOtherHands,
   type Round,
   wouldEveryOtherSeatHavePicked,
 } from '#engine/dataTypes/table/roundLifecycle.ts';
@@ -27,6 +28,32 @@ function benPicked(): Round {
     [seatOf('a', [aceOfAda, otherOfAda]), seatOf('b', [aceOfBen], aceOfBen)],
   );
 }
+
+describe('hideOtherHands', () => {
+  test('hides every hand but the hand of the viewer', () => {
+    expect(hideOtherHands(benPicked(), 'b')).toEqual(
+      createRound(
+        [rowOf(10), rowOf(20, 21)],
+        [
+          seatOf('a', [hideCard(aceOfAda), hideCard(otherOfAda)]),
+          seatOf('b', [aceOfBen], aceOfBen),
+        ],
+      ),
+    );
+  });
+
+  test('hides every hand from a viewer without a seat', () => {
+    expect(hideOtherHands(benPicked(), undefined)).toEqual(
+      createRound(
+        [rowOf(10), rowOf(20, 21)],
+        [
+          seatOf('a', [hideCard(aceOfAda), hideCard(otherOfAda)]),
+          seatOf('b', [hideCard(aceOfBen)], aceOfBen),
+        ],
+      ),
+    );
+  });
+});
 
 describe('dealRound', () => {
   const cards = createCards(getDeckFaceValues());

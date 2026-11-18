@@ -1,4 +1,4 @@
-import type { CardId } from '#engine/dataTypes/cards/card.ts';
+import { type CardId, hideCard } from '#engine/dataTypes/cards/card.ts';
 import { type Deck, drawCardsFromDeck } from '#engine/dataTypes/cards/deck.ts';
 import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 import {
@@ -38,6 +38,19 @@ export function dealRound(
   });
   const rows = drawCardsFromDeck(deck, ROW_COUNT).cards.map(createRow);
   return createRound(rows, seats);
+}
+
+// A viewer without a seat (undefined) sees no hand.
+export function hideOtherHands(
+  round: Round,
+  viewerId: PlayerId | undefined,
+): Round {
+  const seats = listRoundSeats(round.seats).map((seat) =>
+    seat.playerId === viewerId
+      ? seat
+      : { ...seat, hand: seat.hand.map(hideCard) },
+  );
+  return createRound(round.rows, seats);
 }
 
 export function findSeat(round: Round, playerId: PlayerId): Result<RoundSeat> {
