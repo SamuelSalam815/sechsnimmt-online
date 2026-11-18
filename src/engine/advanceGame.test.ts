@@ -73,10 +73,10 @@ test('a pick card request for every player reveals the picked cards', () => {
   }
   // The card 1 of Ada is lower than the last card of every row.
   expect(state.game.phase).toBe(GamePhase.RowPick);
-  // The start of the game, two picks and the reveal. Only the picks are minor
-  // changes.
-  expect(state.game.version).toEqual({ sequence: 4, major: true });
-  // Each of the four actions acted on the version that the one before it left.
+  // The start of the game, two picks, the reveal and the wait for the row
+  // pick. Only the picks are minor changes.
+  expect(state.game.version).toEqual({ sequence: 5, major: true });
+  // Each of the five actions acted on the version that the one before it left.
   expect(
     state.history.map((applied) => [
       applied.oldVersion.sequence,
@@ -87,6 +87,7 @@ test('a pick card request for every player reveals the picked cards', () => {
     [1, 2],
     [2, 3],
     [3, 4],
+    [4, 5],
   ]);
 });
 
@@ -123,8 +124,9 @@ test('the start round request deals the next round and keeps the scores', () => 
     seatOf('a', orderedDeck().cards.slice(0, 10)),
   ]);
   expect(game.players).toEqual(scored);
-  // The pick, the reveal and the start of the round.
-  expect(game.version).toEqual({ sequence: 3, major: true });
+  // The pick, the reveal, the placement, the end of the round and the start
+  // of the next round.
+  expect(game.version).toEqual({ sequence: 5, major: true });
 });
 
 test('a rejected request returns its error', () => {

@@ -1,12 +1,6 @@
 import type { UnknownAction } from '@reduxjs/toolkit';
 import type { GameStateVersion } from '#engine/dataTypes/game/gameStateVersion.ts';
-import type { CardPlacement } from '#engine/dataTypes/table/revealResolution.ts';
-import {
-  type GameAction,
-  gameSlice,
-  pickRow,
-  revealPickedCards,
-} from '#engine/reducers/gameSlice.ts';
+import { type GameAction, gameSlice } from '#engine/reducers/gameSlice.ts';
 
 // An applied action with the old version of the game state, which the action
 // acted on, and the new version that the reducer produced from it. An action
@@ -30,22 +24,6 @@ export function appendToHistory(
     return history;
   }
   return [...history, { oldVersion, newVersion, action }];
-}
-
-// A row pick only follows a reveal, and it places the cards that the reveal
-// left picked. Its placements therefore extend the reveal.
-export function selectLastRevealPlacements(
-  history: readonly AppliedAction[],
-): CardPlacement[] {
-  let placements: CardPlacement[] = [];
-  for (const { action } of history) {
-    if (revealPickedCards.match(action)) {
-      placements = [...action.payload.placements];
-    } else if (pickRow.match(action)) {
-      placements.push(...action.payload.placements);
-    }
-  }
-  return placements;
 }
 
 // An allowlist of the actions that the game slice creates. Everything else that

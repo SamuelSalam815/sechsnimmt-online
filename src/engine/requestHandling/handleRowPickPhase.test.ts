@@ -9,7 +9,13 @@ import type {
   Players,
 } from '#engine/dataTypes/playerState/player.ts';
 import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
-import { abandonGame, pickRow } from '#engine/reducers/gameSlice.ts';
+import {
+  abandonGame,
+  endGame,
+  endRound,
+  placeCard,
+  takeRow,
+} from '#engine/reducers/gameSlice.ts';
 import { handleRowPickPhase } from '#engine/requestHandling/handleRowPickPhase.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
@@ -51,11 +57,9 @@ function pickRowRequest(playerId: PlayerId, rowIndex: number): GameRequest {
 test('handles the pick row request with the pick row action and its placements', () => {
   expect(handleRowPickPhase(rowPick(), pickRowRequest('a', 1))).toEqual({
     actions: [
-      pickRow({
-        playerId: 'a',
-        rowIndex: 1,
-        placements: [placementOf('a', 1, 1, [20]), placementOf('b', 60, 0)],
-      }),
+      takeRow(placementOf('a', 1, 1)),
+      placeCard(placementOf('b', 60, 0)),
+      endRound(),
     ],
   });
 });
@@ -81,8 +85,9 @@ test('returns an error for the pick row request of an unknown player', () => {
 });
 
 test('handles the abandon game request of a player who need not pick a row', () => {
+  // Two players are too few, so the game ends.
   expect(handleRowPickPhase(rowPick(), abandonRequest('b'))).toEqual({
-    actions: [abandonGame({ playerId: 'b' })],
+    actions: [abandonGame({ playerId: 'b' }), endGame()],
   });
 });
 
@@ -91,12 +96,11 @@ test('gives the row with the largest penalty to the player who must pick a row a
   // first of them goes to Ada.
   expect(handleRowPickPhase(rowPick(), abandonRequest('a'))).toEqual({
     actions: [
-      pickRow({
-        playerId: 'a',
-        rowIndex: 0,
-        placements: [placementOf('a', 1, 0, [10]), placementOf('b', 60, 1)],
-      }),
+      takeRow(placementOf('a', 1, 0)),
+      placeCard(placementOf('b', 60, 1)),
+      endRound(),
       abandonGame({ playerId: 'a' }),
+      endGame(),
     ],
   });
 });
@@ -107,13 +111,7 @@ test('keeps the player who must pick a row in the game when that row ends it', (
   expect(
     handleRowPickPhase(rowPick(scoredPlayers), abandonRequest('a')),
   ).toEqual({
-    actions: [
-      pickRow({
-        playerId: 'a',
-        rowIndex: 0,
-        placements: [placementOf('a', 1, 0, [10])],
-      }),
-    ],
+    actions: [takeRow(placementOf('a', 1, 0)), endGame()],
   });
 });
 

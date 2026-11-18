@@ -9,7 +9,10 @@ import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
   abandonGame,
+  endGame,
+  endRound,
   pickCard,
+  placeCard,
   revealPickedCards,
   unpickCard,
 } from '#engine/reducers/gameSlice.ts';
@@ -128,14 +131,28 @@ test('reveals the picked cards with their placements once every player has picke
     actions: [
       pickCard({ playerId: 'a', card: cardOf(12) }),
       revealPickedCards({
-        placements: [placementOf('b', 11, 0), placementOf('a', 12, 0)],
+        revealedCards: [
+          { playerId: 'b', card: cardOf(11) },
+          { playerId: 'a', card: cardOf(12) },
+        ],
       }),
+      placeCard(placementOf('b', 11, 0)),
+      placeCard(placementOf('a', 12, 0)),
+      endRound(),
     ],
   });
 });
 
 test('handles the abandon game request with the abandon game action', () => {
-  expect(handleCardPickPhase(cardPick(), abandonRequest('a'))).toEqual({
+  const threePlayers = roundGameStateOf(
+    GamePhase.CardPick,
+    playersOf([ada, ben, { id: 'c', name: 'Cy' }]),
+    createRound(
+      [rowOf(50)],
+      [seatOf('a', [aceOfAda]), seatOf('b', [aceOfBen]), seatOf('c', [])],
+    ),
+  );
+  expect(handleCardPickPhase(threePlayers, abandonRequest('a'))).toEqual({
     actions: [abandonGame({ playerId: 'a' })],
   });
 });
@@ -166,16 +183,22 @@ test('reveals the picked cards when every player who stays has picked one', () =
     actions: [
       abandonGame({ playerId: 'a' }),
       revealPickedCards({
-        placements: [placementOf('b', 3, 0), placementOf('c', 4, 0)],
+        revealedCards: [
+          { playerId: 'b', card: aceOfBen },
+          { playerId: 'c', card: aceOfCy },
+        ],
       }),
+      placeCard(placementOf('b', 3, 0)),
+      placeCard(placementOf('c', 4, 0)),
+      endRound(),
     ],
   });
 });
 
-test('does not reveal when the abandon leaves too few players', () => {
+test('ends the game and does not reveal when the abandon leaves too few players', () => {
   const state = cardPick([['b', aceOfBen]]);
   expect(handleCardPickPhase(state, abandonRequest('a'))).toEqual({
-    actions: [abandonGame({ playerId: 'a' })],
+    actions: [abandonGame({ playerId: 'a' }), endGame()],
   });
 });
 

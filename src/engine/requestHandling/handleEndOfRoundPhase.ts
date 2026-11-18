@@ -1,8 +1,9 @@
 import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';
 import { findPlayer } from '#engine/dataTypes/playerState/player.ts';
 import { dealRound } from '#engine/dataTypes/table/roundLifecycle.ts';
-import { abandonGame, startRound } from '#engine/reducers/gameSlice.ts';
+import { startRound } from '#engine/reducers/gameSlice.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
+import { resolveAbandon } from '#engine/requestHandling/resolveAbandon.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
@@ -27,7 +28,7 @@ export function handleEndOfRoundPhase(
   if (request.type === RequestType.AbandonGame) {
     const { playerId } = request;
     return findPlayer(state.players, playerId).use(() => ({
-      actions: [abandonGame({ playerId })],
+      actions: resolveAbandon(state, playerId),
     }));
   }
   return {

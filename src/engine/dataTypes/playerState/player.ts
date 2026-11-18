@@ -46,14 +46,11 @@ export function findPlayer(
   );
 }
 
-// Gives whether the penalty ends the game.
 export function addPenaltyToPlayer(
   player: Player,
   takenCards: readonly Card[],
-  penaltyLimit: number,
-): boolean {
+): void {
   player.penaltyScore += getPenaltyTotal(takenCards);
-  return player.penaltyScore >= penaltyLimit;
 }
 
 export function hasReachedPenaltyLimit(

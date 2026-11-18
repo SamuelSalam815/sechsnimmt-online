@@ -417,7 +417,13 @@ describe('player requests', () => {
     expect(fake.store.getState().engine.game.phase).toBe(GamePhase.CardPick);
     expect(gameActionTypesWritten(fake).slice(-3)).toEqual([
       ['game/pickCard'],
-      ['game/pickCard', 'game/revealPickedCards'],
+      [
+        'game/pickCard',
+        'game/revealPickedCards',
+        'game/placeCard',
+        'game/placeCard',
+        'game/endRound',
+      ],
       ['game/startRound'],
     ]);
   });
@@ -506,7 +512,9 @@ describe('grace period', () => {
     expect(room.players.ids).toEqual(['secret-2']);
     // One player is too few for a game.
     expect(engine.game.phase).toBe(GamePhase.GameOver);
-    expect(engine.history.at(-1)?.action.type).toBe('game/abandonGame');
+    expect(
+      engine.history.slice(-2).map((applied) => applied.action.type),
+    ).toEqual(['game/abandonGame', 'game/endGame']);
   });
 
   test('the end of the grace period after the game is over only removes the player', () => {

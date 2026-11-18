@@ -1,7 +1,5 @@
-import { createNextState } from '@reduxjs/toolkit';
 import type { Card } from '#engine/dataTypes/cards/card.ts';
 import {
-  assertRoundInProgress,
   GamePhase,
   type RoundGameState,
 } from '#engine/dataTypes/game/gameState.ts';
@@ -10,24 +8,20 @@ import {
   type PlayerId,
 } from '#engine/dataTypes/playerState/player.ts';
 import {
-  type CardPlacement,
-  resolveReveal,
-} from '#engine/dataTypes/table/revealResolution.ts';
-import {
   findPick,
   findSeat,
   wouldEveryOtherSeatHavePicked,
 } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { findCardInHand } from '#engine/dataTypes/table/roundSeat.ts';
 import {
-  abandonGame,
   type GameAction,
-  gameSlice,
   pickCard,
-  revealPickedCards,
   unpickCard,
 } from '#engine/reducers/gameSlice.ts';
+import { applyActions } from '#engine/requestHandling/applyActions.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
+import { resolveAbandon } from '#engine/requestHandling/resolveAbandon.ts';
+import { resolveReveal } from '#engine/requestHandling/resolveReveal.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
@@ -74,33 +68,22 @@ function pickActions(
   if (!wouldEveryOtherSeatHavePicked(state.round, playerId)) {
     return [pickAction];
   }
-  const stateAfterPick = gameSlice.reducer(state, pickAction);
-  assertRoundInProgress(stateAfterPick);
-  return [pickAction, revealAction(stateAfterPick)];
+  return [pickAction, ...resolveReveal(applyActions(state, [pickAction]))];
 }
 
 // The players who stay may all have picked already, and the reveal then waits
-// for no one. A game with too few players ends instead.
+// for no one.
 function abandonActions(
   state: RoundGameState,
   playerId: PlayerId,
 ): GameAction[] {
-  const abandonAction = abandonGame({ playerId });
-  const stateAfterAbandon = gameSlice.reducer(state, abandonAction);
+  const actions = resolveAbandon(state, playerId);
+  const stateAfterAbandon = applyActions(state, actions);
   if (
-    stateAfterAbandon.phase !== GamePhase.GameOver &&
-    wouldEveryOtherSeatHavePicked(state.round, playerId)
+    stateAfterAbandon.phase === GamePhase.GameOver ||
+    !wouldEveryOtherSeatHavePicked(state.round, playerId)
   ) {
-    assertRoundInProgress(stateAfterAbandon);
-    return [abandonAction, revealAction(stateAfterAbandon)];
+    return actions;
   }
-  return [abandonAction];
-}
-
-function revealAction(state: RoundGameState): GameAction {
-  let placements: CardPlacement[] = [];
-  createNextState(state, (draft) => {
-    placements = resolveReveal(draft);
-  });
-  return revealPickedCards({ placements });
+  return [...actions, ...resolveReveal(stateAfterAbandon)];
 }

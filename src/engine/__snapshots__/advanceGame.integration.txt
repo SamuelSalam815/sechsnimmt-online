@@ -1,0 +1,98 @@
+start the game with {"penaltyLimit":15,"handSize":0} → rejected: invalidGameRules: The hand size 0 is not a whole number of 1 or more
+start the game with {"penaltyLimit":15,"handSize":3}
+  start game: ada, ben, cy · rows 10 | 20 | 30 | 40 · hands 3
+ada picks 5
+  ada picks 5
+ben picks 11 (saw version 1 of 2)
+  ben picks 11
+ada picks 22 → rejected: ruleViolation: The hand of the player ada does not hold the card 21
+nobody picks 12 → rejected: unknownEntity: The game holds no player with the ID nobody
+cy picks 12 (saw version 1 of 3)
+  cy picks 12
+  reveal: ada 5, ben 11, cy 12
+  await row pick: ada
+ben picks the row 0 → rejected: ruleViolation: The player ben holds no card that waits for a row pick
+ada picks the row 7 → rejected: unknownEntity: The game holds no row at the index 7
+ada picks 21 → rejected: wrongPhase: The row pick phase rejects the pickCard request: it accepts only the pick row and abandon game requests
+ada picks the row 3
+  ada takes row 3 with 5: 40 (3 points, score 3)
+  ben places 11 in row 0
+  cy places 12 in row 0
+  await card pick
+ada picks 21 (saw version 1 of 10) → rejected: staleRequest: The pickCard request saw the version 1, which the major change to the version 10 has outdated
+start the game with {"penaltyLimit":15,"handSize":3} (saw version 1 of 10) → rejected: staleRequest: The startGame request saw the version 1, which the major change to the version 10 has outdated
+ada picks 21
+  ada picks 21
+ben picks 22
+  ben picks 22
+cy picks 23
+  cy picks 23
+  reveal: ada 21, ben 22, cy 23
+  ada places 21 in row 1
+  ben places 22 in row 1
+  cy places 23 in row 1
+  await card pick
+ada picks 41
+  ada picks 41
+ben picks 42
+  ben picks 42
+cy picks 43
+  cy picks 43
+  reveal: ada 41, ben 42, cy 43
+  ada places 41 in row 2
+  ben places 42 in row 2
+  cy places 43 in row 2
+  end round · scores ada 3, ben 0, cy 0
+ada picks 41 → rejected: wrongPhase: The end of round phase rejects the pickCard request: it accepts only the start round and abandon game requests
+start a round
+  start round · rows 50 | 60 | 70 | 80
+start the game with {"penaltyLimit":15,"handSize":3} → rejected: wrongPhase: The card pick phase rejects the startGame request: it accepts only the pick card, unpick card and abandon game requests
+ada picks 51
+  ada picks 51
+ben picks 52
+  ben picks 52
+cy picks 53
+  cy picks 53
+  reveal: ada 51, ben 52, cy 53
+  ada places 51 in row 0
+  ben places 52 in row 0
+  cy places 53 in row 0
+  await card pick
+ada picks 54
+  ada picks 54
+ben picks 55
+  ben picks 55
+cy picks 56
+  cy picks 56
+  reveal: ada 54, ben 55, cy 56
+  ada places 54 in row 0
+  ben takes row 0 with 55: 50 51 52 53 54 (7 points, score 7)
+  cy places 56 in row 0
+  await card pick
+ada picks 1
+  ada picks 1
+ben picks 57
+  ben picks 57
+cy picks 58
+  cy picks 58
+  reveal: ada 1, ben 57, cy 58
+  await row pick: ada
+ada picks the row 0
+  ada takes row 0 with 1: 55 56 (8 points, score 11)
+  ben places 57 in row 0
+  cy places 58 in row 0
+  end round · scores ada 11, ben 7, cy 0
+start a round
+  start round · rows 66 | 70 | 80 | 90
+ada picks 3
+  ada picks 3
+ben picks 67
+  ben picks 67
+cy picks 68
+  cy picks 68
+  reveal: ada 3, ben 67, cy 68
+  await row pick: ada
+ada picks the row 0
+  ada takes row 0 with 3: 66 (5 points, score 16)
+  end game · scores ada 16, ben 7, cy 0 · winner cy
+ben picks 83 → rejected: wrongPhase: The game over phase rejects the pickCard request: it accepts no request

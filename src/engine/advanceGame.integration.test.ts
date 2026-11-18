@@ -1,11 +1,32 @@
-import { expect, test } from 'vitest';
+import { assert, expect, test } from 'vitest';
 import { advanceGame } from '#engine/advanceGame.ts';
+import type { Card } from '#engine/dataTypes/cards/card.ts';
 import type { Deck } from '#engine/dataTypes/cards/deck.ts';
 import type { GameRules } from '#engine/dataTypes/game/gameRules.ts';
-import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
+import {
+  GamePhase,
+  type GameState,
+  type RoundGameState,
+} from '#engine/dataTypes/game/gameState.ts';
 import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
-import type { CardPlacement } from '#engine/dataTypes/table/revealResolution.ts';
-import { gameSlice } from '#engine/reducers/gameSlice.ts';
+import { listRevealedCardsLowestFirst } from '#engine/dataTypes/table/revealResolution.ts';
+import type { Row } from '#engine/dataTypes/table/row.ts';
+import {
+  abandonGame,
+  awaitCardPick,
+  awaitRowPick,
+  endGame,
+  endRound,
+  type GameAction,
+  gameSlice,
+  pickCard as pickCardAction,
+  placeCard,
+  revealPickedCards,
+  startGame as startGameAction,
+  startRound as startRoundAction,
+  takeRow,
+  unpickCard,
+} from '#engine/reducers/gameSlice.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { initialRootState, type RootState } from '#engine/store.ts';
@@ -26,56 +47,124 @@ function deckOf(hands: number[][], rows: number[]): Deck {
   return { cards: [...hands.flat(), ...rows].map(cardOf) };
 }
 
-function describePlacement(placement: CardPlacement): string {
-  const { playerId, card, rowIndex, takenCards } = placement;
-  const description = `${playerId} places ${card.faceValue} in row ${rowIndex}`;
-  if (takenCards.length === 0) {
-    return description;
-  }
-  const takenFaceValues = takenCards.map((takenCard) => takenCard.faceValue);
-  return `${description} and takes ${takenFaceValues.join(', ')}`;
+function faceValuesOf(cards: readonly Card[]): string {
+  return cards.map((card) => card.faceValue).join(' ');
 }
 
-type LogEntry =
-  | { request: string; lastVersionSeen: number; rejected?: string }
-  | { phase: GamePhase }
-  | { placements: string[] }
-  | { finalScores: Record<PlayerId, number> };
+function rowsOf(rows: readonly Row[]): string {
+  return rows.map((row) => faceValuesOf(row.cards)).join(' | ');
+}
 
-test('plays a full game with stale and bad requests mixed in', () => {
+function roundStateOf(state: GameState): RoundGameState {
+  assert(state.phase !== GamePhase.PreStart);
+  return state;
+}
+
+function scoreOf(state: GameState, playerId: PlayerId): number {
+  return roundStateOf(state).players.entities[playerId].penaltyScore;
+}
+
+function scoresOf(state: GameState): string {
+  const { players: scoredPlayers } = roundStateOf(state);
+  return scoredPlayers.ids
+    .map((playerId) => `${playerId} ${scoreOf(state, playerId)}`)
+    .join(', ');
+}
+
+// The lowest score wins, and a tie has several winners.
+function winnersOf(state: GameState): string {
+  const { players: scoredPlayers } = roundStateOf(state);
+  const scores = scoredPlayers.ids.map((playerId) => scoreOf(state, playerId));
+  const lowestScore = Math.min(...scores);
+  return scoredPlayers.ids
+    .filter((playerId) => scoreOf(state, playerId) === lowestScore)
+    .join(', ');
+}
+
+// The taken cards and the penalty come from the states around the action, not
+// from the payload.
+function describeAction(
+  stateBefore: GameState,
+  action: GameAction,
+  stateAfter: GameState,
+): string {
+  if (startGameAction.match(action)) {
+    const { players: startedPlayers, round, gameRules: rules } = action.payload;
+    return `start game: ${startedPlayers.ids.join(', ')} · rows ${rowsOf(round.rows)} · hands ${rules.handSize}`;
+  }
+  if (startRoundAction.match(action)) {
+    return `start round · rows ${rowsOf(action.payload.round.rows)}`;
+  }
+  if (pickCardAction.match(action)) {
+    return `${action.payload.playerId} picks ${action.payload.card.faceValue}`;
+  }
+  if (unpickCard.match(action)) {
+    return `${action.payload.playerId} unpicks`;
+  }
+  if (revealPickedCards.match(action)) {
+    const revealedCards = action.payload.revealedCards.map(
+      ({ playerId, card }) => `${playerId} ${card.faceValue}`,
+    );
+    return `reveal: ${revealedCards.join(', ')}`;
+  }
+  if (placeCard.match(action)) {
+    const { playerId, card, rowIndex } = action.payload;
+    return `${playerId} places ${card.faceValue} in row ${rowIndex}`;
+  }
+  if (takeRow.match(action)) {
+    const { playerId, card, rowIndex } = action.payload;
+    const takenCards = roundStateOf(stateBefore).round.rows[rowIndex].cards;
+    const score = scoreOf(stateAfter, playerId);
+    const penalty = score - scoreOf(stateBefore, playerId);
+    return `${playerId} takes row ${rowIndex} with ${card.faceValue}: ${faceValuesOf(takenCards)} (${penalty} points, score ${score})`;
+  }
+  if (awaitCardPick.match(action)) {
+    return 'await card pick';
+  }
+  if (awaitRowPick.match(action)) {
+    const rowPicker = listRevealedCardsLowestFirst(
+      roundStateOf(stateAfter).round,
+    ).at(0);
+    return `await row pick: ${rowPicker?.playerId}`;
+  }
+  if (endRound.match(action)) {
+    return `end round · scores ${scoresOf(stateAfter)}`;
+  }
+  if (endGame.match(action)) {
+    return `end game · scores ${scoresOf(stateAfter)} · winner ${winnersOf(stateAfter)}`;
+  }
+  if (abandonGame.match(action)) {
+    return `${action.payload.playerId} abandons`;
+  }
+  throw new Error(`No description for the action ${JSON.stringify(action)}`);
+}
+
+test('plays a full game with stale and bad requests mixed in', async () => {
   let rootState: RootState = initialRootState;
-  const log: LogEntry[] = [];
+  const trace: string[] = [];
 
   function currentVersion(): number {
     return rootState.game.version.sequence;
   }
 
   function send(description: string, request: GameRequest): void {
+    const staleness =
+      request.lastVersionSeen === currentVersion()
+        ? ''
+        : ` (saw version ${request.lastVersionSeen} of ${currentVersion()})`;
     const outcome = advanceGame(rootState, request);
     if ('message' in outcome) {
-      log.push({
-        request: description,
-        lastVersionSeen: request.lastVersionSeen,
-        rejected: outcome.errorCode,
-      });
+      trace.push(
+        `${description}${staleness} → rejected: ${outcome.errorCode}: ${outcome.message}`,
+      );
       return;
     }
-    log.push({
-      request: description,
-      lastVersionSeen: request.lastVersionSeen,
-    });
+    trace.push(`${description}${staleness}`);
+    let game = rootState.game;
     for (const { action } of outcome.history.slice(rootState.history.length)) {
-      if (
-        gameSlice.actions.revealPickedCards.match(action) ||
-        gameSlice.actions.pickRow.match(action)
-      ) {
-        log.push({
-          placements: action.payload.placements.map(describePlacement),
-        });
-      }
-    }
-    if (outcome.game.phase !== rootState.game.phase) {
-      log.push({ phase: outcome.game.phase });
+      const nextGame = gameSlice.reducer(game, action);
+      trace.push(`  ${describeAction(game, action, nextGame)}`);
+      game = nextGame;
     }
     rootState = outcome;
   }
@@ -211,16 +300,7 @@ test('plays a full game with stale and bad requests mixed in', () => {
   pickRow('ada', 0);
   pickCard('ben', 83);
 
-  const game = rootState.game;
-  if (game.phase !== GamePhase.PreStart) {
-    log.push({
-      finalScores: Object.fromEntries(
-        Object.values(game.players.entities).map((player) => [
-          player.id,
-          player.penaltyScore,
-        ]),
-      ),
-    });
-  }
-  expect(log).toMatchSnapshot();
+  await expect(`${trace.join('\n')}\n`).toMatchFileSnapshot(
+    '__snapshots__/advanceGame.integration.txt',
+  );
 });
