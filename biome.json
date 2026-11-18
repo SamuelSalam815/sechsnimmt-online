@@ -72,6 +72,7 @@
       "includes": [
         "src/engine/reducers/**",
         "src/engine/store.ts",
+        "src/client/clientStore.ts",
         "src/server/roomStore/**",
         "src/server/infrastructure/logger.ts"
       ],
