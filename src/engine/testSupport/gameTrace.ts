@@ -144,8 +144,8 @@ function describeAction(
   stateAfter: GameState,
 ): string {
   if (startGameAction.match(action)) {
-    const { players: startedPlayers, gameRules: rules } = action.payload;
-    return `start game: ${startedPlayers.ids.join(', ')} · hands ${rules.handSize}`;
+    const { players: startedPlayers } = action.payload;
+    return `start game: ${startedPlayers.ids.join(', ')}`;
   }
   if (startRoundAction.match(action)) {
     return 'start round';

@@ -1,5 +1,5 @@
 request: start the game with {"penaltyLimit":10,"handSize":3,"rowCapacity":3}
-  response: start game: ada, ben, cy · hands 3
+  response: start game: ada, ben, cy
 
   === state at the start of the game ===
     phase: cardPick

@@ -1,7 +1,7 @@
 request: start the game with {"penaltyLimit":15,"handSize":0,"rowCapacity":5}
   response: rejected invalidGameRules: The hand size 0 is not a whole number of 1 or more
 request: start the game with {"penaltyLimit":15,"handSize":3,"rowCapacity":5}
-  response: start game: ada, ben, cy · hands 3
+  response: start game: ada, ben, cy
 
   === state at the start of the game ===
     phase: cardPick
