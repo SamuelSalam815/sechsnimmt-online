@@ -1,14 +1,22 @@
-import type { Card } from '#engine/dataTypes/card.ts';
-import type { RoundGameState } from '#engine/dataTypes/gameState.ts';
-import { findCardInHand } from '#engine/dataTypes/hand.ts';
-import { findPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
+import type { Card } from '#engine/dataTypes/cards/card.ts';
 import {
-  findHand,
+  GamePhase,
+  type RoundGameState,
+} from '#engine/dataTypes/game/gameState.ts';
+import {
+  findPlayer,
+  type PlayerId,
+} from '#engine/dataTypes/playerState/player.ts';
+import {
   findPick,
-  findPickedCardId,
-} from '#engine/dataTypes/round.ts';
+  findSeat,
+  wouldEveryOtherSeatHavePicked,
+} from '#engine/dataTypes/table/roundLifecycle.ts';
+import { findCardInHand } from '#engine/dataTypes/table/roundSeat.ts';
 import {
+  abandonGame,
   type GameAction,
+  gameSlice,
   pickCard,
   revealPickedCards,
   unpickCard,
@@ -16,17 +24,25 @@ import {
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
+import { ErrorCode } from '#engine/result.ts';
 
 export function handleCardPickPhase(
   state: RoundGameState,
   request: GameRequest,
 ): PhaseHandlingResult {
+  if (request.type === RequestType.AbandonGame) {
+    const { playerId } = request;
+    return findPlayer(state.players, playerId).use(() => ({
+      actions: abandonActions(state, playerId),
+    }));
+  }
   if (
     request.type !== RequestType.PickCard &&
     request.type !== RequestType.UnpickCard
   ) {
     return {
-      message: `The card pick phase rejects the ${request.type} request: it accepts only the pick card and unpick card requests`,
+      errorCode: ErrorCode.WrongPhase,
+      message: `The card pick phase rejects the ${request.type} request: it accepts only the pick card, unpick card and abandon game requests`,
     };
   }
   const { playerId, cardId } = request;
@@ -38,8 +54,8 @@ export function handleCardPickPhase(
       .use(() => ({ actions: [unpickCard({ playerId })] }));
   }
   return checkPlayerExists
-    .andThen(() => findHand(round, playerId))
-    .andThen((hand) => findCardInHand(hand, cardId))
+    .andThen(() => findSeat(round, playerId))
+    .andThen((seat) => findCardInHand(seat, cardId))
     .use((card) => ({ actions: pickActions(state, playerId, card) }));
 }
 
@@ -49,19 +65,25 @@ function pickActions(
   card: Card,
 ): GameAction[] {
   const actions: GameAction[] = [pickCard({ playerId, card })];
-  if (wouldBeLastRemainingPlayerToPick(state, playerId)) {
+  if (wouldEveryOtherSeatHavePicked(state.round, playerId)) {
     actions.push(revealPickedCards());
   }
   return actions;
 }
 
-function wouldBeLastRemainingPlayerToPick(
+// The players who stay may all have picked already, and the reveal then waits
+// for no one. A game with too few players ends instead.
+function abandonActions(
   state: RoundGameState,
   playerId: PlayerId,
-): boolean {
-  return state.players.every(
-    (player) =>
-      player.id === playerId ||
-      findPickedCardId(state.round, player.id) !== undefined,
-  );
+): GameAction[] {
+  const abandonAction = abandonGame({ playerId });
+  const stateAfterAbandon = gameSlice.reducer(state, abandonAction);
+  if (
+    stateAfterAbandon.phase !== GamePhase.GameOver &&
+    wouldEveryOtherSeatHavePicked(state.round, playerId)
+  ) {
+    return [abandonAction, revealPickedCards()];
+  }
+  return [abandonAction];
 }

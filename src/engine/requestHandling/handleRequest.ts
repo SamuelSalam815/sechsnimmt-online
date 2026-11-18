@@ -1,6 +1,4 @@
-import { GamePhase, type GameState } from '#engine/dataTypes/gameState.ts';
-import { isRequestStale } from '#engine/dataTypes/gameStateVersion.ts';
-import { fail, type Result, success } from '#engine/dataTypes/result.ts';
+import { GamePhase, type GameState } from '#engine/dataTypes/game/gameState.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
 import { handleCardPickPhase } from '#engine/requestHandling/handleCardPickPhase.ts';
 import { handleEndOfRoundPhase } from '#engine/requestHandling/handleEndOfRoundPhase.ts';
@@ -9,7 +7,10 @@ import { handlePreStartPhase } from '#engine/requestHandling/handlePreStartPhase
 import { handleRowPickPhase } from '#engine/requestHandling/handleRowPickPhase.ts';
 import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
+import { ErrorCode, fail, type Result, success } from '#engine/result.ts';
 
+// The staleness check runs before every other check. A StaleRequest rejection
+// therefore says nothing about whether the request is otherwise good.
 export function handleRequest(
   state: GameState,
   history: readonly AppliedAction[],
@@ -20,20 +21,24 @@ export function handleRequest(
   );
 }
 
-// A request is up to date as long as no major change followed the version that
-// it saw. It then works off stale state, which is still valid for it.
+// A request that saw a version after the last major change works off stale
+// state, which is still valid for it.
 function checkRequestStillGood(
   request: GameRequest,
   history: readonly AppliedAction[],
 ): Result<GameRequest> {
-  const staleMaker = history.find((appliedAction) =>
-    isRequestStale(request, appliedAction.newVersion),
-  );
-  if (staleMaker === undefined) {
+  const lastMajorChange = history
+    .filter((appliedAction) => appliedAction.newVersion.major)
+    .at(-1);
+  const isRequestStale =
+    lastMajorChange !== undefined &&
+    lastMajorChange.newVersion.sequence > request.lastVersionSeen;
+  if (!isRequestStale) {
     return success(request);
   }
   return fail(
-    `The ${request.type} request saw the version ${request.lastVersionSeen}, which the major change to the version ${staleMaker.newVersion.sequence} has outdated`,
+    ErrorCode.StaleRequest,
+    `The ${request.type} request saw the version ${request.lastVersionSeen}, which the major change to the version ${lastMajorChange.newVersion.sequence} has outdated`,
   );
 }
 
@@ -51,9 +56,9 @@ function handleInPhase(
     case GamePhase.CardPick:
       return handleCardPickPhase(state, request);
     case GamePhase.RowPick:
-      return handleRowPickPhase(request);
+      return handleRowPickPhase(state, request);
     case GamePhase.EndOfRound:
-      return handleEndOfRoundPhase(request);
+      return handleEndOfRoundPhase(state, request);
     case GamePhase.GameOver:
       return handleGameOverPhase(request);
   }

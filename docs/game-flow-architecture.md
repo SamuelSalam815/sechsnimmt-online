@@ -16,7 +16,7 @@ It changes nothing.
 
 A request is not trusted.
 This layer therefore decides which requests the current phase allows.
-It serves an allowed request with actions, with thunks, or with both.
+It serves an allowed request with actions.
 Handling starts in the generic `handleRequest`.
 That function passes the request to the handling of the current phase.
 
@@ -25,9 +25,13 @@ It travels back to the client.
 A rejection is therefore a returned error, not a throw.
 
 Redux buys predictable and testable changes.
-Actions and reducers therefore stay pure.
-A change that relies on random numbers cannot be pure.
-Such a change is a thunk, and its impurity runs on dispatch.
+Actions, reducers and the request handling therefore stay pure.
+A deal relies on random numbers, which cannot be pure.
+The shuffled deck therefore comes from outside the engine as data.
+The start game request carries the deck of the first round.
+The start round request carries the deck of each round that follows.
+A round that ends therefore rests in the end of round phase until that request arrives.
+`buildShuffledDeck` is the one impure function of the engine, and its caller runs it outside the pure code.
 
 ## Layer 3: Redux store
 
@@ -35,8 +39,8 @@ The store and its reducers own the game state.
 They alone progress the game.
 A rejected request never reaches them.
 
-A reducer does not read into the state.
-It calls one operation of a data type and returns the result with a new version.
+A reducer writes into its immer draft.
+It sets a field, or it hands the draft to a rule of a data type, and it bumps the version.
 The data types hold the rules of the game and their own invariants.
 See docs/data-type-design.md.
 
@@ -58,7 +62,7 @@ The pick card action carries the card itself, not the ID that the request held.
 The reducer therefore repeats no search, and no code decides twice whether the data exists.
 A second search could only confirm the first, because the reducer of a rejected request never runs.
 
-Layer 3 still searches for data that no request names, for example the hand that a revealed card leaves.
+Layer 3 still searches for data that no request names, for example the seat that a revealed card leaves.
 Such a search passes through `force`, which throws the message of a miss.
 A miss there is a bug in this code, not a rejected request.
 

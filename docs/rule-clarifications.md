@@ -28,3 +28,14 @@ The game therefore ends as soon as a score reaches the limit, in the middle of a
 
 A game is one or more rounds.
 Rounds continue until the termination condition is met.
+
+## Abandon
+
+The rules summary has no player who leaves a game.
+The server makes the abandon game request for a player whose client is not responsive.
+The player then leaves the game with their hand, their pick and their penalty pile.
+The game goes on with 2 or more players, and it ends with fewer.
+
+The game can wait for the row pick of the player who abandons.
+That player then takes the row with the largest penalty, the first of them if several rows share it, and the reveal goes on before the player leaves.
+If that row ends the game, the player stays in it, so that the result shows their score.

@@ -1,9 +1,5 @@
-import {
-  configureStore,
-  type ThunkAction,
-  type UnknownAction,
-} from '@reduxjs/toolkit';
-import type { GameState } from '#engine/dataTypes/gameState.ts';
+import { configureStore, type UnknownAction } from '@reduxjs/toolkit';
+import type { GameState } from '#engine/dataTypes/game/gameState.ts';
 import { gameSlice } from '#engine/reducers/gameSlice.ts';
 import {
   type AppliedAction,
@@ -16,7 +12,7 @@ export interface RootState {
   history: AppliedAction[];
 }
 
-const initialRootState: RootState = {
+export const initialRootState: RootState = {
   game: gameSlice.getInitialState(),
   history: INITIAL_HISTORY,
 };
@@ -47,9 +43,3 @@ export function rootReducer(
 export const store = configureStore({ reducer: rootReducer });
 
 export type AppDispatch = typeof store.dispatch;
-export type AppThunk<ReturnType = void> = ThunkAction<
-  ReturnType,
-  RootState,
-  undefined,
-  UnknownAction
->;

@@ -1,259 +1,84 @@
-import { describe, expect, test } from 'vitest';
-import type { Card, CardId } from '#engine/dataTypes/card.ts';
-import {
-  createGameState,
-  createInitialGameState,
-  GamePhase,
-  type GameState,
-} from '#engine/dataTypes/gameState.ts';
-import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/gameStateVersion.ts';
-import { createHand } from '#engine/dataTypes/hand.ts';
-import { createPlayer, type PlayerId } from '#engine/dataTypes/player.ts';
-import { createRound, pickCardInRound } from '#engine/dataTypes/round.ts';
-import {
-  pickCard,
-  revealPickedCards,
-  unpickCard,
-} from '#engine/reducers/gameSlice.ts';
+import { expect, test } from 'vitest';
+import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
+import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
+import { pickCard } from '#engine/reducers/gameSlice.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
 import { handleRequest } from '#engine/requestHandling/handleRequest.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
-import type { StartGameRequest } from '#engine/requests/startGameRequest.ts';
-import { cardOf } from '#testSupport/cards.ts';
+import { ErrorCode } from '#engine/result.ts';
+import { cardOf, seatOf } from '#testSupport/cards.ts';
+import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
+import { startGameRequest } from '#testSupport/requests.ts';
 
-const startGameRequest: StartGameRequest = {
-  type: RequestType.StartGame,
-  lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
-  players: [
+const card = cardOf(1);
+const action = pickCard({ playerId: 'a', card });
+// Of the four applied actions, only the second made a major change.
+const history: AppliedAction[] = [
+  {
+    oldVersion: { sequence: 0, major: false },
+    newVersion: { sequence: 1, major: false },
+    action,
+  },
+  {
+    oldVersion: { sequence: 1, major: false },
+    newVersion: { sequence: 2, major: true },
+    action,
+  },
+  {
+    oldVersion: { sequence: 2, major: true },
+    newVersion: { sequence: 3, major: false },
+    action,
+  },
+  {
+    oldVersion: { sequence: 3, major: false },
+    newVersion: { sequence: 4, major: false },
+    action,
+  },
+];
+const state = roundGameStateOf(
+  GamePhase.CardPick,
+  playersOf([
     { id: 'a', name: 'Ada' },
     { id: 'b', name: 'Ben' },
-  ],
-};
-const noHistory: AppliedAction[] = [];
-const preStart = createInitialGameState();
-const players = startGameRequest.players.map((profile) =>
-  createPlayer(profile),
+  ]),
+  createRound([], [seatOf('a', [card]), seatOf('b', [cardOf(2)])]),
+  { sequence: 4, major: false },
 );
 
-describe('pre-start phase handling', () => {
-  test('handles the start game request with one thunk', () => {
-    const result = handleRequest(preStart, noHistory, startGameRequest);
-    expect(result).toEqual({ actions: [expect.any(Function)] });
-  });
+function pickRequestSeeing(lastVersionSeen: number): GameRequest {
+  return {
+    type: RequestType.PickCard,
+    lastVersionSeen,
+    playerId: 'a',
+    cardId: card.id,
+  };
+}
 
-  test('returns an error for the pick card request', () => {
-    const pickCardRequest: GameRequest = {
-      type: RequestType.PickCard,
-      lastVersionSeen: INITIAL_GAME_STATE_VERSION.sequence,
-      playerId: 'a',
-      cardId: 0,
-    };
-    expect(handleRequest(preStart, noHistory, pickCardRequest)).toEqual({
-      message:
-        'The pre-start phase rejects the pickCard request: it accepts only the start game request',
-    });
+test('rejects a good request that a major change followed', () => {
+  expect(handleRequest(state, history, pickRequestSeeing(1))).toMatchObject({
+    errorCode: ErrorCode.StaleRequest,
   });
 });
 
-describe('card pick phase handling', () => {
-  const aceOfAda = cardOf(1);
-  const otherOfAda = cardOf(2);
-  const aceOfBen = cardOf(3);
-  const version = INITIAL_GAME_STATE_VERSION;
-
-  function cardPick(picks: [PlayerId, Card][] = []): GameState {
-    const hands = [
-      createHand('a', [aceOfAda, otherOfAda]),
-      createHand('b', [aceOfBen]),
-    ];
-    let round = createRound([], hands);
-    for (const [playerId, card] of picks) {
-      round = pickCardInRound(round, playerId, card);
-    }
-    return createGameState(GamePhase.CardPick, version, players, round);
-  }
-
-  function pickRequest(playerId: PlayerId, cardId: CardId): GameRequest {
-    return {
-      type: RequestType.PickCard,
-      lastVersionSeen: version.sequence,
-      playerId,
-      cardId,
-    };
-  }
-
-  function unpickRequest(playerId: PlayerId, cardId: CardId): GameRequest {
-    return {
-      type: RequestType.UnpickCard,
-      lastVersionSeen: version.sequence,
-      playerId,
-      cardId,
-    };
-  }
-
-  test('returns an error for the start game request', () => {
-    expect(handleRequest(cardPick(), noHistory, startGameRequest)).toEqual({
-      message:
-        'The card pick phase rejects the startGame request: it accepts only the pick card and unpick card requests',
-    });
-  });
-
-  test.each([
-    ['pick card', pickRequest('nobody', aceOfAda.id)],
-    ['unpick card', unpickRequest('nobody', aceOfAda.id)],
-  ])(
-    'returns an error for the %s request of an unknown player',
-    (_, request) => {
-      expect(handleRequest(cardPick(), noHistory, request)).toEqual({
-        message: 'The game holds no player with the ID nobody',
-      });
-    },
-  );
-
-  test('handles the pick card request with the pick card action', () => {
-    expect(
-      handleRequest(cardPick(), noHistory, pickRequest('a', aceOfAda.id)),
-    ).toEqual({
-      actions: [pickCard({ playerId: 'a', card: aceOfAda })],
-    });
-  });
-
-  test('returns an error if the card is not in the hand of the player', () => {
-    expect(
-      handleRequest(cardPick(), noHistory, pickRequest('a', aceOfBen.id)),
-    ).toEqual({
-      message: 'The hand of the player a does not hold the card 2',
-    });
-  });
-
-  test('handles the unpick card request with the unpick card action', () => {
-    const state = cardPick([['a', aceOfAda]]);
-    expect(
-      handleRequest(state, noHistory, unpickRequest('a', aceOfAda.id)),
-    ).toEqual({
-      actions: [unpickCard({ playerId: 'a' })],
-    });
-  });
-
-  test('returns an error if the card is not picked', () => {
-    expect(
-      handleRequest(cardPick(), noHistory, unpickRequest('a', aceOfAda.id)),
-    ).toEqual({
-      message: 'The player a has picked no card, not the card 0',
-    });
-  });
-
-  test('returns an error if another player owns the picked card', () => {
-    const state = cardPick([['b', aceOfBen]]);
-    expect(
-      handleRequest(state, noHistory, unpickRequest('a', aceOfBen.id)),
-    ).toEqual({
-      message: 'The player a has picked no card, not the card 2',
-    });
-  });
-
-  test('reveals the picked cards once every player has picked one', () => {
-    const state = cardPick([['b', aceOfBen]]);
-    expect(
-      handleRequest(state, noHistory, pickRequest('a', aceOfAda.id)),
-    ).toEqual({
-      actions: [
-        pickCard({ playerId: 'a', card: aceOfAda }),
-        revealPickedCards(),
-      ],
-    });
-  });
-
-  test('does not reveal when a pick only replaces the pick of the player', () => {
-    const state = cardPick([['a', aceOfAda]]);
-    expect(
-      handleRequest(state, noHistory, pickRequest('a', otherOfAda.id)),
-    ).toEqual({
-      actions: [pickCard({ playerId: 'a', card: otherOfAda })],
-    });
+// The card pick phase rejects the start game request too, but the staleness
+// check runs first.
+test('rejects a bad request that a major change followed as stale', () => {
+  expect(
+    handleRequest(state, history, { ...startGameRequest, lastVersionSeen: 1 }),
+  ).toMatchObject({
+    errorCode: ErrorCode.StaleRequest,
   });
 });
 
-describe('handling of the phases that follow the reveal', () => {
-  function inPhase(phase: GamePhase.RowPick | GamePhase.EndOfRound): GameState {
-    return createGameState(
-      phase,
-      INITIAL_GAME_STATE_VERSION,
-      players,
-      createRound([], []),
-    );
-  }
-
-  test('throws in the row pick phase, because it is not implemented', () => {
-    expect(() =>
-      handleRequest(inPhase(GamePhase.RowPick), noHistory, startGameRequest),
-    ).toThrow('Not implemented');
-  });
-
-  test('returns an error in the end of round phase', () => {
-    expect(
-      handleRequest(inPhase(GamePhase.EndOfRound), noHistory, startGameRequest),
-    ).toEqual({
-      message:
-        'The end of round phase rejects the startGame request: it accepts no request',
-    });
+test('handles a request that saw the version of the major change', () => {
+  expect(handleRequest(state, history, pickRequestSeeing(2))).toEqual({
+    actions: [action],
   });
 });
 
-describe('version checking', () => {
-  const card = cardOf(1);
-  const action = pickCard({ playerId: 'a', card });
-  // Three applied actions, of which only the second made a major change.
-  const history: AppliedAction[] = [
-    {
-      oldVersion: { sequence: 0, major: false },
-      newVersion: { sequence: 1, major: false },
-      action,
-    },
-    {
-      oldVersion: { sequence: 1, major: false },
-      newVersion: { sequence: 2, major: true },
-      action,
-    },
-    {
-      oldVersion: { sequence: 2, major: true },
-      newVersion: { sequence: 3, major: false },
-      action,
-    },
-  ];
-  const state = createGameState(
-    GamePhase.CardPick,
-    { sequence: 3, major: false },
-    players,
-    createRound([], [createHand('a', [card])]),
-  );
-
-  function pickRequestSeeing(lastVersionSeen: number): GameRequest {
-    return {
-      type: RequestType.PickCard,
-      lastVersionSeen,
-      playerId: 'a',
-      cardId: card.id,
-    };
-  }
-
-  test('rejects a request that a major change followed', () => {
-    expect(handleRequest(state, history, pickRequestSeeing(1))).toEqual({
-      message:
-        'The pickCard request saw the version 1, which the major change to the version 2 has outdated',
-    });
-  });
-
-  test('handles a request that only minor changes followed', () => {
-    expect(handleRequest(state, history, pickRequestSeeing(2))).toEqual({
-      actions: [action],
-    });
-  });
-
-  test('handles a request that saw the newest version', () => {
-    expect(handleRequest(state, history, pickRequestSeeing(3))).toEqual({
-      actions: [action],
-    });
+test('handles a request that only minor changes followed', () => {
+  expect(handleRequest(state, history, pickRequestSeeing(3))).toEqual({
+    actions: [action],
   });
 });

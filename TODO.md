@@ -1,3 +1,5 @@
 # TODO
 
-- Add a fairness integration test for the shuffle. It examines the distribution of the decks that the shuffle generates. See `docs/testing-strategy.md`.
+- Hide the hidden information from the clients. The start game and start round actions carry every hand, and the pick card action carries the picked card. The event stream must send each client a view of the history without the cards of the other players. The logs also hold every hand and the deck, because the room store logs each engine action at the info level.
+- Write the client. `src/client/App.tsx` only replays the game actions and shows the phase and the version. It needs a join form, a ready button, the room view (`roomView` event), and the game requests. It must keep the client token, for example in `localStorage`, and open `/api/events?clientToken=…` with it, so that a reload reconnects within the grace period.
+- Decide how a slow event stream holds back. The room store writes each event to every open stream at once, and a client that reads slowly lets the buffer of its response grow without bound. One option is to close a stream whose buffer passes a limit, so that the client reconnects and gets the full history. Ask the user.
