@@ -20,11 +20,11 @@ test('the player rows show the ready state and mark the own player', () => {
 test('the countdown line adds one number each second', () => {
   expect(countdownText(0)).toBe('Starting in 3…');
   expect(countdownText(999)).toBe('Starting in 3…');
-  expect(countdownText(1_000)).toBe('Starting in 3… 2…');
-  expect(countdownText(2_000)).toBe('Starting in 3… 2… 1…');
+  expect(countdownText(1_000)).toBe('Starting in 2…');
+  expect(countdownText(2_000)).toBe('Starting in 1…');
 });
 
 test('the countdown line stays in its bounds for a clock that is off', () => {
   expect(countdownText(-500)).toBe('Starting in 3…');
-  expect(countdownText(3_500)).toBe('Starting in 3… 2… 1…');
+  expect(countdownText(3_500)).toBe('Starting in 1…');
 });

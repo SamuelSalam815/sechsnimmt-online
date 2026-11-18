@@ -23,17 +23,11 @@ export function listPlayerRows(
   });
 }
 
-// The line grows by one number each second, so that it reads
-// `Starting in 3… 2… 1…` in its last second.
 export function countdownText(elapsedMilliseconds: number): string {
   const stepCount = COUNTDOWN_MILLISECONDS / COUNTDOWN_STEP_MILLISECONDS;
   const passedStepCount = Math.min(
     Math.max(Math.floor(elapsedMilliseconds / COUNTDOWN_STEP_MILLISECONDS), 0),
     stepCount - 1,
   );
-  const shownNumbers = Array.from(
-    { length: passedStepCount + 1 },
-    (_, index) => `${stepCount - index}…`,
-  );
-  return `Starting in ${shownNumbers.join(' ')}`;
+  return `Starting in ${stepCount - passedStepCount}…`;
 }

@@ -122,7 +122,7 @@ The integration test writes one text trace per scenario in `src/engine/__snapsho
 ### S4 Name prompt and room display
 
 - `NamePrompt.tsx`: a text field and a join button.
-- `RoomDisplay.tsx`: a list of the players with their ready state, the ready toggle of the own player, and the countdown line `Starting in 3… 2… 1…`.
+- `RoomDisplay.tsx`: a list of the players with their ready state, the ready toggle of the own player, and the countdown line, one number at a time: `Starting in 3…`, `Starting in 2…`, `Starting in 1…`.
 
 ### S5 Game display
 
