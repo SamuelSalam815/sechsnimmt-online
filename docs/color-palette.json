@@ -1,0 +1,46 @@
+{
+  "name": "NieR:Automata UI Palette",
+  "source": "Sampled (most frequent pixel value per region) from resources/*.png; mirrors swatch.html",
+  "format": "hex-rgb",
+  "colors": {
+    "chip": {
+      "base": {
+        "system": "#867a63",
+        "attack": "#b7987e",
+        "defense": "#bcaf91",
+        "support": "#e1d8aa",
+        "hacking": "#e4dfcb",
+        "lockedSlot": "#67665d"
+      },
+      "stripe": {
+        "system": "#8b7f68",
+        "attack": "#bc9d83",
+        "defense": "#c0b496",
+        "support": "#e6ddaf",
+        "hacking": "#eae5d1",
+        "divider": "#6d6b61"
+      }
+    },
+    "surface": {
+      "background": "#cdc8b0",
+      "backgroundChipScreen": "#c6c1aa",
+      "panel": "#dad4bb",
+      "headerActive": "#686458",
+      "headerInactive": "#b4af9a"
+    },
+    "text": {
+      "primary": "#4e4b42",
+      "faded": "#9b9785"
+    },
+    "accent": {
+      "annotationRed": "#cd664d"
+    }
+  },
+  "roles": {
+    "bg": "#cdc8b0",
+    "ink": "#4e4b42",
+    "panel": "#dad4bb",
+    "header": "#686458",
+    "accent": "#cd664d"
+  }
+}
