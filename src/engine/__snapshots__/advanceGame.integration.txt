@@ -11,7 +11,7 @@ cy picks 12 (saw version 1 of 3)
   cy picks 12
   reveal: ada 5, ben 11, cy 12
   await row pick: ada
-ben picks the row 0 → rejected: ruleViolation: The player ben holds no card that waits for a row pick
+ben picks the row 0 → rejected: ruleViolation: The game awaits no row pick from the player ben
 ada picks the row 7 → rejected: unknownEntity: The game holds no row at the index 7
 ada picks 21 → rejected: wrongPhase: The row pick phase rejects the pickCard request: it accepts only the pick row and abandon game requests
 ada picks the row 3

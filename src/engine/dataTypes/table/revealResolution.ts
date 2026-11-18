@@ -39,7 +39,7 @@ export function findCardForRowPick(
       ? lowestRevealedCard.card
       : undefined,
     ErrorCode.RuleViolation,
-    `The player ${playerId} holds no card that waits for a row pick`,
+    `The game awaits no row pick from the player ${playerId}`,
   );
 }
 
