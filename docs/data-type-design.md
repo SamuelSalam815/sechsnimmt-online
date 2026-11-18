@@ -1,67 +1,69 @@
 # Data type design
 
-A data type of the engine owns its operations.
+A data type of the engine is plain data, and its module holds the functions that work on it.
 A caller therefore describes a change in domain terms instead of reaching into arrays, numbers and strings.
 
-## One module for each type
+## Plain data, free functions
 
-Each type lives in one module of `src/engine/dataTypes`.
-That module holds the type, its constructor and the operations that build a value of it.
-The types share no structural supertype.
-A shared supertype makes two types assignable to each other, which defeats the boundary below.
+Each type lives in one module of `src/engine/dataTypes`, next to the functions that read and change it.
+A value of a type is a plain object: no class, no brand, no private constructor.
+Any module can therefore build a value with an object literal, and a test does exactly that.
+A state payload and the action history stay plain data, a test compares them with `toEqual`, and the client replays them from JSON.
 
-## Only the owning module builds a value
+A module keeps a constructor only when the constructor does work.
+`createRoundSeat` starts an empty penalty pile, and `dealRound` deals from a deck.
+A function that only wraps an object literal says nothing that the literal does not say, so it does not exist.
 
-The type carries a brand:
+An earlier design gave each type a `unique symbol` brand, so that only the owning module could build a value.
+That design made each module a class in disguise: a private constructor, one sanctioned `as`, and an operation for each small change.
+The brands were dropped, because the reducers write into immer drafts, and a draft is a value that every reducer builds.
 
-```ts
-declare const cardBrand: unique symbol;
+## Entity collections
 
-export interface Card {
-  readonly faceValue: number;
-  readonly [cardBrand]: true;
-}
-```
+A collection of values with an ID of their own is an `EntityState` of Redux Toolkit, not an array.
+`createEntityAdapter` gives the collection and the operations on it: `setAll`, `removeOne`, and a lookup by ID through `entities`.
 
-`declare const` puts the key in the type space only.
-The brand therefore emits no code and does not reach runtime.
-A state payload and the action history stay plain data, and a test compares them with `toEqual`.
+- The players of a game are an entity collection by player ID.
+- The round seats of a round are an entity collection by player ID.
+  A round seat holds what a player has in the running round: the hand, the picked card and the penalty pile.
+  A player who leaves therefore leaves the round with one `removeOne`.
+- The rows of a round stay an array.
+  A row has no identity of its own, so its position names it.
 
-The module does not export the key.
-No other module can name it, so no other module can build a value of the type.
-A brand of a string or of a real symbol would not hold: another module could name the key.
+An entity collection keeps its IDs in the order of insertion, which is the order of the deal.
+No rule depends on that order: the reveal sorts the picked cards by face value.
 
-A constructor needs one `as` to add the brand.
-Biome bans that assertion with `noUnsafeTypeAssertion`, along with `any`, `!` and `@ts-ignore`.
-The constructor therefore carries the one sanctioned suppression:
+The selectors of an adapter are draft safe.
+On an immer draft they give a copy, and a write into that copy is lost.
+`listRoundSeats` therefore maps the IDs to the entities itself.
 
-```ts
-// biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
-return { faceValue } as Card;
-```
+## Reducers write into the draft
 
-Biome requires a reason in a suppression comment.
-A suppression anywhere else therefore has to state a reason, and no other reason is valid.
-A module holds one such assertion, even when several of its operations build a value.
+A case reducer of `gameSlice` writes into its immer draft.
+A rule that changes the state, for example `resolveReveal`, takes the draft and changes it in place.
+It gives back only what the reducer cannot read from the state, for example the next phase.
 
-A type whose rules fill more than one module still has one owning module.
-`roundLifecycle.ts` holds `Round` and `brandAsRound`.
-It exports each small operation that builds a round: a pick, an unpick, the removal of a player, a placed card and the cards that a penalty pile takes.
-`revealResolution.ts` holds the rules of the reveal and of the row pick, and it calls those operations.
-It holds no assertion.
-An export of the brand constructor would let any module build a round.
-An assertion in each module would give the type more than one owner.
+The state types therefore hold no `readonly`.
+A request type and an action payload keep `readonly`, because nothing writes into them.
+
+A rule function runs only on a draft.
+A test therefore runs it inside `createNextState`, as a reducer would.
+A value that an adapter built is frozen, and a write into it outside a draft throws.
+
+Request handling sometimes needs to foresee the outcome of an action, for example whether an abandon ends the game.
+It runs the reducer on the current state and reads the outcome.
+A second copy of the rules could disagree with the reducer.
 
 ## The module holds the invariants of its type
 
 A caller must not have to observe an invariant.
 An operation therefore reports everything that follows from the change that it makes.
-`addCardToRow` gives the new row together with the cards that the player takes, for example.
+`addCardToRow` gives the cards that the player takes, empty when the card joined the row.
 A row holds between one and five cards at all times, and no caller asks about the capacity.
 
 ## An operation reports its own failure
 
-An operation that can fail gives a `Result`: a `Success` that holds the value, or a `Failure` that holds the error code and the message.
+A search that rejects a request gives a `Result`: a `Success` that holds the value, or a `Failure` that holds the error code and the message.
 
 ```ts
 export interface ErrorMessage {
@@ -77,37 +79,26 @@ A search that gives `undefined` on a miss passes through `lookup`, which picks t
 
 The module that fails words that message.
 A message therefore names the failure in the terms of the module that knows it, and no caller words it again.
-One message serves every caller.
 
 A caller reaches the value in one of three ways:
 
 - `andThen` chains an operation that needs the value of the one before it. A failure travels down the chain, and no later operation runs.
-- `use` turns the value into the outcome of the caller. A failure gives its message instead, which is the shape that layer 2 returns for a rejected request. No code wraps the message on the way out.
-- `force` gives the value and throws the message of a failure. It serves the code that has already established that the value is there.
+- `use` turns the value into the outcome of the caller. A failure gives its message instead, which is the shape that layer 2 returns for a rejected request.
+- `force` gives the value and throws the message of a failure. It serves the code that has already established that the value is there, for example a reducer that finds the seat of the player that an action names.
 
-`Failure` carries no value type.
-A failure therefore travels through a chain of any value type as it is, and `never` as the argument of the callback states that the callback never runs.
+A check that only a reducer or a rule needs, and that cannot reject a request, gives its value or `undefined` directly.
+`Result` exists for the failures that travel to a client.
 
 The name `then` would make a `Result` a thenable, which `await` and a dynamic import resolve as a promise.
 Biome bans it with `noThenProperty`, and `andThen` is the name that remains.
 
-`ok` discriminates the union.
-A caller therefore asks the question before it reads the value or the message, and each half exposes only its own member.
-
-## Naming, work in progress
+## Naming
 
 A name states the type of the thing that it holds.
-A local is `nextRound`, `cardPlacement`, `revealedCard`, not `next`, `placement`, `revealed`.
-`roundLifecycle.ts` and `revealResolution.ts` follow this rule.
-The rest of the engine does not yet, so the two styles stand side by side until a pass over the other modules closes the gap.
+A local is `targetRow`, `takenCards`, `revealedCard`, not `row`, `cards`, `card`, when the scope holds more than one of a kind.
 
-Each module names its brand constructor `brandAsRound`, `brandAsPlayer`, `brandAsRow`.
-The name states the one thing that the function does, which the earlier `toRound` did not.
-`card.ts` and `penaltyTotal.ts` hold no such function: their public constructor carries the assertion itself.
-
-`createRound` takes the rows and the hands that a caller already holds.
+`createRound` takes the rows and the seats that a caller already holds.
 `dealRound` deals them from a deck, which is the act that the rules name.
-A second verb for the same act, such as the earlier `buildRound`, says nothing about the deck.
 
 ## Enums for tags
 
@@ -115,11 +106,3 @@ A value from a fixed set of strings is a string enum, not a union of string lite
 This applies to a tag that discriminates a union, a status and an error code, for example `GamePhase`, `RequestType` and `ErrorCode`.
 A rename of a member then reaches every use through the compiler and the editor.
 A change of the string value touches one line.
-
-## Immutable collections
-
-A collection type declares `readonly cards: readonly Card[]`.
-No code outside the module can change a value of the type, not even the contents of its array.
-
-A reducer therefore returns a new state instead of writing a value into the immer draft.
-An immutable array is not assignable to a draft of the same type, which is how the compiler reports a write into a draft.

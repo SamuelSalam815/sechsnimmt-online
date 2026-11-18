@@ -4,9 +4,9 @@
 
 - Biome style: single quotes, semicolons, trailing commas, 2 spaces, width 80.
 - Simple explicit code over abstractions; smallest change.
-- String enums, not unions of string literals, for tags, statuses and error codes (`GamePhase`, `RequestType`, `ErrorCode`, `StreamStatus`); see docs/data-type-design.md. `import type` for types.
+- String enums, not unions of string literals, for tags, statuses and error codes (`GamePhase`, `RequestType`, `ErrorCode`); see docs/data-type-design.md. `import type` for types.
 - An operation that can fail returns `Result<T>` (`src/engine/result.ts`); a search that misses passes through `lookup`. Chain with `andThen`/`use`; `force()` only where the value must exist (a miss is a bug and throws). See `docs/data-type-design.md`.
-- Branded data types: only the owning module builds a value, with one `as` behind an inline `biome-ignore`.
+- Data types are plain data with free functions; no brands, no wrapper constructors. Collections with an ID use `createEntityAdapter`. Reducers and rules write into immer drafts. See `docs/data-type-design.md`.
 - Comments state what code cannot: reasons, rejected designs, workarounds, external constants. Short declarative sentences (STE style), often "X. Y therefore Z."
 
 ## Tests

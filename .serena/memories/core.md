@@ -5,7 +5,7 @@ Online card game. Engine (Redux Toolkit) runs on server and in client; client on
 ## Source map
 
 - `src/engine` — all game logic, no React. Details: `mem:engine/core` (layers, phases, reducer invariants).
-- `src/server` — actors (pure core + shell): room, gameRunner, eventStream, restHandler. Details: `docs/server-architecture.md`.
+- `src/server` — one Redux store per room (`roomStore/`: slices room / engine / eventStream, thunks for routes, listeners for I/O). Details: `docs/server-architecture.md`.
 - `src/client` — React shell only (`main.tsx`, `App.tsx`, typed hooks). No game logic.
 - `docs/` — authoritative design: `game-flow-architecture.md` (layers, versions), `game-rules.md`, `rule-clarifications.md` (decisions where rules are vague; code follows these), `testing-strategy.md`.
 - `TODO.md` — open work.

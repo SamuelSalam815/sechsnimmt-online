@@ -1,105 +1,99 @@
 # Server architecture
 
-The server is a functional core in an imperative shell.
-Four actors divide it: the REST handler, the room, the game runner and the event stream.
+The server runs each room in one Redux store.
+The store is the functional core, and the router of the room is its imperative shell.
 
-## Actors
+## One store per room
 
-An actor owns its core context, and no other actor touches it.
-Other actors only send it messages.
+A room store holds three slices:
 
-A mailbox holds the messages in the order of their sends.
-An actor runs one message at a time.
-This order is a guarantee that the actors build on.
+- `room`: the players before and during the game, their client tokens, their ready flags and their grace timers.
+- `engine`: the root state of the engine, which is the game state and the action history.
+- `eventStream`: the open event streams and the client token of each.
 
-Each actor has two parts:
+A dispatch runs the reducers, the listeners and the nested dispatches to their end before the next request reaches the store.
+Node runs one request handler at a time, so the store needs no mailbox and no lock.
+A room therefore needs no messages between parts of the server: one state holds everything that a decision reads.
 
-- The core is pure.
-  Its step takes the core context and an inbound message and gives the next core context and a list of outbound messages.
-  The core context is the state of the actor, and it is data only.
-- The shell holds the mailbox, the core context and the I/O.
-  It runs the step and then delivers each outbound message.
-  It does not decide anything that the core can decide.
+An earlier design split one room into four actors with mailboxes: a REST handler, a room, a game runner and an event stream.
+The mailboxes ordered the messages between the actors.
+A pending stream waited for the history that the game runner sent, and a game start waited for a deck that the shell shuffled.
+One store removes each of these waits, because the state that they waited for is already in it.
 
-## Messages
+## Scaling
 
-An actor defines only the messages that it handles.
-Its outbound messages are therefore messages that other actors define.
-An outbound message has no type of its own.
+A room is the unit of concurrency.
+Two rooms share no state, so a deployment of several rooms can place each room on any process and route each request by its room.
+One process serves one room now.
+A registry of rooms and a room ID in each route are the next step.
 
-The I/O of an actor is the work of its shell.
-The shell is therefore one more recipient, with messages of its own, for example `eventStreamShell/streamWrite`.
-Such a message is data that says what the shell must do.
+## Thunks answer the requests
 
-An enum of each actor holds the tags of its messages, for example `GameRunnerMessageType`.
-The prefix of the tag of an actor message names its recipient.
-`gameRunner/historyRequested` goes to the game runner, and `eventStream/broadcastActions` goes to the event stream.
-The prefix of the tag of a shell message names the actor of that shell and ends in `Shell`, for example `restHandlerShell/`.
-The shell therefore routes an outbound message by its tag alone, and no two shells share a tag.
-An action of the game is payload inside a message.
-It is never a message itself.
+Each route dispatches a thunk of `roomThunks.ts`.
+The thunk reads the request body field by field, checks it against the state and dispatches the actions of the change.
+It gives back a `RoomReply`, which the router writes as the HTTP response.
 
-An inbound message can carry a shell context that is not data, for example the response to an HTTP request.
-The shell context stays in the shell.
-An actor never sends it to another actor, because a mutable resource that two actors hold has no single owner.
-The actor that owns a resource therefore takes the request for it directly.
-The core never sees it.
+A request of a client is untrusted.
+A rejection names its HTTP status: 400 for a malformed body, 403 for an unknown client token, 409 for a request that the room or the engine rejects.
 
-## Logging
+A request of a player passes through `applyEngineRequest`.
+It runs the request handling of the engine against the state of the store.
+A rejected request changes nothing.
+The actions of an accepted request apply as one action, `engine/actionsApplied`, which reduces them into the root state of the engine.
+A listener that ran between two of them would see a state that the request handling did not plan for, for example a deal between a row pick and an abandon.
 
-Each message has a log level.
-The core sets it on each outbound message, because the core knows what the message means.
-The shell logs each outbound message whole at that level, before it delivers the message.
-Each actor also logs each inbound message whole at its level, with the text `received`, when the message enters its mailbox.
-A message between actors therefore has two log entries: one from the actor that sends it and one from the actor that receives it.
-The two entries are accepted, because together they show when a message was sent and when it reached the receiver, which helps when debugging.
-Each entry carries the `actorId` of the actor that logs it.
-A log entry therefore needs no code of its own, and the levels are part of what the core tests examine.
+## Listeners do the I/O
 
-A log entry holds no client token.
-The actor puts a marker in place of each `clientToken` field, at any depth of the message, before it logs it.
-A client token lets its holder act as its player, so a reader of the logs could otherwise act as any player.
-The message that the actor delivers keeps its tokens.
-No other path logs a token: the server has no request logging, and the event stream route puts the token of its query only into a message.
+The I/O of a room is in `RoomEffects`: the shuffle, the grace timers, the writes to the streams and the logger.
+A listener of the store reacts to a change of the state and calls an effect:
 
-## The actors and their messages
+- A new entry in the history goes to every open stream as a `gameActions` event.
+- A change of the room goes to every open stream as a `roomView` event.
+- A new grace timer ID starts a grace timer.
+- A deal that falls due shuffles a deck and applies the start game or the start round request with it.
 
-The REST handler owns the HTTP routes of plain requests.
-It answers a ping.
+The engine is pure, so the deck comes from outside it.
+A deal falls due at the start of the game and at the end of each round.
+The store deals at once, so the game rests in the end of round phase only for the length of a dispatch.
 
-The room owns the players before the game, their client tokens and the routes to join and to get ready.
+The listeners run in the order in which they start.
+The deal dispatches again, so it starts last.
+The listeners before it therefore finish with an action before the deal changes the state again.
+
+A test runs a room store with fake effects and examines the replies, the state and the effects that it called.
+
+## The room
+
 A join gives the client a secret client token and a public player ID.
 The client sends the token with each request, and it opens its event stream with the token in the query.
-When every player is ready, and the room holds 2 to 10 players, the room hands the seats to the game runner and the game starts.
+When every player is ready, and the room holds 2 to 10 players, the game starts.
 
 The room also tracks whether the client of each player is responsive.
 A player with no open event stream is not responsive.
-When the last stream of a player closes, and at the join, the room starts a grace timer in its shell.
-A stream that opens with the token of the player before the timer expires reconnects the player, and the timer then changes nothing.
+When the last stream of a player closes, and at the join, the room gives the player a new grace timer ID, and a listener starts that timer.
+A stream that opens with the token of the player before the timer expires reconnects the player, and the timer then finds no player with its ID.
 A timer that expires before the start of the game removes the player from the room.
-A timer that expires in the game also removes the player, and the room tells the game runner, which sends the engine an abandon game request for that player.
+A timer that expires in the game also removes the player, and the engine gets an abandon game request for that player.
+The engine rejects that request once the game is over, and the player then only leaves the room.
 
-The event stream owns the route that opens an event stream, and the open event streams.
-A stream request makes a pending stream, and the event stream asks the game runner for the history.
-The history response makes the stream active.
-The game runner sends the new actions of each change to the event stream, which broadcasts them to the active streams.
-The event stream tells the room when a stream opens or closes, with the client token of the stream.
-The room sends its view to the event stream after each change, which writes it to every open stream.
+## Event streams
 
-The game runner owns the game state, its action history and the routes of the game requests.
-A client request names its seat with the client token, and the game runner turns it into a request of the engine with the player ID of that seat.
-The engine is pure, so the game runner asks its shell for a shuffled deck when a deal is due: at the start of the game and at the end of each round.
-The shell answers with the deck in a message to the game runner.
-The engine rejects every request while the deck is on its way, because the game rests in a phase that waits for the deal.
+The shell names each stream and holds its response, because a response is not data.
+The store holds only the ID and the client token of each open stream.
+A new stream first gets the full history.
+It gets the room view from the broadcast of the change that it makes to the room, or directly when it makes no change, for example a stream without a client token.
 
-A grace period can end while the first deck is on its way.
-The seats that remain can then be fewer than 2, and the engine rejects the start of the game.
-The game runner then gives up its seats and tells the room, which opens again with `gameStarted` false.
-The remaining players keep their ready flags, so the game starts as soon as enough players are ready.
+## Logging
 
-A request of a client is untrusted.
-The core therefore reads the request body field by field and rejects a body that lacks a field.
-The answer to a rejected request carries an HTTP status: 400 for a malformed body, 403 for an unknown client token, 409 for a request that the engine rejects.
+A middleware logs each action whole.
+The actions of the event streams log at the debug level, and every other action at the info level.
+A rejected request logs at the info level in the router.
+
+A log entry holds no client token.
+The middleware puts a marker in place of each `clientToken` field, at any depth of the action, before it logs it.
+A client token lets its holder act as its player, so a reader of the logs could otherwise act as any player.
+The action that the store reduces keeps its tokens.
+No other path logs a token: the server has no request logging, and the event stream route puts the token of its query only into an action.
 
 ## Wire format
 
@@ -108,4 +102,3 @@ A `gameActions` event carries a JSON array of applied actions.
 A new stream first gets the full history, then the new actions of each change.
 The client replays the actions to get the state.
 A `roomView` event carries the whole view of the room, which replaces the one before it.
-A pending stream therefore gets room views as well.

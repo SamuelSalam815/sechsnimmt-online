@@ -39,8 +39,8 @@ The store and its reducers own the game state.
 They alone progress the game.
 A rejected request never reaches them.
 
-A reducer does not read into the state.
-It calls one operation of a data type and returns the result with a new version.
+A reducer writes into its immer draft.
+It sets a field, or it hands the draft to a rule of a data type, and it bumps the version.
 The data types hold the rules of the game and their own invariants.
 See docs/data-type-design.md.
 
@@ -62,7 +62,7 @@ The pick card action carries the card itself, not the ID that the request held.
 The reducer therefore repeats no search, and no code decides twice whether the data exists.
 A second search could only confirm the first, because the reducer of a rejected request never runs.
 
-Layer 3 still searches for data that no request names, for example the hand that a revealed card leaves.
+Layer 3 still searches for data that no request names, for example the seat that a revealed card leaves.
 Such a search passes through `force`, which throws the message of a miss.
 A miss there is a bug in this code, not a rejected request.
 
