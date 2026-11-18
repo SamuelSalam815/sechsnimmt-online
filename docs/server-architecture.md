@@ -140,3 +140,7 @@ A `gameActions` event carries a JSON array of applied actions.
 A new stream first gets the full history, then the new actions of each change.
 The client replays the actions to get the state.
 A `roomView` event carries the whole view of the room, which replaces the one before it.
+
+A request with a client token that holds no player or no seat gets the status 403, and no other rejection uses it.
+The client reads a 403 as an unknown token: it deletes the token and shows the name prompt.
+A pick before the start of the game also gets a 403, which is safe only because the client sends picks from the game display alone.
