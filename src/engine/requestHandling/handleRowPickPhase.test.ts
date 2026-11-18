@@ -17,12 +17,27 @@ import {
   takeRow,
 } from '#engine/reducers/gameSlice.ts';
 import { handleRowPickPhase } from '#engine/requestHandling/handleRowPickPhase.ts';
+import type { PhaseHandlingResult } from '#engine/requestHandling/phaseHandlingResult.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
 import { cardOf, placementOf, rowOf, seatOf } from '#testSupport/cards.ts';
+import { applyActionsCheckingInvariants } from '#testSupport/gameStateInvariants.ts';
 import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 import { abandonRequest, startGameRequest } from '#testSupport/requests.ts';
+
+// The actions of an accepted request also run, with the invariant check after
+// each of them.
+function handleRowPickPhaseChecked(
+  state: RoundGameState,
+  request: GameRequest,
+): PhaseHandlingResult {
+  const result = handleRowPickPhase(state, request);
+  if ('actions' in result) {
+    applyActionsCheckingInvariants(state, result.actions);
+  }
+  return result;
+}
 
 const profiles = [
   { id: 'a', name: 'Ada' },
@@ -55,7 +70,7 @@ function pickRowRequest(playerId: PlayerId, rowIndex: number): GameRequest {
 }
 
 test('handles the pick row request with the pick row action and its placements', () => {
-  expect(handleRowPickPhase(rowPick(), pickRowRequest('a', 1))).toEqual({
+  expect(handleRowPickPhaseChecked(rowPick(), pickRowRequest('a', 1))).toEqual({
     actions: [
       takeRow(placementOf('a', 1, 1)),
       placeCard(placementOf('b', 60, 0)),
@@ -65,20 +80,24 @@ test('handles the pick row request with the pick row action and its placements',
 });
 
 test('returns an error for the pick row request of a player whose card fits a row', () => {
-  expect(handleRowPickPhase(rowPick(), pickRowRequest('b', 1))).toMatchObject({
+  expect(
+    handleRowPickPhaseChecked(rowPick(), pickRowRequest('b', 1)),
+  ).toMatchObject({
     errorCode: ErrorCode.RuleViolation,
   });
 });
 
 test('returns an error for the pick row request of an unknown row', () => {
-  expect(handleRowPickPhase(rowPick(), pickRowRequest('a', 2))).toMatchObject({
+  expect(
+    handleRowPickPhaseChecked(rowPick(), pickRowRequest('a', 2)),
+  ).toMatchObject({
     errorCode: ErrorCode.UnknownEntity,
   });
 });
 
 test('returns an error for the pick row request of an unknown player', () => {
   expect(
-    handleRowPickPhase(rowPick(), pickRowRequest('nobody', 0)),
+    handleRowPickPhaseChecked(rowPick(), pickRowRequest('nobody', 0)),
   ).toMatchObject({
     errorCode: ErrorCode.UnknownEntity,
   });
@@ -86,7 +105,7 @@ test('returns an error for the pick row request of an unknown player', () => {
 
 test('handles the abandon game request of a player who need not pick a row', () => {
   // Two players are too few, so the game ends.
-  expect(handleRowPickPhase(rowPick(), abandonRequest('b'))).toEqual({
+  expect(handleRowPickPhaseChecked(rowPick(), abandonRequest('b'))).toEqual({
     actions: [abandonGame({ playerId: 'b' }), endGame()],
   });
 });
@@ -94,7 +113,7 @@ test('handles the abandon game request of a player who need not pick a row', () 
 test('gives the row with the largest penalty to the player who must pick a row and abandons', () => {
   // The row of 20 counts 3 penalty, the row of 10 counts 3 as well, and the
   // first of them goes to Ada.
-  expect(handleRowPickPhase(rowPick(), abandonRequest('a'))).toEqual({
+  expect(handleRowPickPhaseChecked(rowPick(), abandonRequest('a'))).toEqual({
     actions: [
       takeRow(placementOf('a', 1, 0)),
       placeCard(placementOf('b', 60, 1)),
@@ -109,14 +128,14 @@ test('keeps the player who must pick a row in the game when that row ends it', (
   // A score of 63 for Ada. The row of 10 adds 3, which reaches the limit.
   const scoredPlayers = playersOf(profiles, { a: 63 });
   expect(
-    handleRowPickPhase(rowPick(scoredPlayers), abandonRequest('a')),
+    handleRowPickPhaseChecked(rowPick(scoredPlayers), abandonRequest('a')),
   ).toEqual({
     actions: [takeRow(placementOf('a', 1, 0)), endGame()],
   });
 });
 
 test('returns an error for any other request', () => {
-  expect(handleRowPickPhase(rowPick(), startGameRequest)).toMatchObject({
+  expect(handleRowPickPhaseChecked(rowPick(), startGameRequest)).toMatchObject({
     errorCode: ErrorCode.WrongPhase,
   });
 });

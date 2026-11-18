@@ -10,16 +10,17 @@ import {
   awaitRowPick,
   endGame,
   endRound,
+  type GameAction,
   placeCard,
   revealPickedCards,
   takeRow,
 } from '#engine/reducers/gameSlice.ts';
-import { applyActions } from '#engine/requestHandling/applyActions.ts';
 import {
   resolveReveal,
   resolveRowPick,
 } from '#engine/requestHandling/resolveReveal.ts';
 import { cardOf, placementOf, rowOf, seatOf } from '#testSupport/cards.ts';
+import { applyActionsCheckingInvariants } from '#testSupport/gameStateInvariants.ts';
 import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 
 // Each player picks the one card named here. Ada also holds the cards of
@@ -61,6 +62,16 @@ function revealGame(
   );
 }
 
+// Each test also runs the actions that it expects, and the invariant check
+// after each of them.
+function checkedActions(
+  state: RoundGameState,
+  actions: GameAction[],
+): GameAction[] {
+  applyActionsCheckingInvariants(state, actions);
+  return actions;
+}
+
 function revealOf(...picks: [PlayerId, number][]) {
   return revealPickedCards({
     revealedCards: picks.map(([playerId, faceValue]) => ({
@@ -82,7 +93,7 @@ describe('resolveReveal', () => {
         ['d', 14],
       ],
     );
-    expect(resolveReveal(state)).toEqual([
+    expect(checkedActions(state, resolveReveal(state))).toEqual([
       revealOf(['d', 14], ['c', 15], ['b', 44], ['a', 61]),
       placeCard(placementOf('d', 14, 0)),
       placeCard(placementOf('c', 15, 0)),
@@ -101,7 +112,7 @@ describe('resolveReveal', () => {
       takeRow(placementOf('b', 6, 0)),
       awaitCardPick(),
     ]);
-    const nextState = applyActions(state, actions);
+    const nextState = applyActionsCheckingInvariants(state, actions);
     expect(nextState.round.rows).toEqual([rowOf(6), rowOf(50)]);
     expect(nextState.round.seats.entities.b.penaltyPile).toEqual(
       [1, 2, 3, 4, 5].map(cardOf),
@@ -118,7 +129,7 @@ describe('resolveReveal', () => {
         ['a', 5],
       ],
     );
-    expect(resolveReveal(state)).toEqual([
+    expect(checkedActions(state, resolveReveal(state))).toEqual([
       revealOf(['a', 5], ['b', 25]),
       awaitRowPick(),
     ]);
@@ -142,13 +153,14 @@ describe('resolveReveal', () => {
       endGame(),
     ]);
     expect(
-      applyActions(state, actions).round.seats.entities.a.pickedCardId,
+      applyActionsCheckingInvariants(state, actions).round.seats.entities.a
+        .pickedCardId,
     ).toBe(cardOf(51).id);
   });
 
   test('ends the round when it places the last card of every hand', () => {
     const state = revealGame([[10]], [['a', 11]], { handOfAda: [] });
-    expect(resolveReveal(state)).toEqual([
+    expect(checkedActions(state, resolveReveal(state))).toEqual([
       revealOf(['a', 11]),
       placeCard(placementOf('a', 11, 0)),
       endRound(),
@@ -184,7 +196,7 @@ describe('resolveRowPick', () => {
       placeCard(placementOf('b', 25, 0)),
       awaitCardPick(),
     ]);
-    const nextState = applyActions(state, actions);
+    const nextState = applyActionsCheckingInvariants(state, actions);
     expect(nextState.round.rows).toEqual([rowOf(10, 25), rowOf(5)]);
     expect(nextState.round.seats.entities.a.penaltyPile).toEqual(
       [20, 21].map(cardOf),
@@ -195,7 +207,8 @@ describe('resolveRowPick', () => {
   test('ends the game when the taken row reaches the penalty limit', () => {
     // The row of 10 adds 3, which reaches the limit of 66. The card of Ben is
     // not placed.
-    expect(resolveRowPick(rowPickGame({ a: 63 }), 'a', 0)).toEqual([
+    const state = rowPickGame({ a: 63 });
+    expect(checkedActions(state, resolveRowPick(state, 'a', 0))).toEqual([
       takeRow(placementOf('a', 5, 0)),
       endGame(),
     ]);

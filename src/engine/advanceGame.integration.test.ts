@@ -31,6 +31,10 @@ import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { initialRootState, type RootState } from '#engine/store.ts';
 import { cardOf } from '#testSupport/cards.ts';
+import {
+  assertGameStateInvariants,
+  listCardsOfRound,
+} from '#testSupport/gameStateInvariants.ts';
 
 // A game of 3 players with hands of 3 cards that ends at 15 penalties. Each
 // deal takes 3 × 3 + 4 = 13 cards.
@@ -163,6 +167,12 @@ test('plays a full game with stale and bad requests mixed in', async () => {
     let game = rootState.game;
     for (const { action } of outcome.history.slice(rootState.history.length)) {
       const nextGame = gameSlice.reducer(game, action);
+      assertGameStateInvariants(nextGame);
+      if (!startGameAction.match(action) && !startRoundAction.match(action)) {
+        expect(listCardsOfRound(nextGame)).toHaveLength(
+          listCardsOfRound(game).length,
+        );
+      }
       trace.push(`  ${describeAction(game, action, nextGame)}`);
       game = nextGame;
     }
