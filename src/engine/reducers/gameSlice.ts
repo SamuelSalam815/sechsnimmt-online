@@ -6,6 +6,8 @@ import {
   GamePhase,
   type GameState,
   INITIAL_GAME_STATE,
+  type RoundGameState,
+  type RoundPhase,
 } from '#engine/dataTypes/game/gameState.ts';
 import {
   majorVersionBump,
@@ -23,10 +25,14 @@ import {
   resolveRowPick,
 } from '#engine/dataTypes/table/revealResolution.ts';
 import {
+  everyHandIsEmpty,
   findSeat,
   type Round,
 } from '#engine/dataTypes/table/roundLifecycle.ts';
-import { roundSeatsAdapter } from '#engine/dataTypes/table/roundSeat.ts';
+import {
+  listRoundSeats,
+  roundSeatsAdapter,
+} from '#engine/dataTypes/table/roundSeat.ts';
 
 export interface StartGamePayload {
   gameRules: GameRules;
@@ -80,14 +86,16 @@ export const gameSlice = createSlice({
     },
     revealPickedCards(state) {
       assertRoundInProgress(state);
-      state.phase = resolveReveal(state);
+      resolveReveal(state);
+      state.phase = findPhaseAfterPlacements(state);
       // The reveal is a major change: a request that saw an earlier version
       // chose its card without knowing the revealed cards.
       state.version = majorVersionBump(state.version);
     },
     pickRow(state, action: PayloadAction<RowPick>) {
       assertRoundInProgress(state);
-      state.phase = resolveRowPick(state, action.payload);
+      resolveRowPick(state, action.payload);
+      state.phase = findPhaseAfterPlacements(state);
       // The row pick is a major change: it places the cards that the reveal
       // left picked.
       state.version = majorVersionBump(state.version);
@@ -116,6 +124,30 @@ export const gameSlice = createSlice({
     },
   },
 });
+
+// A placement that reaches the penalty limit leaves the cards that follow it
+// picked, so the score comes before the picks.
+function findPhaseAfterPlacements(game: RoundGameState): RoundPhase {
+  const { penaltyLimit } = game.gameRules;
+  const players = game.players;
+  if (
+    players.ids.some(
+      (playerId) => players.entities[playerId].penaltyScore >= penaltyLimit,
+    )
+  ) {
+    return GamePhase.GameOver;
+  }
+  if (
+    listRoundSeats(game.round.seats).some(
+      (seat) => seat.pickedCardId !== undefined,
+    )
+  ) {
+    return GamePhase.RowPick;
+  }
+  return everyHandIsEmpty(game.round)
+    ? GamePhase.EndOfRound
+    : GamePhase.CardPick;
+}
 
 export const {
   startGame,

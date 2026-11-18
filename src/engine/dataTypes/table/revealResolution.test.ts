@@ -4,7 +4,6 @@ import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
   GamePhase,
   type RoundGameState,
-  type RoundPhase,
 } from '#engine/dataTypes/game/gameState.ts';
 import { INITIAL_GAME_STATE_VERSION } from '#engine/dataTypes/game/gameStateVersion.ts';
 import {
@@ -12,6 +11,7 @@ import {
   type PlayerId,
 } from '#engine/dataTypes/playerState/player.ts';
 import {
+  type CardPlacement,
   findCardForRowPick,
   findRowIndexOfLargestPenalty,
   resolveReveal,
@@ -49,13 +49,27 @@ function gameOf(
 // The rules run on the immer draft of a reducer, as they do in the game slice.
 function resolveOnDraft(
   game: RoundGameState,
-  resolve: (draft: RoundGameState) => RoundPhase,
-): { phase: RoundPhase | undefined; game: RoundGameState } {
-  let phase: RoundPhase | undefined;
+  resolve: (draft: RoundGameState) => CardPlacement[],
+): { placements: CardPlacement[]; game: RoundGameState } {
+  let placements: CardPlacement[] = [];
   const nextGame = createNextState(game, (draft) => {
-    phase = resolve(draft);
+    placements = resolve(draft);
   });
-  return { phase, game: nextGame };
+  return { placements, game: nextGame };
+}
+
+function placementOf(
+  playerId: PlayerId,
+  faceValue: number,
+  rowIndex: number,
+  takenFaceValues: number[] = [],
+): CardPlacement {
+  return {
+    playerId,
+    card: cardOf(faceValue),
+    rowIndex,
+    takenCards: takenFaceValues.map(cardOf),
+  };
 }
 
 function faceValuesOfRows(round: Round): number[][] {
@@ -113,7 +127,7 @@ describe('resolveReveal', () => {
 
   test('places each card, lowest first, after the closest lower last card', () => {
     // The example of docs/game-rules.md.
-    const { phase, game } = resolveOnDraft(
+    const { placements, game } = resolveOnDraft(
       revealGame(
         [[12], [37], [43], [58]],
         [
@@ -125,7 +139,12 @@ describe('resolveReveal', () => {
       ),
       resolveReveal,
     );
-    expect(phase).toBe(GamePhase.CardPick);
+    expect(placements).toEqual([
+      placementOf('d', 14, 0),
+      placementOf('c', 15, 0),
+      placementOf('b', 44, 2),
+      placementOf('a', 61, 3),
+    ]);
     expect(faceValuesOfRows(game.round)).toEqual([
       [12, 14, 15],
       [37],
@@ -145,11 +164,11 @@ describe('resolveReveal', () => {
   });
 
   test('gives a full row to the player whose card starts the new row', () => {
-    const { phase, game } = resolveOnDraft(
+    const { placements, game } = resolveOnDraft(
       revealGame([[1, 2, 3, 4, 5], [50]], [['b', 6]]),
       resolveReveal,
     );
-    expect(phase).toBe(GamePhase.CardPick);
+    expect(placements).toEqual([placementOf('b', 6, 0, [1, 2, 3, 4, 5])]);
     expect(faceValuesOfRows(game.round)).toEqual([[6], [50]]);
     expect(penaltyFaceValuesOf(game.round.seats.entities.a)).toEqual([]);
     expect(penaltyFaceValuesOf(game.round.seats.entities.b)).toEqual([
@@ -159,8 +178,8 @@ describe('resolveReveal', () => {
     expect(game.players.entities.b.penaltyScore).toBe(6);
   });
 
-  test('moves to the row pick phase if the lowest card fits no row', () => {
-    const { phase, game } = resolveOnDraft(
+  test('places no card if the lowest card fits no row', () => {
+    const { placements, game } = resolveOnDraft(
       revealGame(
         [[10], [20]],
         [
@@ -170,14 +189,14 @@ describe('resolveReveal', () => {
       ),
       resolveReveal,
     );
-    expect(phase).toBe(GamePhase.RowPick);
-    // No card is placed, so both stay picked.
+    expect(placements).toEqual([]);
+    // Both cards stay picked.
     expect(picksOf(game.round)).toEqual({ a: cardOf(5).id, b: cardOf(25).id });
     expect(faceValuesOfRows(game.round)).toEqual([[10], [20]]);
   });
 
-  test('moves to the game over phase when a taken row reaches the penalty limit', () => {
-    const { phase, game } = resolveOnDraft(
+  test('stops when a taken row reaches the penalty limit', () => {
+    const { placements, game } = resolveOnDraft(
       revealGame(
         [[1, 2, 3, 4, 6], [50]],
         [
@@ -189,19 +208,19 @@ describe('resolveReveal', () => {
       ),
       resolveReveal,
     );
-    expect(phase).toBe(GamePhase.GameOver);
+    expect(placements).toEqual([placementOf('b', 7, 0, [1, 2, 3, 4, 6])]);
     expect(faceValuesOfRows(game.round)).toEqual([[7], [50]]);
     expect(game.players.entities.b.penaltyScore).toBe(66);
     // The cards that follow are not placed.
     expect(picksOf(game.round)).toEqual({ a: cardOf(51).id, b: undefined });
   });
 
-  test('moves to the end of round phase when every hand is empty', () => {
-    const { phase, game } = resolveOnDraft(
+  test('places the last card of every hand', () => {
+    const { placements, game } = resolveOnDraft(
       revealGame([[10]], [['a', 11]], { handOfAda: [] }),
       resolveReveal,
     );
-    expect(phase).toBe(GamePhase.EndOfRound);
+    expect(placements).toEqual([placementOf('a', 11, 0)]);
     expect(faceValuesOfRows(game.round)).toEqual([[10, 11]]);
   });
 });
@@ -233,10 +252,14 @@ describe('findCardForRowPick', () => {
 
 describe('resolveRowPick', () => {
   test('gives the row to the player, starts it with the card and places the rest', () => {
-    const { phase, game } = resolveOnDraft(gameOf(rowPickRound()), (draft) =>
-      resolveRowPick(draft, { playerId: 'a', rowIndex: 1 }),
+    const { placements, game } = resolveOnDraft(
+      gameOf(rowPickRound()),
+      (draft) => resolveRowPick(draft, { playerId: 'a', rowIndex: 1 }),
     );
-    expect(phase).toBe(GamePhase.CardPick);
+    expect(placements).toEqual([
+      placementOf('a', 5, 1, [20, 21]),
+      placementOf('b', 25, 0),
+    ]);
     // 25 goes after 10, the closest lower last card.
     expect(faceValuesOfRows(game.round)).toEqual([[10, 25], [5]]);
     expect(game.round.seats.entities).toEqual({
@@ -250,13 +273,13 @@ describe('resolveRowPick', () => {
     expect(game.players.entities.a.penaltyScore).toBe(4);
   });
 
-  test('moves to the game over phase when the taken row reaches the penalty limit', () => {
+  test('stops when the taken row reaches the penalty limit', () => {
     // The row of 10 adds 3, which reaches the limit of 66.
-    const { phase, game } = resolveOnDraft(
+    const { placements, game } = resolveOnDraft(
       gameOf(rowPickRound(), { a: 63 }),
       (draft) => resolveRowPick(draft, { playerId: 'a', rowIndex: 0 }),
     );
-    expect(phase).toBe(GamePhase.GameOver);
+    expect(placements).toEqual([placementOf('a', 5, 0, [10])]);
     expect(faceValuesOfRows(game.round)).toEqual([[5], [20, 21]]);
     // The card of Ben is not placed.
     expect(picksOf(game.round)).toEqual({ a: undefined, b: cardOf(25).id });

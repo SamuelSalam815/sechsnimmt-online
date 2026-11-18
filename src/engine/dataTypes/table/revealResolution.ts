@@ -1,16 +1,11 @@
 import { type Card, getPenaltyTotal } from '#engine/dataTypes/cards/card.ts';
-import {
-  GamePhase,
-  type RoundGameState,
-  type RoundPhase,
-} from '#engine/dataTypes/game/gameState.ts';
+import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';
 import {
   addPenaltyToPlayer,
   findPlayer,
   type PlayerId,
 } from '#engine/dataTypes/playerState/player.ts';
 import {
-  everyHandIsEmpty,
   findRow,
   findSeat,
   type Round,
@@ -35,6 +30,15 @@ export interface RowPick {
   readonly rowIndex: number;
 }
 
+export interface CardPlacement {
+  readonly playerId: PlayerId;
+  readonly card: Card;
+  readonly rowIndex: number;
+  // Empty: the card joins the row. Not empty: the player takes these cards
+  // and the card starts the row again (6th card, or row pick).
+  readonly takenCards: readonly Card[];
+}
+
 // A revealed card keeps its seat, so that the cards that its placement takes
 // go to the penalty pile of that seat.
 interface RevealedCard {
@@ -43,29 +47,30 @@ interface RevealedCard {
 }
 
 // Places the picked cards, lowest first, until none remain or the game needs
-// something else first. Gives the phase that the game rests in:
+// something else first:
 //
-// - Row pick: the lowest card is lower than the last card of every row. The
-//   card stays picked. Only the lowest card can meet this, because each card
-//   that follows is higher than the card placed before it.
-// - Game over: a player took a row and reached the penalty limit. The cards
-//   that remain stay picked.
-// - End of round: every card is placed and every hand is empty.
-// - Card pick: every card is placed and the hands hold cards.
-export function resolveReveal(game: RoundGameState): RoundPhase {
+// - The lowest card is lower than the last card of every row. The card stays
+//   picked for a row pick. Only the lowest card can meet this, because each
+//   card that follows is higher than the card placed before it.
+// - A player took a row and reached the penalty limit. The cards that remain
+//   stay picked.
+export function resolveReveal(game: RoundGameState): CardPlacement[] {
+  const placements: CardPlacement[] = [];
   for (const { seat, card } of revealedCardsLowestFirst(game.round)) {
-    const targetRow = findRowForCard(game.round.rows, card);
-    if (!targetRow) {
-      return GamePhase.RowPick;
+    const rowIndex = findRowIndexForCard(game.round.rows, card);
+    if (rowIndex === undefined) {
+      return placements;
     }
     playPickedCard(seat, card);
-    if (takeCards(game, seat, addCardToRow(targetRow, card))) {
-      return GamePhase.GameOver;
+    const takenCards = addCardToRow(game.round.rows[rowIndex], card);
+    placements.push(
+      createCardPlacement(seat.playerId, card, rowIndex, takenCards),
+    );
+    if (takeCards(game, seat, takenCards)) {
+      return placements;
     }
   }
-  return everyHandIsEmpty(game.round)
-    ? GamePhase.EndOfRound
-    : GamePhase.CardPick;
+  return placements;
 }
 
 // Rule 4 of docs/game-rules.md, and then the rest of the reveal. The player
@@ -74,16 +79,22 @@ export function resolveReveal(game: RoundGameState): RoundPhase {
 export function resolveRowPick(
   game: RoundGameState,
   rowPick: RowPick,
-): RoundPhase {
+): CardPlacement[] {
   const { playerId, rowIndex } = rowPick;
   const card = findCardForRowPick(game.round, playerId).force();
   const seat = findSeat(game.round, playerId).force();
   playPickedCard(seat, card);
   const takenCards = takeRow(findRow(game.round, rowIndex).force(), card);
+  const rowPickPlacement = createCardPlacement(
+    playerId,
+    card,
+    rowIndex,
+    takenCards,
+  );
   if (takeCards(game, seat, takenCards)) {
-    return GamePhase.GameOver;
+    return [rowPickPlacement];
   }
-  return resolveReveal(game);
+  return [rowPickPlacement, ...resolveReveal(game)];
 }
 
 // The first of the rows with the largest penalty, when more than one row has it.
@@ -115,6 +126,22 @@ export function findCardForRowPick(
   );
 }
 
+// The rules run on an immer draft, whose proxies end with it. A placement
+// outlives the draft in an action payload, so it holds copies of the cards.
+function createCardPlacement(
+  playerId: PlayerId,
+  card: Card,
+  rowIndex: number,
+  takenCards: readonly Card[],
+): CardPlacement {
+  return {
+    playerId,
+    card: { ...card },
+    rowIndex,
+    takenCards: takenCards.map((takenCard) => ({ ...takenCard })),
+  };
+}
+
 // Gives whether the taken cards end the game.
 function takeCards(
   game: RoundGameState,
@@ -143,21 +170,24 @@ function revealedCardsLowestFirst(round: Round): RevealedCard[] {
   return revealedCards.sort((a, b) => a.card.faceValue - b.card.faceValue);
 }
 
-// Rules 1 and 2: of the rows whose last card is lower than the card, the row
-// whose last card is the highest. Undefined for rule 4: the player chooses the
+// Rules 1 and 2: of the rows whose last card is lower than the card, the
+// index of the row whose last card is the highest. Undefined for rule 4: the player chooses the
 // row to take.
-function findRowForCard(rows: readonly Row[], card: Card): Row | undefined {
-  let targetRow: Row | undefined;
+function findRowIndexForCard(
+  rows: readonly Row[],
+  card: Card,
+): number | undefined {
+  let targetRowIndex: number | undefined;
   let targetRowLastFaceValue = 0;
-  for (const row of rows) {
+  rows.forEach((row, rowIndex) => {
     const lastFaceValue = getLastCardOfRow(row).faceValue;
     if (
       lastFaceValue < card.faceValue &&
       lastFaceValue > targetRowLastFaceValue
     ) {
-      targetRow = row;
+      targetRowIndex = rowIndex;
       targetRowLastFaceValue = lastFaceValue;
     }
-  }
-  return targetRow;
+  });
+  return targetRowIndex;
 }
