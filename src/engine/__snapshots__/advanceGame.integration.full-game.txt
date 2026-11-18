@@ -1,4 +1,4 @@
-request: start the game with {"penaltyLimit":15,"handSize":3,"rowCapacity":5}
+request: start the game with {"penaltyLimit":10,"handSize":3,"rowCapacity":3}
   response: start game: ada, ben, cy · hands 3
 
   === state at the start of the game ===
@@ -8,168 +8,168 @@ request: start the game with {"penaltyLimit":15,"handSize":3,"rowCapacity":5}
     row 2: (id 29, faceValue 30, penalty 3)
     row 3: (id 39, faceValue 40, penalty 3)
     ada:
-      hand: (id 4, faceValue 5, penalty 2), (id 20, faceValue 21, penalty 1), (id 40, faceValue 41, penalty 1)
+      hand: (id 11, faceValue 12, penalty 1), (id 4, faceValue 5, penalty 2), (id 30, faceValue 31, penalty 1)
       picked card: none
       penalty pile: none
       penalty score: 0
     ben:
-      hand: (id 10, faceValue 11, penalty 5), (id 21, faceValue 22, penalty 5), (id 41, faceValue 42, penalty 1)
+      hand: (id 12, faceValue 13, penalty 1), (id 20, faceValue 21, penalty 1), (id 40, faceValue 41, penalty 1)
       picked card: none
       penalty pile: none
       penalty score: 0
     cy:
-      hand: (id 11, faceValue 12, penalty 1), (id 22, faceValue 23, penalty 1), (id 42, faceValue 43, penalty 1)
+      hand: (id 13, faceValue 14, penalty 1), (id 22, faceValue 23, penalty 1), (id 50, faceValue 51, penalty 1)
       picked card: none
       penalty pile: none
       penalty score: 0
 
-request: ada picks (id 4, faceValue 5, penalty 2)
-  response: ada picks (id 4, faceValue 5, penalty 2)
-request: ben picks (id 10, faceValue 11, penalty 5)
-  response: ben picks (id 10, faceValue 11, penalty 5)
-request: cy picks (id 11, faceValue 12, penalty 1)
-  response: cy picks (id 11, faceValue 12, penalty 1)
+request: ada picks (id 11, faceValue 12, penalty 1)
+  response: ada picks (id 11, faceValue 12, penalty 1)
+request: ben picks (id 12, faceValue 13, penalty 1)
+  response: ben picks (id 12, faceValue 13, penalty 1)
+request: cy picks (id 13, faceValue 14, penalty 1)
+  response: cy picks (id 13, faceValue 14, penalty 1)
 
   === picks before the reveal ===
-    ada: (id 4, faceValue 5, penalty 2)
-    ben: (id 10, faceValue 11, penalty 5)
-    cy: (id 11, faceValue 12, penalty 1)
+    ada: (id 11, faceValue 12, penalty 1)
+    ben: (id 12, faceValue 13, penalty 1)
+    cy: (id 13, faceValue 14, penalty 1)
 
   response: reveal
-  response: await row pick: ada
 
-  === state after the reveal ===
-    phase: rowPick
+  === rows before the placements ===
     row 0: (id 9, faceValue 10, penalty 3)
     row 1: (id 19, faceValue 20, penalty 3)
     row 2: (id 29, faceValue 30, penalty 3)
     row 3: (id 39, faceValue 40, penalty 3)
-    ada:
-      hand: (id 4, faceValue 5, penalty 2), (id 20, faceValue 21, penalty 1), (id 40, faceValue 41, penalty 1)
-      picked card: (id 4, faceValue 5, penalty 2)
-      penalty pile: none
-      penalty score: 0
-    ben:
-      hand: (id 10, faceValue 11, penalty 5), (id 21, faceValue 22, penalty 5), (id 41, faceValue 42, penalty 1)
-      picked card: (id 10, faceValue 11, penalty 5)
-      penalty pile: none
-      penalty score: 0
-    cy:
-      hand: (id 11, faceValue 12, penalty 1), (id 22, faceValue 23, penalty 1), (id 42, faceValue 43, penalty 1)
-      picked card: (id 11, faceValue 12, penalty 1)
-      penalty pile: none
-      penalty score: 0
 
-request: ada picks the row 3
-  response: player ada replaces row 3 with (id 4, faceValue 5, penalty 2), taking (id 39, faceValue 40, penalty 3), adding 3 penalty, total now 3
-  response: ben places (id 10, faceValue 11, penalty 5) in row 0
-  response: cy places (id 11, faceValue 12, penalty 1) in row 0
+  response: ada places (id 11, faceValue 12, penalty 1) in row 0
+  response: ben places (id 12, faceValue 13, penalty 1) in row 0
+  response: player cy replaces row 0 with (id 13, faceValue 14, penalty 1), taking (id 9, faceValue 10, penalty 3), (id 11, faceValue 12, penalty 1), (id 12, faceValue 13, penalty 1), adding 5 penalty, total now 5
   response: await card pick
 
-  === state after the row pick ===
+  === state after the reveal ===
     phase: cardPick
-    row 0: (id 9, faceValue 10, penalty 3), (id 10, faceValue 11, penalty 5), (id 11, faceValue 12, penalty 1)
+    row 0: (id 13, faceValue 14, penalty 1)
     row 1: (id 19, faceValue 20, penalty 3)
     row 2: (id 29, faceValue 30, penalty 3)
-    row 3: (id 4, faceValue 5, penalty 2)
+    row 3: (id 39, faceValue 40, penalty 3)
     ada:
-      hand: (id 20, faceValue 21, penalty 1), (id 40, faceValue 41, penalty 1)
+      hand: (id 4, faceValue 5, penalty 2), (id 30, faceValue 31, penalty 1)
       picked card: none
-      penalty pile: (id 39, faceValue 40, penalty 3)
-      penalty score: 3
+      penalty pile: none
+      penalty score: 0
     ben:
-      hand: (id 21, faceValue 22, penalty 5), (id 41, faceValue 42, penalty 1)
+      hand: (id 20, faceValue 21, penalty 1), (id 40, faceValue 41, penalty 1)
       picked card: none
       penalty pile: none
       penalty score: 0
     cy:
-      hand: (id 22, faceValue 23, penalty 1), (id 42, faceValue 43, penalty 1)
+      hand: (id 22, faceValue 23, penalty 1), (id 50, faceValue 51, penalty 1)
       picked card: none
-      penalty pile: none
-      penalty score: 0
+      penalty pile: (id 9, faceValue 10, penalty 3), (id 11, faceValue 12, penalty 1), (id 12, faceValue 13, penalty 1)
+      penalty score: 5
 
-request: ada picks (id 20, faceValue 21, penalty 1)
-  response: ada picks (id 20, faceValue 21, penalty 1)
-request: ben picks (id 21, faceValue 22, penalty 5)
-  response: ben picks (id 21, faceValue 22, penalty 5)
+request: ada picks (id 4, faceValue 5, penalty 2)
+  response: ada picks (id 4, faceValue 5, penalty 2)
+request: ben picks (id 20, faceValue 21, penalty 1)
+  response: ben picks (id 20, faceValue 21, penalty 1)
 request: cy picks (id 22, faceValue 23, penalty 1)
   response: cy picks (id 22, faceValue 23, penalty 1)
 
   === picks before the reveal ===
-    ada: (id 20, faceValue 21, penalty 1)
-    ben: (id 21, faceValue 22, penalty 5)
+    ada: (id 4, faceValue 5, penalty 2)
+    ben: (id 20, faceValue 21, penalty 1)
     cy: (id 22, faceValue 23, penalty 1)
 
   response: reveal
+  response: await row pick: ada
 
-  === rows before the placements ===
-    row 0: (id 9, faceValue 10, penalty 3), (id 10, faceValue 11, penalty 5), (id 11, faceValue 12, penalty 1)
+  === state after the reveal ===
+    phase: rowPick
+    row 0: (id 13, faceValue 14, penalty 1)
     row 1: (id 19, faceValue 20, penalty 3)
     row 2: (id 29, faceValue 30, penalty 3)
-    row 3: (id 4, faceValue 5, penalty 2)
+    row 3: (id 39, faceValue 40, penalty 3)
+    ada:
+      hand: (id 4, faceValue 5, penalty 2), (id 30, faceValue 31, penalty 1)
+      picked card: (id 4, faceValue 5, penalty 2)
+      penalty pile: none
+      penalty score: 0
+    ben:
+      hand: (id 20, faceValue 21, penalty 1), (id 40, faceValue 41, penalty 1)
+      picked card: (id 20, faceValue 21, penalty 1)
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 22, faceValue 23, penalty 1), (id 50, faceValue 51, penalty 1)
+      picked card: (id 22, faceValue 23, penalty 1)
+      penalty pile: (id 9, faceValue 10, penalty 3), (id 11, faceValue 12, penalty 1), (id 12, faceValue 13, penalty 1)
+      penalty score: 5
 
-  response: ada places (id 20, faceValue 21, penalty 1) in row 1
-  response: ben places (id 21, faceValue 22, penalty 5) in row 1
-  response: cy places (id 22, faceValue 23, penalty 1) in row 1
+request: ada picks the row 1
+  response: player ada replaces row 1 with (id 4, faceValue 5, penalty 2), taking (id 19, faceValue 20, penalty 3), adding 3 penalty, total now 3
+  response: ben places (id 20, faceValue 21, penalty 1) in row 0
+  response: cy places (id 22, faceValue 23, penalty 1) in row 0
   response: await card pick
 
-  === state after the reveal ===
+  === state after the row pick ===
     phase: cardPick
-    row 0: (id 9, faceValue 10, penalty 3), (id 10, faceValue 11, penalty 5), (id 11, faceValue 12, penalty 1)
-    row 1: (id 19, faceValue 20, penalty 3), (id 20, faceValue 21, penalty 1), (id 21, faceValue 22, penalty 5), (id 22, faceValue 23, penalty 1)
+    row 0: (id 13, faceValue 14, penalty 1), (id 20, faceValue 21, penalty 1), (id 22, faceValue 23, penalty 1)
+    row 1: (id 4, faceValue 5, penalty 2)
     row 2: (id 29, faceValue 30, penalty 3)
-    row 3: (id 4, faceValue 5, penalty 2)
+    row 3: (id 39, faceValue 40, penalty 3)
     ada:
+      hand: (id 30, faceValue 31, penalty 1)
+      picked card: none
+      penalty pile: (id 19, faceValue 20, penalty 3)
+      penalty score: 3
+    ben:
       hand: (id 40, faceValue 41, penalty 1)
       picked card: none
-      penalty pile: (id 39, faceValue 40, penalty 3)
-      penalty score: 3
-    ben:
-      hand: (id 41, faceValue 42, penalty 1)
-      picked card: none
       penalty pile: none
       penalty score: 0
     cy:
-      hand: (id 42, faceValue 43, penalty 1)
+      hand: (id 50, faceValue 51, penalty 1)
       picked card: none
-      penalty pile: none
-      penalty score: 0
+      penalty pile: (id 9, faceValue 10, penalty 3), (id 11, faceValue 12, penalty 1), (id 12, faceValue 13, penalty 1)
+      penalty score: 5
 
-request: ada picks (id 40, faceValue 41, penalty 1)
-  response: ada picks (id 40, faceValue 41, penalty 1)
-request: ben picks (id 41, faceValue 42, penalty 1)
-  response: ben picks (id 41, faceValue 42, penalty 1)
-request: cy picks (id 42, faceValue 43, penalty 1)
-  response: cy picks (id 42, faceValue 43, penalty 1)
+request: ada picks (id 30, faceValue 31, penalty 1)
+  response: ada picks (id 30, faceValue 31, penalty 1)
+request: ben picks (id 40, faceValue 41, penalty 1)
+  response: ben picks (id 40, faceValue 41, penalty 1)
+request: cy picks (id 50, faceValue 51, penalty 1)
+  response: cy picks (id 50, faceValue 51, penalty 1)
 
   === picks before the reveal ===
-    ada: (id 40, faceValue 41, penalty 1)
-    ben: (id 41, faceValue 42, penalty 1)
-    cy: (id 42, faceValue 43, penalty 1)
+    ada: (id 30, faceValue 31, penalty 1)
+    ben: (id 40, faceValue 41, penalty 1)
+    cy: (id 50, faceValue 51, penalty 1)
 
   response: reveal
 
   === rows before the placements ===
-    row 0: (id 9, faceValue 10, penalty 3), (id 10, faceValue 11, penalty 5), (id 11, faceValue 12, penalty 1)
-    row 1: (id 19, faceValue 20, penalty 3), (id 20, faceValue 21, penalty 1), (id 21, faceValue 22, penalty 5), (id 22, faceValue 23, penalty 1)
+    row 0: (id 13, faceValue 14, penalty 1), (id 20, faceValue 21, penalty 1), (id 22, faceValue 23, penalty 1)
+    row 1: (id 4, faceValue 5, penalty 2)
     row 2: (id 29, faceValue 30, penalty 3)
-    row 3: (id 4, faceValue 5, penalty 2)
+    row 3: (id 39, faceValue 40, penalty 3)
 
-  response: ada places (id 40, faceValue 41, penalty 1) in row 2
-  response: ben places (id 41, faceValue 42, penalty 1) in row 2
-  response: cy places (id 42, faceValue 43, penalty 1) in row 2
-  response: end round · scores ada 3, ben 0, cy 0
+  response: ada places (id 30, faceValue 31, penalty 1) in row 2
+  response: ben places (id 40, faceValue 41, penalty 1) in row 3
+  response: cy places (id 50, faceValue 51, penalty 1) in row 3
+  response: end round · scores ada 3, ben 0, cy 5
 
   === state after the reveal ===
     phase: endOfRound
-    row 0: (id 9, faceValue 10, penalty 3), (id 10, faceValue 11, penalty 5), (id 11, faceValue 12, penalty 1)
-    row 1: (id 19, faceValue 20, penalty 3), (id 20, faceValue 21, penalty 1), (id 21, faceValue 22, penalty 5), (id 22, faceValue 23, penalty 1)
-    row 2: (id 29, faceValue 30, penalty 3), (id 40, faceValue 41, penalty 1), (id 41, faceValue 42, penalty 1), (id 42, faceValue 43, penalty 1)
-    row 3: (id 4, faceValue 5, penalty 2)
+    row 0: (id 13, faceValue 14, penalty 1), (id 20, faceValue 21, penalty 1), (id 22, faceValue 23, penalty 1)
+    row 1: (id 4, faceValue 5, penalty 2)
+    row 2: (id 29, faceValue 30, penalty 3), (id 30, faceValue 31, penalty 1)
+    row 3: (id 39, faceValue 40, penalty 3), (id 40, faceValue 41, penalty 1), (id 50, faceValue 51, penalty 1)
     ada:
       hand: none
       picked card: none
-      penalty pile: (id 39, faceValue 40, penalty 3)
+      penalty pile: (id 19, faceValue 20, penalty 3)
       penalty score: 3
     ben:
       hand: none
@@ -179,278 +179,188 @@ request: cy picks (id 42, faceValue 43, penalty 1)
     cy:
       hand: none
       picked card: none
-      penalty pile: none
-      penalty score: 0
+      penalty pile: (id 9, faceValue 10, penalty 3), (id 11, faceValue 12, penalty 1), (id 12, faceValue 13, penalty 1)
+      penalty score: 5
 
 request: start a round
   response: start round
 
   === state at the start of the round ===
     phase: cardPick
-    row 0: (id 49, faceValue 50, penalty 3)
-    row 1: (id 59, faceValue 60, penalty 3)
-    row 2: (id 69, faceValue 70, penalty 3)
-    row 3: (id 79, faceValue 80, penalty 3)
-    ada:
-      hand: (id 50, faceValue 51, penalty 1), (id 53, faceValue 54, penalty 1), (id 0, faceValue 1, penalty 1)
-      picked card: none
-      penalty pile: none
-      penalty score: 3
-    ben:
-      hand: (id 51, faceValue 52, penalty 1), (id 54, faceValue 55, penalty 7), (id 56, faceValue 57, penalty 1)
-      picked card: none
-      penalty pile: none
-      penalty score: 0
-    cy:
-      hand: (id 52, faceValue 53, penalty 1), (id 55, faceValue 56, penalty 1), (id 57, faceValue 58, penalty 1)
-      picked card: none
-      penalty pile: none
-      penalty score: 0
-
-request: ada picks (id 50, faceValue 51, penalty 1)
-  response: ada picks (id 50, faceValue 51, penalty 1)
-request: ben picks (id 51, faceValue 52, penalty 1)
-  response: ben picks (id 51, faceValue 52, penalty 1)
-request: cy picks (id 52, faceValue 53, penalty 1)
-  response: cy picks (id 52, faceValue 53, penalty 1)
-
-  === picks before the reveal ===
-    ada: (id 50, faceValue 51, penalty 1)
-    ben: (id 51, faceValue 52, penalty 1)
-    cy: (id 52, faceValue 53, penalty 1)
-
-  response: reveal
-
-  === rows before the placements ===
-    row 0: (id 49, faceValue 50, penalty 3)
-    row 1: (id 59, faceValue 60, penalty 3)
-    row 2: (id 69, faceValue 70, penalty 3)
-    row 3: (id 79, faceValue 80, penalty 3)
-
-  response: ada places (id 50, faceValue 51, penalty 1) in row 0
-  response: ben places (id 51, faceValue 52, penalty 1) in row 0
-  response: cy places (id 52, faceValue 53, penalty 1) in row 0
-  response: await card pick
-
-  === state after the reveal ===
-    phase: cardPick
-    row 0: (id 49, faceValue 50, penalty 3), (id 50, faceValue 51, penalty 1), (id 51, faceValue 52, penalty 1), (id 52, faceValue 53, penalty 1)
-    row 1: (id 59, faceValue 60, penalty 3)
-    row 2: (id 69, faceValue 70, penalty 3)
-    row 3: (id 79, faceValue 80, penalty 3)
-    ada:
-      hand: (id 53, faceValue 54, penalty 1), (id 0, faceValue 1, penalty 1)
-      picked card: none
-      penalty pile: none
-      penalty score: 3
-    ben:
-      hand: (id 54, faceValue 55, penalty 7), (id 56, faceValue 57, penalty 1)
-      picked card: none
-      penalty pile: none
-      penalty score: 0
-    cy:
-      hand: (id 55, faceValue 56, penalty 1), (id 57, faceValue 58, penalty 1)
-      picked card: none
-      penalty pile: none
-      penalty score: 0
-
-request: ada picks (id 53, faceValue 54, penalty 1)
-  response: ada picks (id 53, faceValue 54, penalty 1)
-request: ben picks (id 54, faceValue 55, penalty 7)
-  response: ben picks (id 54, faceValue 55, penalty 7)
-request: cy picks (id 55, faceValue 56, penalty 1)
-  response: cy picks (id 55, faceValue 56, penalty 1)
-
-  === picks before the reveal ===
-    ada: (id 53, faceValue 54, penalty 1)
-    ben: (id 54, faceValue 55, penalty 7)
-    cy: (id 55, faceValue 56, penalty 1)
-
-  response: reveal
-
-  === rows before the placements ===
-    row 0: (id 49, faceValue 50, penalty 3), (id 50, faceValue 51, penalty 1), (id 51, faceValue 52, penalty 1), (id 52, faceValue 53, penalty 1)
-    row 1: (id 59, faceValue 60, penalty 3)
-    row 2: (id 69, faceValue 70, penalty 3)
-    row 3: (id 79, faceValue 80, penalty 3)
-
-  response: ada places (id 53, faceValue 54, penalty 1) in row 0
-  response: player ben replaces row 0 with (id 54, faceValue 55, penalty 7), taking (id 49, faceValue 50, penalty 3), (id 50, faceValue 51, penalty 1), (id 51, faceValue 52, penalty 1), (id 52, faceValue 53, penalty 1), (id 53, faceValue 54, penalty 1), adding 7 penalty, total now 7
-  response: cy places (id 55, faceValue 56, penalty 1) in row 0
-  response: await card pick
-
-  === state after the reveal ===
-    phase: cardPick
-    row 0: (id 54, faceValue 55, penalty 7), (id 55, faceValue 56, penalty 1)
-    row 1: (id 59, faceValue 60, penalty 3)
-    row 2: (id 69, faceValue 70, penalty 3)
-    row 3: (id 79, faceValue 80, penalty 3)
-    ada:
-      hand: (id 0, faceValue 1, penalty 1)
-      picked card: none
-      penalty pile: none
-      penalty score: 3
-    ben:
-      hand: (id 56, faceValue 57, penalty 1)
-      picked card: none
-      penalty pile: (id 49, faceValue 50, penalty 3), (id 50, faceValue 51, penalty 1), (id 51, faceValue 52, penalty 1), (id 52, faceValue 53, penalty 1), (id 53, faceValue 54, penalty 1)
-      penalty score: 7
-    cy:
-      hand: (id 57, faceValue 58, penalty 1)
-      picked card: none
-      penalty pile: none
-      penalty score: 0
-
-request: ada picks (id 0, faceValue 1, penalty 1)
-  response: ada picks (id 0, faceValue 1, penalty 1)
-request: ben picks (id 56, faceValue 57, penalty 1)
-  response: ben picks (id 56, faceValue 57, penalty 1)
-request: cy picks (id 57, faceValue 58, penalty 1)
-  response: cy picks (id 57, faceValue 58, penalty 1)
-
-  === picks before the reveal ===
-    ada: (id 0, faceValue 1, penalty 1)
-    ben: (id 56, faceValue 57, penalty 1)
-    cy: (id 57, faceValue 58, penalty 1)
-
-  response: reveal
-  response: await row pick: ada
-
-  === state after the reveal ===
-    phase: rowPick
-    row 0: (id 54, faceValue 55, penalty 7), (id 55, faceValue 56, penalty 1)
-    row 1: (id 59, faceValue 60, penalty 3)
-    row 2: (id 69, faceValue 70, penalty 3)
-    row 3: (id 79, faceValue 80, penalty 3)
-    ada:
-      hand: (id 0, faceValue 1, penalty 1)
-      picked card: (id 0, faceValue 1, penalty 1)
-      penalty pile: none
-      penalty score: 3
-    ben:
-      hand: (id 56, faceValue 57, penalty 1)
-      picked card: (id 56, faceValue 57, penalty 1)
-      penalty pile: (id 49, faceValue 50, penalty 3), (id 50, faceValue 51, penalty 1), (id 51, faceValue 52, penalty 1), (id 52, faceValue 53, penalty 1), (id 53, faceValue 54, penalty 1)
-      penalty score: 7
-    cy:
-      hand: (id 57, faceValue 58, penalty 1)
-      picked card: (id 57, faceValue 58, penalty 1)
-      penalty pile: none
-      penalty score: 0
-
-request: ada picks the row 0
-  response: player ada replaces row 0 with (id 0, faceValue 1, penalty 1), taking (id 54, faceValue 55, penalty 7), (id 55, faceValue 56, penalty 1), adding 8 penalty, total now 11
-  response: ben places (id 56, faceValue 57, penalty 1) in row 0
-  response: cy places (id 57, faceValue 58, penalty 1) in row 0
-  response: end round · scores ada 11, ben 7, cy 0
-
-  === state after the row pick ===
-    phase: endOfRound
-    row 0: (id 0, faceValue 1, penalty 1), (id 56, faceValue 57, penalty 1), (id 57, faceValue 58, penalty 1)
-    row 1: (id 59, faceValue 60, penalty 3)
-    row 2: (id 69, faceValue 70, penalty 3)
-    row 3: (id 79, faceValue 80, penalty 3)
-    ada:
-      hand: none
-      picked card: none
-      penalty pile: (id 54, faceValue 55, penalty 7), (id 55, faceValue 56, penalty 1)
-      penalty score: 11
-    ben:
-      hand: none
-      picked card: none
-      penalty pile: (id 49, faceValue 50, penalty 3), (id 50, faceValue 51, penalty 1), (id 51, faceValue 52, penalty 1), (id 52, faceValue 53, penalty 1), (id 53, faceValue 54, penalty 1)
-      penalty score: 7
-    cy:
-      hand: none
-      picked card: none
-      penalty pile: none
-      penalty score: 0
-
-request: start a round
-  response: start round
-
-  === state at the start of the round ===
-    phase: cardPick
-    row 0: (id 65, faceValue 66, penalty 5)
+    row 0: (id 59, faceValue 60, penalty 3)
     row 1: (id 69, faceValue 70, penalty 3)
     row 2: (id 79, faceValue 80, penalty 3)
     row 3: (id 89, faceValue 90, penalty 3)
     ada:
-      hand: (id 2, faceValue 3, penalty 1), (id 80, faceValue 81, penalty 1), (id 81, faceValue 82, penalty 1)
+      hand: (id 70, faceValue 71, penalty 1), (id 76, faceValue 77, penalty 5), (id 77, faceValue 78, penalty 1)
       picked card: none
       penalty pile: none
-      penalty score: 11
+      penalty score: 3
     ben:
-      hand: (id 66, faceValue 67, penalty 1), (id 82, faceValue 83, penalty 1), (id 83, faceValue 84, penalty 1)
-      picked card: none
-      penalty pile: none
-      penalty score: 7
-    cy:
-      hand: (id 67, faceValue 68, penalty 1), (id 84, faceValue 85, penalty 2), (id 85, faceValue 86, penalty 1)
+      hand: (id 80, faceValue 81, penalty 1), (id 81, faceValue 82, penalty 1), (id 82, faceValue 83, penalty 1)
       picked card: none
       penalty pile: none
       penalty score: 0
+    cy:
+      hand: (id 90, faceValue 91, penalty 1), (id 54, faceValue 55, penalty 7), (id 91, faceValue 92, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 5
 
-request: ada picks (id 2, faceValue 3, penalty 1)
-  response: ada picks (id 2, faceValue 3, penalty 1)
-request: ben picks (id 66, faceValue 67, penalty 1)
-  response: ben picks (id 66, faceValue 67, penalty 1)
-request: cy picks (id 67, faceValue 68, penalty 1)
-  response: cy picks (id 67, faceValue 68, penalty 1)
+request: ada picks (id 70, faceValue 71, penalty 1)
+  response: ada picks (id 70, faceValue 71, penalty 1)
+request: ben picks (id 80, faceValue 81, penalty 1)
+  response: ben picks (id 80, faceValue 81, penalty 1)
+request: cy picks (id 90, faceValue 91, penalty 1)
+  response: cy picks (id 90, faceValue 91, penalty 1)
 
   === picks before the reveal ===
-    ada: (id 2, faceValue 3, penalty 1)
-    ben: (id 66, faceValue 67, penalty 1)
-    cy: (id 67, faceValue 68, penalty 1)
+    ada: (id 70, faceValue 71, penalty 1)
+    ben: (id 80, faceValue 81, penalty 1)
+    cy: (id 90, faceValue 91, penalty 1)
 
   response: reveal
-  response: await row pick: ada
 
-  === state after the reveal ===
-    phase: rowPick
-    row 0: (id 65, faceValue 66, penalty 5)
+  === rows before the placements ===
+    row 0: (id 59, faceValue 60, penalty 3)
     row 1: (id 69, faceValue 70, penalty 3)
     row 2: (id 79, faceValue 80, penalty 3)
     row 3: (id 89, faceValue 90, penalty 3)
+
+  response: ada places (id 70, faceValue 71, penalty 1) in row 1
+  response: ben places (id 80, faceValue 81, penalty 1) in row 2
+  response: cy places (id 90, faceValue 91, penalty 1) in row 3
+  response: await card pick
+
+  === state after the reveal ===
+    phase: cardPick
+    row 0: (id 59, faceValue 60, penalty 3)
+    row 1: (id 69, faceValue 70, penalty 3), (id 70, faceValue 71, penalty 1)
+    row 2: (id 79, faceValue 80, penalty 3), (id 80, faceValue 81, penalty 1)
+    row 3: (id 89, faceValue 90, penalty 3), (id 90, faceValue 91, penalty 1)
     ada:
-      hand: (id 2, faceValue 3, penalty 1), (id 80, faceValue 81, penalty 1), (id 81, faceValue 82, penalty 1)
-      picked card: (id 2, faceValue 3, penalty 1)
+      hand: (id 76, faceValue 77, penalty 5), (id 77, faceValue 78, penalty 1)
+      picked card: none
       penalty pile: none
-      penalty score: 11
+      penalty score: 3
     ben:
-      hand: (id 66, faceValue 67, penalty 1), (id 82, faceValue 83, penalty 1), (id 83, faceValue 84, penalty 1)
-      picked card: (id 66, faceValue 67, penalty 1)
-      penalty pile: none
-      penalty score: 7
-    cy:
-      hand: (id 67, faceValue 68, penalty 1), (id 84, faceValue 85, penalty 2), (id 85, faceValue 86, penalty 1)
-      picked card: (id 67, faceValue 68, penalty 1)
+      hand: (id 81, faceValue 82, penalty 1), (id 82, faceValue 83, penalty 1)
+      picked card: none
       penalty pile: none
       penalty score: 0
+    cy:
+      hand: (id 54, faceValue 55, penalty 7), (id 91, faceValue 92, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 5
 
-request: ada picks the row 0
-  response: player ada replaces row 0 with (id 2, faceValue 3, penalty 1), taking (id 65, faceValue 66, penalty 5), adding 5 penalty, total now 16
-  response: end game · scores ada 16, ben 7, cy 0 · winner cy
+request: ada picks (id 76, faceValue 77, penalty 5)
+  response: ada picks (id 76, faceValue 77, penalty 5)
+request: ben picks (id 81, faceValue 82, penalty 1)
+  response: ben picks (id 81, faceValue 82, penalty 1)
+request: cy picks (id 54, faceValue 55, penalty 7)
+  response: cy picks (id 54, faceValue 55, penalty 7)
+
+  === picks before the reveal ===
+    cy: (id 54, faceValue 55, penalty 7)
+    ada: (id 76, faceValue 77, penalty 5)
+    ben: (id 81, faceValue 82, penalty 1)
+
+  response: reveal
+  response: await row pick: cy
+
+  === state after the reveal ===
+    phase: rowPick
+    row 0: (id 59, faceValue 60, penalty 3)
+    row 1: (id 69, faceValue 70, penalty 3), (id 70, faceValue 71, penalty 1)
+    row 2: (id 79, faceValue 80, penalty 3), (id 80, faceValue 81, penalty 1)
+    row 3: (id 89, faceValue 90, penalty 3), (id 90, faceValue 91, penalty 1)
+    ada:
+      hand: (id 76, faceValue 77, penalty 5), (id 77, faceValue 78, penalty 1)
+      picked card: (id 76, faceValue 77, penalty 5)
+      penalty pile: none
+      penalty score: 3
+    ben:
+      hand: (id 81, faceValue 82, penalty 1), (id 82, faceValue 83, penalty 1)
+      picked card: (id 81, faceValue 82, penalty 1)
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 54, faceValue 55, penalty 7), (id 91, faceValue 92, penalty 1)
+      picked card: (id 54, faceValue 55, penalty 7)
+      penalty pile: none
+      penalty score: 5
+
+request: cy picks the row 0
+  response: player cy replaces row 0 with (id 54, faceValue 55, penalty 7), taking (id 59, faceValue 60, penalty 3), adding 3 penalty, total now 8
+  response: ada places (id 76, faceValue 77, penalty 5) in row 1
+  response: ben places (id 81, faceValue 82, penalty 1) in row 2
+  response: await card pick
 
   === state after the row pick ===
+    phase: cardPick
+    row 0: (id 54, faceValue 55, penalty 7)
+    row 1: (id 69, faceValue 70, penalty 3), (id 70, faceValue 71, penalty 1), (id 76, faceValue 77, penalty 5)
+    row 2: (id 79, faceValue 80, penalty 3), (id 80, faceValue 81, penalty 1), (id 81, faceValue 82, penalty 1)
+    row 3: (id 89, faceValue 90, penalty 3), (id 90, faceValue 91, penalty 1)
+    ada:
+      hand: (id 77, faceValue 78, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 3
+    ben:
+      hand: (id 82, faceValue 83, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 91, faceValue 92, penalty 1)
+      picked card: none
+      penalty pile: (id 59, faceValue 60, penalty 3)
+      penalty score: 8
+
+request: ada picks (id 77, faceValue 78, penalty 1)
+  response: ada picks (id 77, faceValue 78, penalty 1)
+request: ben picks (id 82, faceValue 83, penalty 1)
+  response: ben picks (id 82, faceValue 83, penalty 1)
+request: cy picks (id 91, faceValue 92, penalty 1)
+  response: cy picks (id 91, faceValue 92, penalty 1)
+
+  === picks before the reveal ===
+    ada: (id 77, faceValue 78, penalty 1)
+    ben: (id 82, faceValue 83, penalty 1)
+    cy: (id 91, faceValue 92, penalty 1)
+
+  response: reveal
+
+  === rows before the placements ===
+    row 0: (id 54, faceValue 55, penalty 7)
+    row 1: (id 69, faceValue 70, penalty 3), (id 70, faceValue 71, penalty 1), (id 76, faceValue 77, penalty 5)
+    row 2: (id 79, faceValue 80, penalty 3), (id 80, faceValue 81, penalty 1), (id 81, faceValue 82, penalty 1)
+    row 3: (id 89, faceValue 90, penalty 3), (id 90, faceValue 91, penalty 1)
+
+  response: player ada replaces row 1 with (id 77, faceValue 78, penalty 1), taking (id 69, faceValue 70, penalty 3), (id 70, faceValue 71, penalty 1), (id 76, faceValue 77, penalty 5), adding 9 penalty, total now 12
+  response: end game · scores ada 12, ben 0, cy 8 · winner ben
+
+  === state after the reveal ===
     phase: gameOver
-    row 0: (id 2, faceValue 3, penalty 1)
-    row 1: (id 69, faceValue 70, penalty 3)
-    row 2: (id 79, faceValue 80, penalty 3)
-    row 3: (id 89, faceValue 90, penalty 3)
+    row 0: (id 54, faceValue 55, penalty 7)
+    row 1: (id 77, faceValue 78, penalty 1)
+    row 2: (id 79, faceValue 80, penalty 3), (id 80, faceValue 81, penalty 1), (id 81, faceValue 82, penalty 1)
+    row 3: (id 89, faceValue 90, penalty 3), (id 90, faceValue 91, penalty 1)
     ada:
-      hand: (id 80, faceValue 81, penalty 1), (id 81, faceValue 82, penalty 1)
+      hand: none
       picked card: none
-      penalty pile: (id 65, faceValue 66, penalty 5)
-      penalty score: 16
+      penalty pile: (id 69, faceValue 70, penalty 3), (id 70, faceValue 71, penalty 1), (id 76, faceValue 77, penalty 5)
+      penalty score: 12
     ben:
-      hand: (id 66, faceValue 67, penalty 1), (id 82, faceValue 83, penalty 1), (id 83, faceValue 84, penalty 1)
-      picked card: (id 66, faceValue 67, penalty 1)
-      penalty pile: none
-      penalty score: 7
-    cy:
-      hand: (id 67, faceValue 68, penalty 1), (id 84, faceValue 85, penalty 2), (id 85, faceValue 86, penalty 1)
-      picked card: (id 67, faceValue 68, penalty 1)
+      hand: (id 82, faceValue 83, penalty 1)
+      picked card: (id 82, faceValue 83, penalty 1)
       penalty pile: none
       penalty score: 0
+    cy:
+      hand: (id 91, faceValue 92, penalty 1)
+      picked card: (id 91, faceValue 92, penalty 1)
+      penalty pile: (id 59, faceValue 60, penalty 3)
+      penalty score: 8
 

@@ -184,79 +184,70 @@ test('ends the game in the middle of a reveal at the penalty limit', async () =>
   );
 });
 
-test('plays a full game of three rounds', async () => {
+test('plays a full game of two rounds', async () => {
   const { startGame, startRound, pickCard, pickRow, text } =
     createGameTrace(players);
 
-  // Round 1. The rows start with 10, 20, 30 and 40.
+  // A row capacity of 3 lets a row fill in a hand of 3 cards. Each deal takes
+  // 3 × 3 + 4 = 13 cards.
   startGame(
-    gameRules,
+    { penaltyLimit: 10, handSize: 3, rowCapacity: 3 },
     deckOf(
       [
-        [5, 21, 41],
-        [11, 22, 42],
-        [12, 23, 43],
+        [12, 5, 31],
+        [13, 21, 41],
+        [14, 23, 51],
       ],
       [10, 20, 30, 40],
     ),
   );
-  // 5 is lower than every row. Ada takes the 40 for 3 penalties.
+  // 12 and 13 fill the row of 10, so Cy's 14 is the fourth card and takes 10
+  // to 13 for 5 penalties. The hands hold no 11 and no 22, whose 5 penalties
+  // would end the game in round 1.
+  pickCard('ada', 12);
+  pickCard('ben', 13);
+  pickCard('cy', 14);
+
+  // 5 is lower than every row. Ada takes the 20 for 3 penalties. 21 and 23
+  // then go after the 14.
   pickCard('ada', 5);
-  pickCard('ben', 11);
-  pickCard('cy', 12);
-  pickRow('ada', 3);
-
-  pickCard('ada', 21);
-  pickCard('ben', 22);
+  pickCard('ben', 21);
   pickCard('cy', 23);
+  pickRow('ada', 1);
 
-  pickCard('ada', 41);
-  pickCard('ben', 42);
-  pickCard('cy', 43);
+  // Each card finds a row with room, so the round ends without a take.
+  pickCard('ada', 31);
+  pickCard('ben', 41);
+  pickCard('cy', 51);
 
-  // Round 2. The rows start with 50, 60, 70 and 80.
+  // Round 2. The rows start with 60, 70, 80 and 90.
   startRound(
     deckOf(
       [
-        [51, 54, 1],
-        [52, 55, 57],
-        [53, 56, 58],
+        [71, 77, 78],
+        [81, 82, 83],
+        [91, 55, 92],
       ],
-      [50, 60, 70, 80],
+      [60, 70, 80, 90],
     ),
   );
-  pickCard('ada', 51);
-  pickCard('ben', 52);
-  pickCard('cy', 53);
+  pickCard('ada', 71);
+  pickCard('ben', 81);
+  pickCard('cy', 91);
 
-  // 55 is the sixth card of the row of 50, so Ben takes 50 to 54 for 7
-  // penalties.
-  pickCard('ada', 54);
-  pickCard('ben', 55);
-  pickCard('cy', 56);
+  // 55 is lower than every row. Cy takes the 60 for 3 penalties, which makes
+  // 8. The 77 carries 5 penalties and fills the row of 70.
+  pickCard('ada', 77);
+  pickCard('ben', 82);
+  pickCard('cy', 55);
+  pickRow('cy', 0);
 
-  // Ada takes 55 and 56 for 8 penalties, which makes 11.
-  pickCard('ada', 1);
-  pickCard('ben', 57);
-  pickCard('cy', 58);
-  pickRow('ada', 0);
-
-  // Round 3. The rows start with 66, 70, 80 and 90.
-  startRound(
-    deckOf(
-      [
-        [3, 81, 82],
-        [67, 83, 84],
-        [68, 85, 86],
-      ],
-      [66, 70, 80, 90],
-    ),
-  );
-  pickCard('ada', 3);
-  pickCard('ben', 67);
-  pickCard('cy', 68);
-  // The 66 adds 5 penalties, and Ada reaches the limit with 16.
-  pickRow('ada', 0);
+  // Ada's 78 is the fourth card of the row of 70 and takes it for 9
+  // penalties. She reaches the limit with 12, so Ben's 83 and Cy's 92 stay
+  // picked.
+  pickCard('ada', 78);
+  pickCard('ben', 83);
+  pickCard('cy', 92);
 
   await expect(text()).toMatchFileSnapshot(traceFileOf('full-game'));
 });
