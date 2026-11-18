@@ -40,9 +40,9 @@ They alone progress the game.
 A rejected request never reaches them.
 
 A reducer writes into its immer draft.
-It sets a field, hands the draft to a rule of a data type, or applies the outcome that the action carries, and it bumps the version.
-The data types hold the rules of the game and their own invariants.
-See docs/data-type-design.md.
+It applies what the action says and bumps the version.
+It holds no rule and makes no decision: the request handling made each decision before it made the action.
+See "Decide and apply" below.
 
 A client needs the applied actions to replay the game.
 The store therefore holds their history next to the state.
@@ -66,21 +66,42 @@ Layer 3 still searches for data that no request names, for example the seat that
 Such a search passes through `force`, which throws the message of a miss.
 A miss there is a bug in this code, not a rejected request.
 
-## Reveal outcome
+## Decide and apply
 
-The reveal and the row pick actions carry their outcome as a list of card placements.
-A placement names the player, the card and the row, and the cards that the player takes, if any.
-The first placement of a row pick is the row pick itself.
-The request handling runs the rules of the reveal on a copy of the state and puts the placements into the payload.
-The reducers only apply the placements.
-They then set the next phase with plain checks of the state.
+The request handling decides, and the reducers apply.
+Each decision of the game progression is an action of its own, and the history is the record of the decisions.
 
-The history therefore keeps the outcome of each reveal, and a client reports a reveal from the history.
-When the server hides the picked cards of the other players, a client cannot compute a reveal itself.
-The payload is then the only way that a client learns the revealed cards.
+- The request handling holds every rule.
+  It reads the state as plain data, changes no state and gives a list of actions.
+- The reducers hold no rule.
+  They only apply what an action says, and they bump the version.
+- The data types hold pure readers that the rules ask, for example `findRowIndexForCard` and `isRowFull`, and the small writes that the reducers use, for example `playPickedCard`.
 
-A payload that only reports the outcome, next to a reducer that still computes it, was rejected.
-The two copies of the outcome could disagree, and a client without the picked cards still could not replay a reveal.
+The decisions stay on the server, because a client is not trusted.
+The reducers run on the server and on each client, and a client replays the history with them.
+A reducer that decided could decide otherwise on a client that lacks hidden information, for example the picks of the other players.
+A reducer that only applies gives every client the same state.
+
+A request that reveals the picked cards makes one action per event:
+`revealPickedCards` makes the picked cards public, each `placeCard` or `takeRow` places one card, and a phase action ends the reveal: `awaitCardPick`, `awaitRowPick`, `endRound` or `endGame`.
+A row pick makes a `takeRow` for the chosen row, and then the rest of the reveal.
+An abandon makes `abandonGame`, and `endGame` when too few players remain.
+
+A decision often depends on the decisions before it, for example the row that the next card meets.
+The request handling therefore applies the actions that it has made so far through the reducer itself, `gameSlice.reducer`, and reads the plain result.
+A second copy of the rules, which foresaw the outcome of an action, could disagree with the reducer.
+
+A payload holds only the decision, not what follows from it.
+`takeRow` does not list the taken cards, because the row holds them.
+A client that reports a take reads the cards by replay, as `selectLastRevealEvents` does.
+`revealPickedCards` is the exception: it holds the picked cards, because a client whose history lacks the picks of the other players learns them only there.
+
+An earlier design ran the rules on an immer draft in the request handling and put the outcome of the reveal into one payload.
+That was a reduce step in all but name, and the outcome held copies of the cards, because the proxies of the draft end with it.
+
+Two copies of a fact can disagree inside one state, for example an `endRound` while a seat still holds a pick.
+The decisions are tested by example in the request handling tests.
+The test support also checks the properties that no rule computes: each card is in one place, and a picked card is in the hand of its seat.
 
 ## Game state version
 
@@ -102,7 +123,9 @@ Either layer could own them, so this is a decision, not a necessity.
 An action therefore carries no version.
 Each entry of the history pairs an action with the old and the new version of the game state.
 One request can make several actions, for example a pick that reveals the picked cards.
-The second action then acts on the version that the first produced.
+Each action bumps the version, and each acts on the version that the one before it produced.
+Only the pick and the unpick of a card are minor changes.
+The actions of one request reach the store together, so no request comes between them.
 
 ## Source structure
 
