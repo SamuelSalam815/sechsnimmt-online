@@ -66,11 +66,11 @@ export function findPick(
 ): Result<CardId> {
   const pickedCardId = round.seats.entities[playerId]?.pickedCardId;
   const describedPick =
-    pickedCardId === undefined ? 'no card' : `the card ${pickedCardId}`;
+    pickedCardId === undefined ? 'no card' : `the card ID ${pickedCardId}`;
   return lookup(
     pickedCardId === cardId ? pickedCardId : undefined,
     ErrorCode.RuleViolation,
-    `The player ${playerId} has picked ${describedPick}, not the card ${cardId}`,
+    `The player ${playerId} has picked ${describedPick}, not the card ID ${cardId}`,
   );
 }
 

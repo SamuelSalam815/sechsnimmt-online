@@ -38,7 +38,7 @@ export function findCardInHand(seat: RoundSeat, cardId: CardId): Result<Card> {
   return lookup(
     seat.hand.find((card) => card.id === cardId),
     ErrorCode.RuleViolation,
-    `The hand of the player ${seat.playerId} does not hold the card ${cardId}`,
+    `The hand of the player ${seat.playerId} does not hold the card ID ${cardId}`,
   );
 }
 
@@ -47,7 +47,7 @@ export function playPickedCard(seat: RoundSeat, card: Card): void {
   const position = seat.hand.findIndex((heldCard) => heldCard.id === card.id);
   if (position === -1) {
     throw new Error(
-      `The hand of the player ${seat.playerId} holds no card ${card.id}`,
+      `The hand of the player ${seat.playerId} holds no card ${JSON.stringify(card)}`,
     );
   }
   seat.hand.splice(position, 1);

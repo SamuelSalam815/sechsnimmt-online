@@ -81,13 +81,17 @@ function describePicks(state: GameState): string[] {
   );
 }
 
+function describeRows(state: GameState): string[] {
+  return roundStateOf(state).round.rows.map(
+    (row, rowIndex) => `row ${rowIndex}: ${describeCards(row.cards)}`,
+  );
+}
+
 function describeState(state: GameState): string[] {
   const { phase, round, players: statePlayers } = roundStateOf(state);
   return [
     `phase: ${phase}`,
-    ...round.rows.map(
-      (row, rowIndex) => `row ${rowIndex}: ${describeCards(row.cards)}`,
-    ),
+    ...describeRows(state),
     ...listRoundSeats(round.seats).flatMap((seat) => [
       `${seat.playerId}:`,
       `  hand: ${describeCards(seat.hand)}`,
@@ -174,7 +178,7 @@ function describeAction(
     const takenCards = roundStateOf(stateBefore).round.rows[rowIndex].cards;
     const score = scoreOf(stateAfter, playerId);
     const penalty = score - scoreOf(stateBefore, playerId);
-    return `${playerId} takes row ${rowIndex} with ${describeCard(card)}: ${describeCards(takenCards)}; takes ${penalty} penalty, total now ${score}`;
+    return `player ${playerId} replaces row ${rowIndex} with ${describeCard(card)}, taking ${describeCards(takenCards)}, adding ${penalty} penalty, total now ${score}`;
   }
   if (awaitCardPick.match(action)) {
     return 'await card pick';
@@ -222,7 +226,7 @@ test('plays a full game with stale and bad requests mixed in', async () => {
       .slice(rootState.history.length)
       .map(({ action }) => action);
     let game = rootState.game;
-    for (const action of actions) {
+    for (const [actionIndex, action] of actions.entries()) {
       if (revealPickedCards.match(action)) {
         trace.push(
           ...describeDump('picks before the reveal', describePicks(game)),
@@ -236,6 +240,15 @@ test('plays a full game with stale and bad requests mixed in', async () => {
         );
       }
       trace.push(`  response: ${describeAction(game, action, nextGame)}`);
+      const nextAction = actions[actionIndex + 1];
+      if (
+        revealPickedCards.match(action) &&
+        (placeCard.match(nextAction) || takeRow.match(nextAction))
+      ) {
+        trace.push(
+          ...describeDump('rows before the placements', describeRows(nextGame)),
+        );
+      }
       game = nextGame;
     }
     const stateDumpTitle = stateDumpTitleOf(actions);
