@@ -41,7 +41,14 @@
                 "group": ["#testSupport/*", "**/*.test.ts"],
                 "message": "Test code is for tests. A production module must not import it"
               }
-            ]
+            ],
+            "paths": {
+              "@reduxjs/toolkit": {
+                "allowImportNames": ["createEntityAdapter", "EntityState"],
+                "message": "Only the reducers and the store code apply changes. Other code reads plain state and imports no Redux Toolkit API that changes it. See docs/game-flow-architecture.md"
+              },
+              "immer": "Only the reducers and the store code apply changes. Other code reads plain state and imports no Redux Toolkit API that changes it. See docs/game-flow-architecture.md"
+            }
           }
         }
       },
@@ -61,6 +68,39 @@
     }
   },
   "overrides": [
+    {
+      "includes": [
+        "src/engine/reducers/**",
+        "src/engine/store.ts",
+        "src/server/roomStore/**",
+        "src/server/infrastructure/logger.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["./**", "../**"],
+                    "message": "Import through a reference of package.json, so that the component boundary is part of the import"
+                  },
+                  {
+                    "group": ["#engine/testSupport/*"],
+                    "message": "Test support has the reference #testSupport/*"
+                  },
+                  {
+                    "group": ["#testSupport/*", "**/*.test.ts"],
+                    "message": "Test code is for tests. A production module must not import it"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     {
       "includes": ["**/*.test.ts", "src/engine/testSupport/**"],
       "linter": {
