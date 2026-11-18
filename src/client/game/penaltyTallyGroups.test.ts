@@ -1,18 +1,32 @@
 import { expect, test } from 'vitest';
 import { groupPenaltyTallies } from '#client/game/penaltyTallyGroups.ts';
 
-test('a penalty of 3 or less is one group', () => {
-  expect(groupPenaltyTallies(1)).toEqual([1]);
-  expect(groupPenaltyTallies(2)).toEqual([2]);
-  expect(groupPenaltyTallies(3)).toEqual([3]);
+test('a penalty of 3 or less is one group of strokes', () => {
+  expect(groupPenaltyTallies(1)).toEqual([['stroke']]);
+  expect(groupPenaltyTallies(2)).toEqual([['stroke', 'stroke']]);
+  expect(groupPenaltyTallies(3)).toEqual([['stroke', 'stroke', 'stroke']]);
 });
 
-test('a penalty of 5 puts the group of 3 in the middle', () => {
-  expect(groupPenaltyTallies(5)).toEqual([1, 3, 1]);
+test('a penalty of 5 puts the strokes between two chevrons', () => {
+  expect(groupPenaltyTallies(5)).toEqual([
+    ['openingChevron'],
+    ['stroke', 'stroke', 'stroke'],
+    ['closingChevron'],
+  ]);
 });
 
-test('a penalty of 7 puts the groups of 3 on the outside', () => {
-  expect(groupPenaltyTallies(7)).toEqual([3, 1, 3]);
+test('a penalty of 7 puts a wave between two groups of 3', () => {
+  expect(groupPenaltyTallies(7)).toEqual([
+    ['stroke', 'stroke', 'stroke'],
+    ['wave'],
+    ['stroke', 'stroke', 'stroke'],
+  ]);
+});
+
+test('every penalty counts one for each mark', () => {
+  for (const penalty of [1, 2, 3, 5, 7]) {
+    expect(groupPenaltyTallies(penalty).flat()).toHaveLength(penalty);
+  }
 });
 
 test('a penalty that no card has is an error', () => {
