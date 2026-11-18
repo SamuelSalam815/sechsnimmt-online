@@ -55,7 +55,7 @@ function deckOf(hands: number[][], rows: number[]): Deck {
 // The face value and the card ID are both numbers, so the trace names each of
 // them.
 function describeCard(card: Card): string {
-  return `${card.faceValue} (id ${card.id}, penalty ${getPenalty(card)})`;
+  return `(id ${card.id}, faceValue ${card.faceValue}, penalty ${getPenalty(card)})`;
 }
 
 function describeCards(cards: readonly Card[]): string {
@@ -171,7 +171,7 @@ function describeAction(
     const takenCards = roundStateOf(stateBefore).round.rows[rowIndex].cards;
     const score = scoreOf(stateAfter, playerId);
     const penalty = score - scoreOf(stateBefore, playerId);
-    return `${playerId} takes row ${rowIndex} with ${describeCard(card)}: ${describeCards(takenCards)}; penalty ${penalty}, penalty score ${score}`;
+    return `${playerId} takes row ${rowIndex} with ${describeCard(card)}: ${describeCards(takenCards)}; takes ${penalty} penalty, total now ${score}`;
   }
   if (awaitCardPick.match(action)) {
     return 'await card pick';
