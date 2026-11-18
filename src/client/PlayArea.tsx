@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CardView } from '#client/CardView.tsx';
+import { CardView, EmptyCardSlot } from '#client/CardView.tsx';
 import { findRowPicker } from '#client/gameView.ts';
 import { useAppDispatch, useAppSelector } from '#client/hooks.ts';
 import { pickRow } from '#client/serverApi.ts';
@@ -15,6 +15,15 @@ export function PlayArea() {
     return null;
   }
   const ownRowPick = findRowPicker(game) === session.playerId;
+  const { rowCapacity } = game.gameRules;
+
+  function emptySlotIndexes(rowCardCount: number): number[] {
+    const slotIndexes: number[] = [];
+    for (let slotIndex = rowCardCount; slotIndex < rowCapacity; slotIndex++) {
+      slotIndexes.push(slotIndex);
+    }
+    return slotIndexes;
+  }
 
   async function sendRowPick(rowIndex: number) {
     if (session === null || rowRequestInFlight) {
@@ -40,6 +49,12 @@ export function PlayArea() {
           )}
           {row.cards.map((card) => (
             <CardView key={card.id} card={card} />
+          ))}
+          {emptySlotIndexes(row.cards.length).map((slotIndex) => (
+            <EmptyCardSlot
+              key={`empty ${slotIndex}`}
+              marked={slotIndex === rowCapacity - 1}
+            />
           ))}
         </div>
       ))}
