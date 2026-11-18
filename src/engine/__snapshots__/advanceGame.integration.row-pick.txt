@@ -1,0 +1,96 @@
+request: start the game with {"penaltyLimit":15,"handSize":3}
+  response: start game: ada, ben, cy · hands 3
+
+  === state at the start of the game ===
+    phase: cardPick
+    row 0: (id 9, faceValue 10, penalty 3)
+    row 1: (id 19, faceValue 20, penalty 3)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 39, faceValue 40, penalty 3)
+    ada:
+      hand: (id 4, faceValue 5, penalty 2), (id 20, faceValue 21, penalty 1), (id 40, faceValue 41, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    ben:
+      hand: (id 10, faceValue 11, penalty 5), (id 21, faceValue 22, penalty 5), (id 41, faceValue 42, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 11, faceValue 12, penalty 1), (id 22, faceValue 23, penalty 1), (id 42, faceValue 43, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+
+request: ada picks (id 4, faceValue 5, penalty 2)
+  response: ada picks (id 4, faceValue 5, penalty 2)
+request: ben picks (id 10, faceValue 11, penalty 5)
+  response: ben picks (id 10, faceValue 11, penalty 5)
+request: cy picks (id 11, faceValue 12, penalty 1)
+  response: cy picks (id 11, faceValue 12, penalty 1)
+
+  === picks before the reveal ===
+    ada: (id 4, faceValue 5, penalty 2)
+    ben: (id 10, faceValue 11, penalty 5)
+    cy: (id 11, faceValue 12, penalty 1)
+
+  response: reveal
+  response: await row pick: ada
+
+  === state after the reveal ===
+    phase: rowPick
+    row 0: (id 9, faceValue 10, penalty 3)
+    row 1: (id 19, faceValue 20, penalty 3)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 39, faceValue 40, penalty 3)
+    ada:
+      hand: (id 4, faceValue 5, penalty 2), (id 20, faceValue 21, penalty 1), (id 40, faceValue 41, penalty 1)
+      picked card: (id 4, faceValue 5, penalty 2)
+      penalty pile: none
+      penalty score: 0
+    ben:
+      hand: (id 10, faceValue 11, penalty 5), (id 21, faceValue 22, penalty 5), (id 41, faceValue 42, penalty 1)
+      picked card: (id 10, faceValue 11, penalty 5)
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 11, faceValue 12, penalty 1), (id 22, faceValue 23, penalty 1), (id 42, faceValue 43, penalty 1)
+      picked card: (id 11, faceValue 12, penalty 1)
+      penalty pile: none
+      penalty score: 0
+
+request: ben picks the row 0
+  response: rejected ruleViolation: The game awaits no row pick from the player ben
+request: ada picks the row 7
+  response: rejected unknownEntity: The game holds no row at the index 7
+request: ada picks (id 20, faceValue 21, penalty 1)
+  response: rejected wrongPhase: The row pick phase rejects the pickCard request: it accepts only the pick row and abandon game requests
+request: ada picks the row 3
+  response: player ada replaces row 3 with (id 4, faceValue 5, penalty 2), taking (id 39, faceValue 40, penalty 3), adding 3 penalty, total now 3
+  response: ben places (id 10, faceValue 11, penalty 5) in row 0
+  response: cy places (id 11, faceValue 12, penalty 1) in row 0
+  response: await card pick
+
+  === state after the row pick ===
+    phase: cardPick
+    row 0: (id 9, faceValue 10, penalty 3), (id 10, faceValue 11, penalty 5), (id 11, faceValue 12, penalty 1)
+    row 1: (id 19, faceValue 20, penalty 3)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 4, faceValue 5, penalty 2)
+    ada:
+      hand: (id 20, faceValue 21, penalty 1), (id 40, faceValue 41, penalty 1)
+      picked card: none
+      penalty pile: (id 39, faceValue 40, penalty 3)
+      penalty score: 3
+    ben:
+      hand: (id 21, faceValue 22, penalty 5), (id 41, faceValue 42, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 22, faceValue 23, penalty 1), (id 42, faceValue 43, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+

@@ -1,0 +1,84 @@
+request: start the game with {"penaltyLimit":15,"handSize":0}
+  response: rejected invalidGameRules: The hand size 0 is not a whole number of 1 or more
+request: start the game with {"penaltyLimit":15,"handSize":3}
+  response: start game: ada, ben, cy · hands 3
+
+  === state at the start of the game ===
+    phase: cardPick
+    row 0: (id 9, faceValue 10, penalty 3)
+    row 1: (id 19, faceValue 20, penalty 3)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 39, faceValue 40, penalty 3)
+    ada:
+      hand: (id 14, faceValue 15, penalty 2), (id 20, faceValue 21, penalty 1), (id 40, faceValue 41, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    ben:
+      hand: (id 10, faceValue 11, penalty 5), (id 21, faceValue 22, penalty 5), (id 41, faceValue 42, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 11, faceValue 12, penalty 1), (id 22, faceValue 23, penalty 1), (id 42, faceValue 43, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+
+request: ada picks (id 14, faceValue 15, penalty 2)
+  response: ada picks (id 14, faceValue 15, penalty 2)
+request: ben picks (id 10, faceValue 11, penalty 5) (saw version 1 of 2)
+  response: ben picks (id 10, faceValue 11, penalty 5)
+request: ada picks (id 21, faceValue 22, penalty 5)
+  response: rejected ruleViolation: The hand of the player ada does not hold the card ID 21
+request: nobody picks (id 11, faceValue 12, penalty 1)
+  response: rejected unknownEntity: The game holds no player with the ID nobody
+request: cy picks (id 11, faceValue 12, penalty 1) (saw version 1 of 3)
+  response: cy picks (id 11, faceValue 12, penalty 1)
+
+  === picks before the reveal ===
+    ben: (id 10, faceValue 11, penalty 5)
+    cy: (id 11, faceValue 12, penalty 1)
+    ada: (id 14, faceValue 15, penalty 2)
+
+  response: reveal
+
+  === rows before the placements ===
+    row 0: (id 9, faceValue 10, penalty 3)
+    row 1: (id 19, faceValue 20, penalty 3)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 39, faceValue 40, penalty 3)
+
+  response: ben places (id 10, faceValue 11, penalty 5) in row 0
+  response: cy places (id 11, faceValue 12, penalty 1) in row 0
+  response: ada places (id 14, faceValue 15, penalty 2) in row 0
+  response: await card pick
+
+  === state after the reveal ===
+    phase: cardPick
+    row 0: (id 9, faceValue 10, penalty 3), (id 10, faceValue 11, penalty 5), (id 11, faceValue 12, penalty 1), (id 14, faceValue 15, penalty 2)
+    row 1: (id 19, faceValue 20, penalty 3)
+    row 2: (id 29, faceValue 30, penalty 3)
+    row 3: (id 39, faceValue 40, penalty 3)
+    ada:
+      hand: (id 20, faceValue 21, penalty 1), (id 40, faceValue 41, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    ben:
+      hand: (id 21, faceValue 22, penalty 5), (id 41, faceValue 42, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+    cy:
+      hand: (id 22, faceValue 23, penalty 1), (id 42, faceValue 43, penalty 1)
+      picked card: none
+      penalty pile: none
+      penalty score: 0
+
+request: ada picks (id 20, faceValue 21, penalty 1) (saw version 1 of 9)
+  response: rejected staleRequest: The pickCard request saw the version 1, which the major change to the version 9 has outdated
+request: start the game with {"penaltyLimit":15,"handSize":3} (saw version 1 of 9)
+  response: rejected staleRequest: The startGame request saw the version 1, which the major change to the version 9 has outdated
+request: start the game with {"penaltyLimit":15,"handSize":3}
+  response: rejected wrongPhase: The card pick phase rejects the startGame request: it accepts only the pick card, unpick card and abandon game requests

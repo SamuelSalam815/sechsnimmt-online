@@ -1,5 +1,3 @@
-request: start the game with {"penaltyLimit":15,"handSize":0}
-  response: rejected invalidGameRules: The hand size 0 is not a whole number of 1 or more
 request: start the game with {"penaltyLimit":15,"handSize":3}
   response: start game: ada, ben, cy · hands 3
 
@@ -27,13 +25,9 @@ request: start the game with {"penaltyLimit":15,"handSize":3}
 
 request: ada picks (id 4, faceValue 5, penalty 2)
   response: ada picks (id 4, faceValue 5, penalty 2)
-request: ben picks (id 10, faceValue 11, penalty 5) (saw version 1 of 2)
+request: ben picks (id 10, faceValue 11, penalty 5)
   response: ben picks (id 10, faceValue 11, penalty 5)
-request: ada picks (id 21, faceValue 22, penalty 5)
-  response: rejected ruleViolation: The hand of the player ada does not hold the card ID 21
-request: nobody picks (id 11, faceValue 12, penalty 1)
-  response: rejected unknownEntity: The game holds no player with the ID nobody
-request: cy picks (id 11, faceValue 12, penalty 1) (saw version 1 of 3)
+request: cy picks (id 11, faceValue 12, penalty 1)
   response: cy picks (id 11, faceValue 12, penalty 1)
 
   === picks before the reveal ===
@@ -66,12 +60,6 @@ request: cy picks (id 11, faceValue 12, penalty 1) (saw version 1 of 3)
       penalty pile: none
       penalty score: 0
 
-request: ben picks the row 0
-  response: rejected ruleViolation: The game awaits no row pick from the player ben
-request: ada picks the row 7
-  response: rejected unknownEntity: The game holds no row at the index 7
-request: ada picks (id 20, faceValue 21, penalty 1)
-  response: rejected wrongPhase: The row pick phase rejects the pickCard request: it accepts only the pick row and abandon game requests
 request: ada picks the row 3
   response: player ada replaces row 3 with (id 4, faceValue 5, penalty 2), taking (id 39, faceValue 40, penalty 3), adding 3 penalty, total now 3
   response: ben places (id 10, faceValue 11, penalty 5) in row 0
@@ -100,10 +88,6 @@ request: ada picks the row 3
       penalty pile: none
       penalty score: 0
 
-request: ada picks (id 20, faceValue 21, penalty 1) (saw version 1 of 10)
-  response: rejected staleRequest: The pickCard request saw the version 1, which the major change to the version 10 has outdated
-request: start the game with {"penaltyLimit":15,"handSize":3} (saw version 1 of 10)
-  response: rejected staleRequest: The startGame request saw the version 1, which the major change to the version 10 has outdated
 request: ada picks (id 20, faceValue 21, penalty 1)
   response: ada picks (id 20, faceValue 21, penalty 1)
 request: ben picks (id 21, faceValue 22, penalty 5)
@@ -198,8 +182,6 @@ request: cy picks (id 42, faceValue 43, penalty 1)
       penalty pile: none
       penalty score: 0
 
-request: ada picks (id 40, faceValue 41, penalty 1)
-  response: rejected wrongPhase: The end of round phase rejects the pickCard request: it accepts only the start round and abandon game requests
 request: start a round
   response: start round
 
@@ -225,8 +207,6 @@ request: start a round
       penalty pile: none
       penalty score: 0
 
-request: start the game with {"penaltyLimit":15,"handSize":3}
-  response: rejected wrongPhase: The card pick phase rejects the startGame request: it accepts only the pick card, unpick card and abandon game requests
 request: ada picks (id 50, faceValue 51, penalty 1)
   response: ada picks (id 50, faceValue 51, penalty 1)
 request: ben picks (id 51, faceValue 52, penalty 1)
@@ -474,5 +454,3 @@ request: ada picks the row 0
       penalty pile: none
       penalty score: 0
 
-request: ben picks (id 82, faceValue 83, penalty 1)
-  response: rejected wrongPhase: The game over phase rejects the pickCard request: it accepts no request
