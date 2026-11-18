@@ -107,6 +107,13 @@ A timer that expires before the start of the game removes the player from the ro
 A timer that expires in the game also removes the player, and the engine gets an abandon game request for that player.
 The engine rejects that request once the game is over, and the player then only leaves the room.
 
+A seat is the place of a player at the table of the game, and the room uses it as an analogy for the presence of the player.
+A player who sits in the seat is connected and responsive.
+A player who stands up has no open stream, and the room waits for the player to come back before the grace timer expires.
+A removed seat is permanent: the game goes on without that player, if it can.
+The game requests therefore reject a client token that holds no seat, which is a token without a player or a request before the start of the game.
+The ready requests come before the game, so they reject a client token that holds no player.
+
 ## Event streams
 
 The shell names each stream and holds its response, because a response is not data.
