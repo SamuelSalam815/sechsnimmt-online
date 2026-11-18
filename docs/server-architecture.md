@@ -15,10 +15,33 @@ A dispatch runs the reducers, the listeners and the nested dispatches to their e
 Node runs one request handler at a time, so the store needs no mailbox and no lock.
 A room therefore needs no messages between parts of the server: one state holds everything that a decision reads.
 
+## Decision: one store, not actors
+
 An earlier design split one room into four actors with mailboxes: a REST handler, a room, a game runner and an event stream.
+Each actor held a part of the state of the room, and the actors shared it through messages.
 The mailboxes ordered the messages between the actors.
 A pending stream waited for the history that the game runner sent, and a game start waited for a deck that the shell shuffled.
+A start that the engine rejected had to open the room again.
+
+One store per room replaced the actors.
 One store removes each of these waits, because the state that they waited for is already in it.
+The server code shrank to about half, and the open question of the mailbox length went away.
+
+The actors gave two things that the store does not give:
+
+- A slow part of a room cannot hold up the other parts.
+- The parts of a room can run in parallel.
+
+A room does not need either now, because its work is small and synchronous.
+Rooms still run in parallel, because two rooms share no state.
+
+The store has two costs:
+
+- The listeners run in the order of their start, and the deal must start last.
+- The design relies on Redux Toolkit running a listener synchronously inside `dispatch`. The tests show this, but the documentation of Redux Toolkit does not promise it.
+
+Examine the decision again when the work of a room becomes asynchronous, for example a write to a database, or when one room must run on more than one process.
+A queue of requests in front of the store, or actors again, then orders the work.
 
 ## Scaling
 
