@@ -1,4 +1,4 @@
-import { createNextState } from '@reduxjs/toolkit';
+import { createNextState, isDraft } from '@reduxjs/toolkit';
 import { describe, expect, test } from 'vitest';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
@@ -162,6 +162,21 @@ describe('resolveReveal', () => {
     ]);
     // The row counts 1 penalty for each card and 2 for the 5.
     expect(game.players.entities.b.penaltyScore).toBe(6);
+  });
+
+  test('gives placements that stay readable after the draft ends', () => {
+    // The taken row makes a placement hold both a card and taken cards.
+    const { placements } = resolveOnDraft(
+      revealGame([[1, 2, 3, 4, 5], [50]], [['b', 6]]),
+      resolveReveal,
+    );
+    const [placement] = placements;
+    expect(isDraft(placement.card)).toBe(false);
+    expect(placement.takenCards.some(isDraft)).toBe(false);
+    // The server writes each payload to the event streams as JSON.
+    expect(JSON.parse(JSON.stringify(placements))).toEqual([
+      placementOf('b', 6, 0, [1, 2, 3, 4, 5]),
+    ]);
   });
 
   test('places no card if the lowest card fits no row', () => {
