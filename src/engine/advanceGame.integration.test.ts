@@ -10,8 +10,11 @@ import {
 } from '#engine/dataTypes/game/gameState.ts';
 import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 import { listRevealedCardsLowestFirst } from '#engine/dataTypes/table/revealResolution.ts';
-import { listRoundSeats } from '#engine/dataTypes/table/roundSeat.ts';
-import type { Row } from '#engine/dataTypes/table/row.ts';
+import {
+  findCardInHand,
+  listRoundSeats,
+  type RoundSeat,
+} from '#engine/dataTypes/table/roundSeat.ts';
 import {
   abandonGame,
   awaitCardPick,
@@ -62,8 +65,10 @@ function describeCards(cards: readonly Card[]): string {
   return cards.length === 0 ? 'none' : cards.map(describeCard).join(', ');
 }
 
-function describeRows(rows: readonly Row[]): string {
-  return rows.map((row) => describeCards(row.cards)).join(' | ');
+function describePickedCard(seat: RoundSeat): string {
+  return seat.pickedCardId === undefined
+    ? 'none'
+    : describeCard(findCardInHand(seat, seat.pickedCardId).force());
 }
 
 function describeDump(title: string, lines: readonly string[]): string[] {
@@ -86,6 +91,7 @@ function describeState(state: GameState): string[] {
     ...listRoundSeats(round.seats).flatMap((seat) => [
       `${seat.playerId}:`,
       `  hand: ${describeCards(seat.hand)}`,
+      `  picked card: ${describePickedCard(seat)}`,
       `  penalty pile: ${describeCards(seat.penaltyPile)}`,
       `  penalty score: ${statePlayers.entities[seat.playerId].penaltyScore}`,
     ]),
@@ -144,11 +150,11 @@ function describeAction(
   stateAfter: GameState,
 ): string {
   if (startGameAction.match(action)) {
-    const { players: startedPlayers, round, gameRules: rules } = action.payload;
-    return `start game: ${startedPlayers.ids.join(', ')} · rows ${describeRows(round.rows)} · hands ${rules.handSize}`;
+    const { players: startedPlayers, gameRules: rules } = action.payload;
+    return `start game: ${startedPlayers.ids.join(', ')} · hands ${rules.handSize}`;
   }
   if (startRoundAction.match(action)) {
-    return `start round · rows ${describeRows(action.payload.round.rows)}`;
+    return 'start round';
   }
   if (pickCardAction.match(action)) {
     return `${action.payload.playerId} picks ${describeCard(action.payload.card)}`;
@@ -157,10 +163,7 @@ function describeAction(
     return `${action.payload.playerId} unpicks`;
   }
   if (revealPickedCards.match(action)) {
-    const revealedCards = action.payload.revealedCards.map(
-      ({ playerId, card }) => `${playerId} ${describeCard(card)}`,
-    );
-    return `reveal: ${revealedCards.join(', ')}`;
+    return 'reveal';
   }
   if (placeCard.match(action)) {
     const { playerId, card, rowIndex } = action.payload;
