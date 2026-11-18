@@ -1,4 +1,4 @@
-request: start the game with {"penaltyLimit":5,"handSize":2}
+request: start the game with {"penaltyLimit":5,"handSize":2,"rowCapacity":5}
   response: start game: ada, ben, cy · hands 2
 
   === state at the start of the game ===

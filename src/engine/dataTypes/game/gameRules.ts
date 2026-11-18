@@ -14,11 +14,15 @@ export interface GameRules {
   // "End of the game" in docs/game-rules.md.
   readonly penaltyLimit: number;
   readonly handSize: number;
+  // The most cards that a row holds. The card after them takes the row. See
+  // "Row capacity" in docs/rule-clarifications.md.
+  readonly rowCapacity: number;
 }
 
 export const STANDARD_GAME_RULES: GameRules = {
   penaltyLimit: 66,
   handSize: 10,
+  rowCapacity: 5,
 };
 
 // The deck of the first round stands for the deck of every round: each round
@@ -28,7 +32,7 @@ export function checkGameStart(
   players: readonly PlayerProfile[],
   deck: Deck,
 ): Result<GameRules> {
-  const { penaltyLimit, handSize } = gameRules;
+  const { penaltyLimit, handSize, rowCapacity } = gameRules;
   if (!Number.isInteger(penaltyLimit) || penaltyLimit < 1) {
     return fail(
       ErrorCode.InvalidGameRules,
@@ -39,6 +43,12 @@ export function checkGameStart(
     return fail(
       ErrorCode.InvalidGameRules,
       `The hand size ${handSize} is not a whole number of 1 or more`,
+    );
+  }
+  if (!Number.isInteger(rowCapacity) || rowCapacity < 1) {
+    return fail(
+      ErrorCode.InvalidGameRules,
+      `The row capacity ${rowCapacity} is not a whole number of 1 or more`,
     );
   }
   if (players.length < MIN_PLAYER_COUNT || players.length > MAX_PLAYER_COUNT) {

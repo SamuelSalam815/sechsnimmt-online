@@ -6,7 +6,7 @@ import { createGameTrace } from '#testSupport/gameTrace.ts';
 
 // A game of 3 players with hands of 3 cards that ends at 15 penalties. Each
 // deal takes 3 × 3 + 4 = 13 cards.
-const gameRules: GameRules = { penaltyLimit: 15, handSize: 3 };
+const gameRules: GameRules = { penaltyLimit: 15, handSize: 3, rowCapacity: 5 };
 const players = [
   { id: 'ada', name: 'Ada' },
   { id: 'ben', name: 'Ben' },
@@ -160,7 +160,7 @@ test('ends the game in the middle of a reveal at the penalty limit', async () =>
   // The 66 carries 5 penalties, so Ada reaches a limit of 5 with one row take.
   // The hands hold a second card, so the round could go on.
   startGame(
-    { penaltyLimit: 5, handSize: 2 },
+    { ...gameRules, penaltyLimit: 5, handSize: 2 },
     deckOf(
       [
         [3, 81],

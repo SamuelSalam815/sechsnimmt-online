@@ -80,7 +80,7 @@ function resolvePlacements(state: RoundGameState): GameAction[] {
     return [awaitRowPick()];
   }
   const placement = { playerId, card, rowIndex };
-  const placementAction = isRowFull(round.rows[rowIndex])
+  const placementAction = isRowFull(round.rows[rowIndex], gameRules.rowCapacity)
     ? takeRow(placement)
     : placeCard(placement);
   return [

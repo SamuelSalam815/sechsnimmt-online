@@ -15,11 +15,11 @@ describe('createRow and getLastCardOfRow', () => {
 });
 
 describe('isRowFull', () => {
-  test('is false for a row that takes a fifth card', () => {
-    expect(isRowFull(rowOf(1, 2, 3, 4))).toBe(false);
+  test('is false for a row that holds fewer cards than its capacity', () => {
+    expect(isRowFull(rowOf(1, 2, 3, 4), 5)).toBe(false);
   });
 
-  test('is true for a row of five cards', () => {
-    expect(isRowFull(rowOf(1, 2, 3, 4, 5))).toBe(true);
+  test('is true for a row that holds as many cards as its capacity', () => {
+    expect(isRowFull(rowOf(1, 2, 3, 4, 5), 5)).toBe(true);
   });
 });

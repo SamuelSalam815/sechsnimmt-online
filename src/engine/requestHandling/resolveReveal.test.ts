@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import {
   GamePhase,
   type RoundGameState,
@@ -119,6 +120,23 @@ describe('resolveReveal', () => {
     );
     // The row counts 1 penalty for each card and 2 for the 5.
     expect(nextState.players.entities.b.penaltyScore).toBe(6);
+  });
+
+  test('gives a row that is full at a smaller row capacity to the player of the next card', () => {
+    const state: RoundGameState = {
+      ...revealGame([[1, 2], [50]], [['b', 3]]),
+      gameRules: { ...STANDARD_GAME_RULES, rowCapacity: 2 },
+    };
+    const actions = resolveReveal(state);
+    expect(actions).toEqual([
+      revealOf(['b', 3]),
+      takeRow(placementOf('b', 3, 0)),
+      awaitCardPick(),
+    ]);
+    expect(applyActionsCheckingInvariants(state, actions).round.rows).toEqual([
+      rowOf(3),
+      rowOf(50),
+    ]);
   });
 
   test('waits for a row pick if the lowest card fits no row', () => {

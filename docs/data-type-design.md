@@ -53,8 +53,8 @@ A test of a write therefore builds its value with an object literal, which is no
 ## The module holds the invariants of its type
 
 A caller must not have to observe an invariant.
-A row holds between one and five cards at all times.
-`isRowFull` says whether a card takes the row, so no caller asks about the capacity.
+A row holds between one card and the row capacity at all times.
+`isRowFull` says whether a card takes the row, so no caller compares the card count with the capacity.
 
 ## An operation reports its own failure
 
