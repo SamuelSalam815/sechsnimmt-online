@@ -11,6 +11,7 @@ import {
   closeStream,
   expireGraceTimer,
   getReady,
+  getUnready,
   joinRoom,
   openStream,
   type PlayerRequestType,
@@ -77,6 +78,9 @@ export function roomRouter(logger: Logger): Router {
   });
   router.post('/room/ready', (request, response) => {
     answer(response, store.dispatch(getReady(request.body)));
+  });
+  router.post('/room/unready', (request, response) => {
+    answer(response, store.dispatch(getUnready(request.body)));
   });
   const playerRoutes: [string, PlayerRequestType][] = [
     ['/game/pick-card', RequestType.PickCard],

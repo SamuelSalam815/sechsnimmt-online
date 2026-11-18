@@ -22,6 +22,7 @@ import {
   playerJoined,
   playerReady,
   playerRemoved,
+  playerUnready,
   type RoomState,
   selectRoomView,
 } from '#server/roomStore/roomSlice.ts';
@@ -128,6 +129,24 @@ export function getReady(requestBody: unknown): RoomThunk<RoomReply> {
       return rejected(409, 'The game has started');
     }
     dispatch(playerReady({ clientToken }));
+    return noContent;
+  };
+}
+
+export function getUnready(requestBody: unknown): RoomThunk<RoomReply> {
+  return (dispatch, getState) => {
+    const clientToken = readString(requestBody, 'clientToken');
+    if (clientToken === undefined) {
+      return rejected(400, 'The request body needs a clientToken string');
+    }
+    const { room } = getState();
+    if (findRoomPlayer(room, clientToken) === undefined) {
+      return rejected(403, 'The client token holds no player');
+    }
+    if (room.gameStarted) {
+      return rejected(409, 'The game has started');
+    }
+    dispatch(playerUnready({ clientToken }));
     return noContent;
   };
 }

@@ -108,6 +108,9 @@ export const roomSlice = createSlice({
       state.players.entities[action.payload.clientToken].ready = true;
       startGameIfAllReady(state);
     },
+    playerUnready(state, action: PayloadAction<{ clientToken: string }>) {
+      state.players.entities[action.payload.clientToken].ready = false;
+    },
     playerRemoved(state, action: PayloadAction<{ clientToken: string }>) {
       roomPlayersAdapter.removeOne(state.players, action.payload.clientToken);
       if (!state.gameStarted) {
@@ -141,7 +144,8 @@ export const roomSlice = createSlice({
   },
 });
 
-export const { playerJoined, playerReady, playerRemoved } = roomSlice.actions;
+export const { playerJoined, playerReady, playerUnready, playerRemoved } =
+  roomSlice.actions;
 
 export function findRoomPlayer(
   state: RoomState,

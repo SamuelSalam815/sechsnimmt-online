@@ -16,6 +16,7 @@ import {
   closeStream,
   expireGraceTimer,
   getReady,
+  getUnready,
   joinRoom,
   openStream,
   type PlayerRequestType,
@@ -243,6 +244,52 @@ describe('ready', () => {
     expect(
       startedGame().store.dispatch(getReady({ clientToken: 'secret-1' })),
     ).toEqual({ statusCode: 409, body: { message: 'The game has started' } });
+  });
+});
+
+describe('unready', () => {
+  test('marks the ready player as not ready', () => {
+    const fake = roomOfAdaAndBen();
+    fake.store.dispatch(getReady({ clientToken: 'secret-1' }));
+    expect(
+      fake.store.dispatch(getUnready({ clientToken: 'secret-1' })),
+    ).toEqual({ statusCode: 204 });
+    expect(fake.store.getState().room.players.entities['secret-1'].ready).toBe(
+      false,
+    );
+  });
+
+  test('a player who got unready does not start the game with the others', () => {
+    const fake = roomOfAdaAndBen();
+    fake.store.dispatch(getReady({ clientToken: 'secret-1' }));
+    fake.store.dispatch(getUnready({ clientToken: 'secret-1' }));
+    fake.store.dispatch(getReady({ clientToken: 'secret-2' }));
+    expect(fake.store.getState().room.gameStarted).toBe(false);
+  });
+
+  test('rejects a request body without a client token', () => {
+    expect(roomOfAdaAndBen().store.dispatch(getUnready({}))).toEqual({
+      statusCode: 400,
+      body: { message: 'The request body needs a clientToken string' },
+    });
+  });
+
+  test('rejects an unknown client token', () => {
+    expect(
+      roomOfAdaAndBen().store.dispatch(getUnready({ clientToken: 'nobody' })),
+    ).toEqual({
+      statusCode: 403,
+      body: { message: 'The client token holds no player' },
+    });
+  });
+
+  test('rejects an unready after the start of the game and changes nothing', () => {
+    const fake = startedGame();
+    const stateBefore = fake.store.getState();
+    expect(
+      fake.store.dispatch(getUnready({ clientToken: 'secret-1' })),
+    ).toEqual({ statusCode: 409, body: { message: 'The game has started' } });
+    expect(fake.store.getState()).toBe(stateBefore);
   });
 });
 
