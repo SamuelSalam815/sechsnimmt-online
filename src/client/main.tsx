@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import App from '#client/App.tsx';
 import { loadSavedSession } from '#client/connection/savedSession.ts';
+import { ErrorBoundary } from '#client/ErrorBoundary.tsx';
 import { createClientStore } from '#client/store/clientStore.ts';
 
 const container = document.getElementById('root');
@@ -12,8 +13,10 @@ const store = createClientStore(loadSavedSession());
 
 createRoot(container).render(
   <StrictMode>
-    <Provider store={store}>
-      <App />
-    </Provider>
+    <ErrorBoundary>
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </ErrorBoundary>
   </StrictMode>,
 );
