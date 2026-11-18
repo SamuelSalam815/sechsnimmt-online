@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { countdownText, listPlayerRows } from '#client/roomDisplayView.ts';
+import { countdownText, listPlayerRows } from '#client/room/roomDisplayView.ts';
 import type { RoomView } from '#server/roomStore/roomSlice.ts';
 
 const roomView: RoomView = {

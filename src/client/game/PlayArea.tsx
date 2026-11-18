@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { CardView, EmptyCardSlot } from '#client/CardView.tsx';
-import { findRowPicker } from '#client/gameView.ts';
-import { useAppDispatch, useAppSelector } from '#client/hooks.ts';
-import { pickRow } from '#client/serverApi.ts';
+import { pickRow } from '#client/connection/serverApi.ts';
+import { CardView, EmptyCardSlot } from '#client/game/CardView.tsx';
+import { findRowPicker } from '#client/game/gameView.ts';
+import { useAppDispatch, useAppSelector } from '#client/store/hooks.ts';
 import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
 
 export function PlayArea() {

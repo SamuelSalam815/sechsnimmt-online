@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
+import { endSession } from '#client/connection/savedSession.ts';
 import {
   gameActionsReceived,
   roomViewReceived,
   selectSessionUnknown,
   streamOpened,
-} from '#client/clientStore.ts';
-import { useAppDispatch, useAppSelector } from '#client/hooks.ts';
-import { endSession } from '#client/savedSession.ts';
+} from '#client/store/clientStore.ts';
+import { useAppDispatch, useAppSelector } from '#client/store/hooks.ts';
 import type { AppliedAction } from '#engine/reducers/history.ts';
 import type { RoomView } from '#server/roomStore/roomSlice.ts';
 

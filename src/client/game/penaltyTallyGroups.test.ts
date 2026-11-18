@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { groupPenaltyTallies } from '#client/penaltyTallyGroups.ts';
+import { groupPenaltyTallies } from '#client/game/penaltyTallyGroups.ts';
 
 test('a penalty of 3 or less is one group', () => {
   expect(groupPenaltyTallies(1)).toEqual([1]);

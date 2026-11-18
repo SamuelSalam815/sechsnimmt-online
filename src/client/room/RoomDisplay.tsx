@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useAppDispatch, useAppSelector } from '#client/hooks.ts';
+import { getReady, getUnready } from '#client/connection/serverApi.ts';
 import {
   COUNTDOWN_STEP_MILLISECONDS,
   countdownText,
   listPlayerRows,
-} from '#client/roomDisplayView.ts';
-import { getReady, getUnready } from '#client/serverApi.ts';
+} from '#client/room/roomDisplayView.ts';
+import { useAppDispatch, useAppSelector } from '#client/store/hooks.ts';
 
 export function RoomDisplay() {
   const dispatch = useAppDispatch();

@@ -1,5 +1,5 @@
-import { listReportRows } from '#client/gameView.ts';
-import { useAppSelector } from '#client/hooks.ts';
+import { listReportRows } from '#client/game/gameView.ts';
+import { useAppSelector } from '#client/store/hooks.ts';
 
 export function ReportArea() {
   const engine = useAppSelector((state) => state.engine);

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { canJoin } from '#client/namePromptView.ts';
+import { canJoin } from '#client/namePrompt/namePromptView.ts';
 
 test('a typed name allows the join', () => {
   expect(canJoin('Ada', false)).toBe(true);

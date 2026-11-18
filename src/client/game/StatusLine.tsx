@@ -1,5 +1,5 @@
-import { statusLineText } from '#client/gameView.ts';
-import { useAppSelector } from '#client/hooks.ts';
+import { statusLineText } from '#client/game/gameView.ts';
+import { useAppSelector } from '#client/store/hooks.ts';
 
 export function StatusLine() {
   const session = useAppSelector((state) => state.session);

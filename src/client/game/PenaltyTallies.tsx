@@ -1,4 +1,4 @@
-import { groupPenaltyTallies } from '#client/penaltyTallyGroups.ts';
+import { groupPenaltyTallies } from '#client/game/penaltyTallyGroups.ts';
 
 const TALLY_SPACING = 3;
 const TALLY_GROUP_GAP = 5;

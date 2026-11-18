@@ -3,7 +3,7 @@ import {
   type Session,
   sessionEnded,
   sessionStarted,
-} from '#client/clientStore.ts';
+} from '#client/store/clientStore.ts';
 
 // `sessionStorage`, not `localStorage`: each tab is a different player, which
 // lets one person test with two tabs.

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import type { ClientState } from '#client/clientStore.ts';
 import { COUNTDOWN_MILLISECONDS, chooseScreen } from '#client/screenChoice.ts';
+import type { ClientState } from '#client/store/clientStore.ts';
 import { initialRootState } from '#engine/store.ts';
 import type { RoomView } from '#server/roomStore/roomSlice.ts';
 

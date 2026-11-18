@@ -113,10 +113,10 @@ The integration test writes one text trace per scenario in `src/engine/__snapsho
 
 ### S3 Client foundation
 
-- `src/client/clientStore.ts`: the three slices of "Client state".
-  It replaces the engine store in `src/client/main.tsx`, and `src/client/hooks.ts` takes its types.
-- `src/client/serverApi.ts`: one function for each request: join, ready, unready, pick card, unpick card and pick row.
-- `src/client/useEventStream.ts`: opens `/api/events?clientToken=…` and dispatches the `gameActions` and `roomView` events into the store.
+- `src/client/store/clientStore.ts`: the three slices of "Client state".
+  It replaces the engine store in `src/client/main.tsx`, and `src/client/store/hooks.ts` takes its types.
+- `src/client/connection/serverApi.ts`: one function for each request: join, ready, unready, pick card, unpick card and pick row.
+- `src/client/connection/useEventStream.ts`: opens `/api/events?clientToken=…` and dispatches the `gameActions` and `roomView` events into the store.
 - `src/client/App.tsx` chooses the screen:
   no session gives the name prompt, a room before the start or during the countdown gives the room display, and else the game display.
 
@@ -127,7 +127,7 @@ The integration test writes one text trace per scenario in `src/engine/__snapsho
 
 ### S5 Game display
 
-- `src/client/gameView.ts` holds pure selectors with unit tests:
+- `src/client/game/gameView.ts` holds pure selectors with unit tests:
   - the rows of the player status, lowest penalty score first, each with the total score, the penalty of the round in brackets from `getPenaltyTotal(seat.penaltyPile)`, and whether the player has picked;
   - the text of the status line and the round number;
   - the row picker: `awaitRowPick` has no payload, so the selector finds the player of the lowest revealed card (`listRevealedCardsLowestFirst`);

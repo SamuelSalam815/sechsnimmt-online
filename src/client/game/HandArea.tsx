@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { CardView } from '#client/CardView.tsx';
-import { listHandLowestFirst } from '#client/gameView.ts';
-import { useAppDispatch, useAppSelector } from '#client/hooks.ts';
-import { pickCard, unpickCard } from '#client/serverApi.ts';
+import { pickCard, unpickCard } from '#client/connection/serverApi.ts';
+import { CardView } from '#client/game/CardView.tsx';
+import { listHandLowestFirst } from '#client/game/gameView.ts';
+import { useAppDispatch, useAppSelector } from '#client/store/hooks.ts';
 import type { Card } from '#engine/dataTypes/cards/card.ts';
 import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
 

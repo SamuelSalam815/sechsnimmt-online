@@ -1,4 +1,4 @@
-import { PenaltyTallies } from '#client/PenaltyTallies.tsx';
+import { PenaltyTallies } from '#client/game/PenaltyTallies.tsx';
 import { type Card, getPenalty } from '#engine/dataTypes/cards/card.ts';
 
 // A gradient from ink to red did not set the penalties apart enough.

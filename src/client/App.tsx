@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { GameDisplay } from '#client/GameDisplay.tsx';
-import { useAppSelector } from '#client/hooks.ts';
-import { NamePrompt } from '#client/NamePrompt.tsx';
-import { RoomDisplay } from '#client/RoomDisplay.tsx';
+import { useEventStream } from '#client/connection/useEventStream.ts';
+import { GameDisplay } from '#client/game/GameDisplay.tsx';
+import { NamePrompt } from '#client/namePrompt/NamePrompt.tsx';
+import { RoomDisplay } from '#client/room/RoomDisplay.tsx';
 import { COUNTDOWN_MILLISECONDS, chooseScreen } from '#client/screenChoice.ts';
-import { useEventStream } from '#client/useEventStream.ts';
+import { useAppSelector } from '#client/store/hooks.ts';
 
 export default function App() {
   const session = useAppSelector((state) => state.session);

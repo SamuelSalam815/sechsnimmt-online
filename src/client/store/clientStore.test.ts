@@ -9,7 +9,7 @@ import {
   sessionEnded,
   sessionStarted,
   streamOpened,
-} from '#client/clientStore.ts';
+} from '#client/store/clientStore.ts';
 import { advanceGame } from '#engine/advanceGame.ts';
 import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
 import { initialRootState } from '#engine/store.ts';

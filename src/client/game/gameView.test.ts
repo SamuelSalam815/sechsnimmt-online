@@ -8,7 +8,7 @@ import {
   listPlayerStatusRows,
   listReportRows,
   statusLineText,
-} from '#client/gameView.ts';
+} from '#client/game/gameView.ts';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import { createPlayers } from '#engine/dataTypes/playerState/player.ts';
 import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';

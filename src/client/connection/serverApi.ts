@@ -1,5 +1,5 @@
-import type { ClientDispatch, Session } from '#client/clientStore.ts';
-import { endSession, startSession } from '#client/savedSession.ts';
+import { endSession, startSession } from '#client/connection/savedSession.ts';
+import type { ClientDispatch, Session } from '#client/store/clientStore.ts';
 
 // Each function resolves when the server has answered: true when the server
 // accepted the request, false when it rejected it or could not be reached.

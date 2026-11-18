@@ -1,7 +1,7 @@
 import { type FormEvent, useState } from 'react';
-import { useAppDispatch } from '#client/hooks.ts';
-import { canJoin } from '#client/namePromptView.ts';
-import { joinRoom } from '#client/serverApi.ts';
+import { joinRoom } from '#client/connection/serverApi.ts';
+import { canJoin } from '#client/namePrompt/namePromptView.ts';
+import { useAppDispatch } from '#client/store/hooks.ts';
 import { MAX_NAME_LENGTH } from '#server/roomStore/roomSlice.ts';
 
 export function NamePrompt() {

@@ -1,5 +1,8 @@
-import { listLeftPlayerNames, listPlayerStatusRows } from '#client/gameView.ts';
-import { useAppSelector } from '#client/hooks.ts';
+import {
+  listLeftPlayerNames,
+  listPlayerStatusRows,
+} from '#client/game/gameView.ts';
+import { useAppSelector } from '#client/store/hooks.ts';
 
 export function PlayerStatus() {
   const engine = useAppSelector((state) => state.engine);

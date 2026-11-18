@@ -1,4 +1,4 @@
-import type { ClientState } from '#client/clientStore.ts';
+import type { ClientState } from '#client/store/clientStore.ts';
 
 export const COUNTDOWN_MILLISECONDS = 3_000;
 
