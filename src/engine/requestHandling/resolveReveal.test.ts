@@ -172,7 +172,7 @@ describe('resolveReveal', () => {
     ]);
     expect(
       applyActionsCheckingInvariants(state, actions).round.seats.entities.a
-        .pickedCardId,
+        .pickedCard?.id,
     ).toBe(cardOf(51).id);
   });
 

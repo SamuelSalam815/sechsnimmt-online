@@ -54,7 +54,7 @@ function roundStateOf(state: GameState): RoundGameState {
 
 function picksOf(state: GameState) {
   return listRoundSeats(roundStateOf(state).round.seats).map(
-    (seat) => seat.pickedCardId,
+    (seat) => seat.pickedCard?.id,
   );
 }
 

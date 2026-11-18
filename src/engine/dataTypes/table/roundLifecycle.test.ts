@@ -42,13 +42,25 @@ describe('hideOtherHands', () => {
     );
   });
 
+  test('hides the pick of another player', () => {
+    expect(hideOtherHands(benPicked(), 'a')).toEqual(
+      createRound(
+        [rowOf(10), rowOf(20, 21)],
+        [
+          seatOf('a', [aceOfAda, otherOfAda]),
+          seatOf('b', [hideCard(aceOfBen)], hideCard(aceOfBen)),
+        ],
+      ),
+    );
+  });
+
   test('hides every hand from a viewer without a seat', () => {
     expect(hideOtherHands(benPicked(), undefined)).toEqual(
       createRound(
         [rowOf(10), rowOf(20, 21)],
         [
           seatOf('a', [hideCard(aceOfAda), hideCard(otherOfAda)]),
-          seatOf('b', [hideCard(aceOfBen)], aceOfBen),
+          seatOf('b', [hideCard(aceOfBen)], hideCard(aceOfBen)),
         ],
       ),
     );

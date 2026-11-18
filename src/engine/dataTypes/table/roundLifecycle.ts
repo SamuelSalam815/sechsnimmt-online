@@ -48,7 +48,11 @@ export function hideOtherHands(
   const seats = listRoundSeats(round.seats).map((seat) =>
     seat.playerId === viewerId
       ? seat
-      : { ...seat, hand: seat.hand.map(hideCard) },
+      : {
+          ...seat,
+          hand: seat.hand.map(hideCard),
+          pickedCard: seat.pickedCard && hideCard(seat.pickedCard),
+        },
   );
   return createRound(round.rows, seats);
 }
@@ -77,7 +81,7 @@ export function findPick(
   playerId: PlayerId,
   cardId: CardId,
 ): Result<CardId> {
-  const pickedCardId = round.seats.entities[playerId]?.pickedCardId;
+  const pickedCardId = round.seats.entities[playerId]?.pickedCard?.id;
   const describedPick =
     pickedCardId === undefined ? 'no card' : `the card ID ${pickedCardId}`;
   return lookup(
@@ -98,6 +102,6 @@ export function wouldEveryOtherSeatHavePicked(
   playerId: PlayerId,
 ): boolean {
   return listRoundSeats(round.seats).every(
-    (seat) => seat.playerId === playerId || seat.pickedCardId !== undefined,
+    (seat) => seat.playerId === playerId || seat.pickedCard !== undefined,
   );
 }

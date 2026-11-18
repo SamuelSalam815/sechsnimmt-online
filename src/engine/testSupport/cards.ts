@@ -40,11 +40,11 @@ export function orderedDeck(): Deck {
 export function seatOf(
   playerId: PlayerId,
   hand: readonly HandCard[],
-  pickedCard?: Card,
+  pickedCard?: HandCard,
 ): RoundSeat {
   const seat = createRoundSeat(playerId, hand);
   if (pickedCard !== undefined) {
-    seat.pickedCardId = pickedCard.id;
+    seat.pickedCard = pickedCard;
   }
   return seat;
 }

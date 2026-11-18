@@ -26,6 +26,7 @@ import {
   type Round,
 } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
+  findHandCard,
   playPickedCard,
   roundSeatsAdapter,
 } from '#engine/dataTypes/table/roundSeat.ts';
@@ -87,17 +88,20 @@ export const gameSlice = createSlice({
     pickCard(state, action: PayloadAction<PickCardPayload>) {
       assertRoundInProgress(state);
       const { playerId, cardId } = action.payload;
-      findSeat(state.round, playerId).force().pickedCardId = cardId;
+      const seat = findSeat(state.round, playerId).force();
+      seat.pickedCard = findHandCard(seat, cardId).force();
       state.version = minorVersionBump(state.version);
     },
     unpickCard(state, action: PayloadAction<UnpickCardPayload>) {
       assertRoundInProgress(state);
-      delete findSeat(state.round, action.payload.playerId).force()
-        .pickedCardId;
+      delete findSeat(state.round, action.payload.playerId).force().pickedCard;
       state.version = minorVersionBump(state.version);
     },
-    revealPickedCards(state, _action: PayloadAction<RevealPickedCardsPayload>) {
+    revealPickedCards(state, action: PayloadAction<RevealPickedCardsPayload>) {
       assertRoundInProgress(state);
+      for (const { playerId, card } of action.payload.revealedCards) {
+        findSeat(state.round, playerId).force().pickedCard = card;
+      }
       // The reveal is a major change: a request that saw an earlier version
       // chose its card without knowing the revealed cards.
       state.version = majorVersionBump(state.version);

@@ -41,11 +41,11 @@ export function assertGameStateInvariants(state: GameState): void {
   }
   for (const seat of listRoundSeats(state.round.seats)) {
     if (
-      seat.pickedCardId !== undefined &&
-      !seat.hand.some((card) => card.id === seat.pickedCardId)
+      seat.pickedCard !== undefined &&
+      !seat.hand.some((card) => card.id === seat.pickedCard?.id)
     ) {
       throw new Error(
-        `The player ${seat.playerId} picked the card ${seat.pickedCardId}, which the hand does not hold`,
+        `The player ${seat.playerId} picked the card ${seat.pickedCard.id}, which the hand does not hold`,
       );
     }
   }

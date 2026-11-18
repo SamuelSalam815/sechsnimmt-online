@@ -39,7 +39,7 @@ export function listPlayerStatusRows(game: GameState): PlayerStatusRow[] {
       name: game.players.entities[seat.playerId]?.name ?? seat.playerId,
       penaltyScore: game.players.entities[seat.playerId]?.penaltyScore ?? 0,
       roundPenalty: getPenaltyTotal(seat.penaltyPile),
-      hasPicked: seat.pickedCardId !== undefined,
+      hasPicked: seat.pickedCard !== undefined,
     }))
     .sort((a, b) => a.penaltyScore - b.penaltyScore);
 }
@@ -70,10 +70,10 @@ export function statusLineText(
     case GamePhase.CardPick: {
       const seats = listRoundSeats(game.round.seats);
       const pickedCount = seats.filter(
-        (seat) => seat.pickedCardId !== undefined,
+        (seat) => seat.pickedCard !== undefined,
       ).length;
       const ownCardPicked =
-        game.round.seats.entities[ownPlayerId]?.pickedCardId !== undefined;
+        game.round.seats.entities[ownPlayerId]?.pickedCard !== undefined;
       return ownCardPicked
         ? `Waiting for others (${pickedCount} of ${seats.length})`
         : `Round ${roundNumber} – pick a card (${pickedCount} of ${seats.length} picked)`;

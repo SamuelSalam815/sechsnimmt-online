@@ -25,7 +25,7 @@ export function HandArea() {
     }
     setCardRequestInFlight(true);
     const lastVersionSeen = game.version.sequence;
-    if (card.id === ownSeat?.pickedCardId) {
+    if (card.id === ownSeat?.pickedCard?.id) {
       await unpickCard(dispatch, session, lastVersionSeen, card.id);
     } else {
       await pickCard(dispatch, session, lastVersionSeen, card.id);
@@ -41,7 +41,7 @@ export function HandArea() {
           <CardView
             key={card.id}
             card={card}
-            highlighted={card.id === ownSeat?.pickedCardId}
+            highlighted={card.id === ownSeat?.pickedCard?.id}
             onClick={acceptsClicks ? () => sendCardRequest(card) : undefined}
           />
         ))}

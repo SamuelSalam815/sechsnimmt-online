@@ -18,7 +18,8 @@ The room, the room view and the engine hold the full name.
 
 The server hides the hands of the other players; see "Hidden information" in `docs/game-flow-architecture.md`.
 The client reads only its own hand.
-It reads whether another player has picked from `pickedCardId !== undefined`, so it keeps working when the server filters the history.
+It reads whether another player has picked from `pickedCard !== undefined`, so it keeps working when the server filters the history.
+The pick of another player is a hidden card until the reveal puts the revealed card in its place.
 
 ### Reveal outcome
 

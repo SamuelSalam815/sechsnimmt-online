@@ -13,9 +13,10 @@ import { ErrorCode, lookup, type Result } from '#engine/result.ts';
 export interface RoundSeat {
   playerId: PlayerId;
   hand: HandCard[];
-  // A picked card stays in the hand. The reveal takes it out. One field is the
-  // rule that a player picks one card.
-  pickedCardId?: CardId;
+  // A picked card stays in the hand until it is placed. One field is the rule
+  // that a player picks one card. It holds the card, not its ID, so that the
+  // reveal can show the card to a viewer who sees the hand hidden.
+  pickedCard?: HandCard;
   // The cards that the player has taken in the round.
   penaltyPile: Card[];
 }
@@ -39,12 +40,19 @@ export function createRoundSeat(
   return { playerId, hand: [...hand], penaltyPile: [] };
 }
 
-export function findCardInHand(seat: RoundSeat, cardId: CardId): Result<Card> {
+export function findHandCard(
+  seat: RoundSeat,
+  cardId: CardId,
+): Result<HandCard> {
   return lookup(
     seat.hand.find((card) => card.id === cardId),
     ErrorCode.RuleViolation,
     `The hand of the player ${seat.playerId} does not hold the card ID ${cardId}`,
-  ).andThen(checkCardNotHidden);
+  );
+}
+
+export function findCardInHand(seat: RoundSeat, cardId: CardId): Result<Card> {
+  return findHandCard(seat, cardId).andThen(checkCardNotHidden);
 }
 
 // The placed card leaves the hand, and the pick leaves with it.
@@ -56,5 +64,5 @@ export function playPickedCard(seat: RoundSeat, card: Card): void {
     );
   }
   seat.hand.splice(position, 1);
-  delete seat.pickedCardId;
+  delete seat.pickedCard;
 }

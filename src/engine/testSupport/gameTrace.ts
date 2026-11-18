@@ -63,9 +63,9 @@ function describeCards(cards: readonly Card[]): string {
 }
 
 function describePickedCard(seat: RoundSeat): string {
-  return seat.pickedCardId === undefined
+  return seat.pickedCard === undefined
     ? 'none'
-    : describeCard(findCardInHand(seat, seat.pickedCardId).force());
+    : describeCard(checkCardNotHidden(seat.pickedCard).force());
 }
 
 function describeDump(title: string, lines: readonly string[]): string[] {
@@ -265,7 +265,9 @@ export function createGameTrace(players: readonly PlayerProfile[]) {
       const replayedGame = projectHistoryForViewer(rootState.history, viewerId)
         .map(({ action }) => action)
         .reduce(gameSlice.reducer, initialRootState.game);
-      expect(replayedGame).toEqual(projectGameState(rootState.game, viewerId));
+      expect(replayedGame).toEqual(
+        projectGameState(rootState.game, viewerId, rootState.history),
+      );
     }
   }
 

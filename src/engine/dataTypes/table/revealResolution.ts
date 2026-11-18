@@ -1,10 +1,11 @@
-import { type Card, getPenaltyTotal } from '#engine/dataTypes/cards/card.ts';
+import {
+  type Card,
+  checkCardNotHidden,
+  getPenaltyTotal,
+} from '#engine/dataTypes/cards/card.ts';
 import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 import type { Round } from '#engine/dataTypes/table/roundLifecycle.ts';
-import {
-  findCardInHand,
-  listRoundSeats,
-} from '#engine/dataTypes/table/roundSeat.ts';
+import { listRoundSeats } from '#engine/dataTypes/table/roundSeat.ts';
 import { getLastCardOfRow, type Row } from '#engine/dataTypes/table/row.ts';
 import { ErrorCode, lookup, type Result } from '#engine/result.ts';
 
@@ -46,12 +47,12 @@ export function findCardForRowPick(
 export function listRevealedCardsLowestFirst(round: Round): RevealedCard[] {
   const revealedCards: RevealedCard[] = [];
   for (const seat of listRoundSeats(round.seats)) {
-    if (seat.pickedCardId === undefined) {
+    if (seat.pickedCard === undefined) {
       continue;
     }
     revealedCards.push({
       playerId: seat.playerId,
-      card: findCardInHand(seat, seat.pickedCardId).force(),
+      card: checkCardNotHidden(seat.pickedCard).force(),
     });
   }
   return revealedCards.sort((a, b) => a.card.faceValue - b.card.faceValue);

@@ -171,6 +171,20 @@ test('the game display reads the history that hides the other hands', () => {
   expect(listPlayerStatusRows(engineOfAda.game)).toEqual(
     listPlayerStatusRows(fullEngine.game),
   );
+  expect(statusLineText(engineOfAda, 'a')).toBe('Pick a row to take');
+});
+
+test('a viewer who sees the hand of the row picker hidden finds the row picker', () => {
+  const fullEngine = replay(startAction, ...pickActions, ...revealActions);
+  const engineOfBen = replay(
+    ...projectHistoryForViewer(fullEngine.history, 'b').map(
+      ({ action }) => action,
+    ),
+  );
+  expect(findRowPicker(engineOfBen.game)).toBe('a');
+  expect(statusLineText(engineOfBen, 'b')).toBe(
+    'Waiting for Ada to pick a row',
+  );
 });
 
 test('the game display names the players who left the game', () => {
