@@ -1,9 +1,5 @@
 import { createCards } from '#engine/dataTypes/cards/card.ts';
-import {
-  createDeck,
-  type Deck,
-  getDeckFaceValues,
-} from '#engine/dataTypes/cards/deck.ts';
+import { type Deck, getDeckFaceValues } from '#engine/dataTypes/cards/deck.ts';
 
 // Impure, because the shuffle uses random numbers. The rest of the engine is
 // pure, so the deck reaches it as data. See docs/game-flow-architecture.md.
@@ -11,7 +7,7 @@ export function buildShuffledDeck(): Deck {
   const faceValues = getDeckFaceValues();
   shuffle(faceValues);
   // The cards get their IDs after the shuffle so IDs alone don't reveal faceValues
-  return createDeck(createCards(faceValues));
+  return { cards: createCards(faceValues) };
 }
 
 // Fisher-Yates shuffle, in place.

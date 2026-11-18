@@ -25,7 +25,3 @@ export function drawCardsFromDeck(deck: Deck, count: number): DeckDraw {
     cards: deck.cards.slice(0, count),
   };
 }
-
-export function createDeck(cards: readonly Card[]): Deck {
-  return { cards: [...cards] };
-}

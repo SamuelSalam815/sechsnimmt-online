@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'vitest';
-import { createDeck } from '#engine/dataTypes/cards/deck.ts';
 import {
   checkGameStart,
   STANDARD_GAME_RULES,
@@ -64,14 +63,14 @@ describe('checkGameStart', () => {
 
   test('rejects a deal that needs more cards than the deck holds', () => {
     // 2 hands of 10 and 4 rows need 24 cards.
-    const deck = createDeck(orderedDeck().cards.slice(0, 23));
+    const deck = { cards: orderedDeck().cards.slice(0, 23) };
     expect(
       errorCodeOf(checkGameStart(STANDARD_GAME_RULES, [ada, ben], deck)),
     ).toBe(ErrorCode.InvalidGameRules);
   });
 
   test('accepts a deal that takes every card of the deck', () => {
-    const deck = createDeck(orderedDeck().cards.slice(0, 24));
+    const deck = { cards: orderedDeck().cards.slice(0, 24) };
     expect(checkGameStart(STANDARD_GAME_RULES, [ada, ben], deck).ok).toBe(true);
   });
 });
