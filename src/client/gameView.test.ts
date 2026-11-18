@@ -24,6 +24,7 @@ import {
   startGame,
   takeRow,
 } from '#engine/reducers/gameSlice.ts';
+import { projectHistoryForViewer } from '#engine/reducers/historyProjection.ts';
 import {
   initialRootState,
   type RootState,
@@ -154,6 +155,22 @@ test('the hand lists the own cards lowest first', () => {
     cardOf(5),
     cardOf(100),
   ]);
+});
+
+test('the game display reads the history that hides the other hands', () => {
+  const fullEngine = replay(startAction, ...pickActions, ...revealActions);
+  const engineOfAda = replay(
+    ...projectHistoryForViewer(fullEngine.history, 'a').map(
+      ({ action }) => action,
+    ),
+  );
+  expect(listHandLowestFirst(engineOfAda.game, 'a')).toEqual(
+    listHandLowestFirst(fullEngine.game, 'a'),
+  );
+  expect(listReportRows(engineOfAda)).toEqual(listReportRows(fullEngine));
+  expect(listPlayerStatusRows(engineOfAda.game)).toEqual(
+    listPlayerStatusRows(fullEngine.game),
+  );
 });
 
 test('the game display names the players who left the game', () => {
