@@ -1,6 +1,6 @@
 import { assert, expect, test } from 'vitest';
 import { advanceGame } from '#engine/advanceGame.ts';
-import type { Card } from '#engine/dataTypes/cards/card.ts';
+import { type Card, getPenalty } from '#engine/dataTypes/cards/card.ts';
 import type { Deck } from '#engine/dataTypes/cards/deck.ts';
 import type { GameRules } from '#engine/dataTypes/game/gameRules.ts';
 import {
@@ -51,12 +51,18 @@ function deckOf(hands: number[][], rows: number[]): Deck {
   return { cards: [...hands.flat(), ...rows].map(cardOf) };
 }
 
-function faceValuesOf(cards: readonly Card[]): string {
-  return cards.map((card) => card.faceValue).join(' ');
+// The face value and the card ID are both numbers, so the trace names each of
+// them.
+function describeCard(card: Card): string {
+  return `${card.faceValue} (id ${card.id}, penalty ${getPenalty(card)})`;
 }
 
-function rowsOf(rows: readonly Row[]): string {
-  return rows.map((row) => faceValuesOf(row.cards)).join(' | ');
+function describeCards(cards: readonly Card[]): string {
+  return cards.map(describeCard).join(', ');
+}
+
+function describeRows(rows: readonly Row[]): string {
+  return rows.map((row) => describeCards(row.cards)).join(' | ');
 }
 
 function roundStateOf(state: GameState): RoundGameState {
@@ -94,33 +100,33 @@ function describeAction(
 ): string {
   if (startGameAction.match(action)) {
     const { players: startedPlayers, round, gameRules: rules } = action.payload;
-    return `start game: ${startedPlayers.ids.join(', ')} · rows ${rowsOf(round.rows)} · hands ${rules.handSize}`;
+    return `start game: ${startedPlayers.ids.join(', ')} · rows ${describeRows(round.rows)} · hands ${rules.handSize}`;
   }
   if (startRoundAction.match(action)) {
-    return `start round · rows ${rowsOf(action.payload.round.rows)}`;
+    return `start round · rows ${describeRows(action.payload.round.rows)}`;
   }
   if (pickCardAction.match(action)) {
-    return `${action.payload.playerId} picks ${action.payload.card.faceValue}`;
+    return `${action.payload.playerId} picks ${describeCard(action.payload.card)}`;
   }
   if (unpickCard.match(action)) {
     return `${action.payload.playerId} unpicks`;
   }
   if (revealPickedCards.match(action)) {
     const revealedCards = action.payload.revealedCards.map(
-      ({ playerId, card }) => `${playerId} ${card.faceValue}`,
+      ({ playerId, card }) => `${playerId} ${describeCard(card)}`,
     );
     return `reveal: ${revealedCards.join(', ')}`;
   }
   if (placeCard.match(action)) {
     const { playerId, card, rowIndex } = action.payload;
-    return `${playerId} places ${card.faceValue} in row ${rowIndex}`;
+    return `${playerId} places ${describeCard(card)} in row ${rowIndex}`;
   }
   if (takeRow.match(action)) {
     const { playerId, card, rowIndex } = action.payload;
     const takenCards = roundStateOf(stateBefore).round.rows[rowIndex].cards;
     const score = scoreOf(stateAfter, playerId);
     const penalty = score - scoreOf(stateBefore, playerId);
-    return `${playerId} takes row ${rowIndex} with ${card.faceValue}: ${faceValuesOf(takenCards)} (${penalty} points, score ${score})`;
+    return `${playerId} takes row ${rowIndex} with ${describeCard(card)}: ${describeCards(takenCards)}; penalty ${penalty}, penalty score ${score}`;
   }
   if (awaitCardPick.match(action)) {
     return 'await card pick';
@@ -157,13 +163,13 @@ test('plays a full game with stale and bad requests mixed in', async () => {
         ? ''
         : ` (saw version ${request.lastVersionSeen} of ${currentVersion()})`;
     const outcome = advanceGame(rootState, request);
+    trace.push(`request: ${description}${staleness}`);
     if ('message' in outcome) {
       trace.push(
-        `${description}${staleness} → rejected: ${outcome.errorCode}: ${outcome.message}`,
+        `  response: rejected ${outcome.errorCode}: ${outcome.message}`,
       );
       return;
     }
-    trace.push(`${description}${staleness}`);
     let game = rootState.game;
     for (const { action } of outcome.history.slice(rootState.history.length)) {
       const nextGame = gameSlice.reducer(game, action);
@@ -173,7 +179,7 @@ test('plays a full game with stale and bad requests mixed in', async () => {
           listCardsOfRound(game).length,
         );
       }
-      trace.push(`  ${describeAction(game, action, nextGame)}`);
+      trace.push(`  response: ${describeAction(game, action, nextGame)}`);
       game = nextGame;
     }
     rootState = outcome;
@@ -202,7 +208,7 @@ test('plays a full game with stale and bad requests mixed in', async () => {
     faceValue: number,
     seen = currentVersion(),
   ) {
-    send(`${playerId} picks ${faceValue}`, {
+    send(`${playerId} picks ${describeCard(cardOf(faceValue))}`, {
       type: RequestType.PickCard,
       lastVersionSeen: seen,
       playerId,
