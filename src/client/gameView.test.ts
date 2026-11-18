@@ -51,8 +51,8 @@ const startAction = startGame({
   ),
 });
 const pickActions = [
-  pickCard({ playerId: 'a', card: cardOf(5) }),
-  pickCard({ playerId: 'b', card: cardOf(25) }),
+  pickCard({ playerId: 'a', cardId: cardOf(5).id }),
+  pickCard({ playerId: 'b', cardId: cardOf(25).id }),
 ];
 const revealActions = [
   revealPickedCards({
@@ -108,7 +108,7 @@ test('the player status lists the lowest penalty score first', () => {
     ...pickActions,
     ...revealActions,
     ...rowPickActions,
-    pickCard({ playerId: 'b', card: cardOf(50) }),
+    pickCard({ playerId: 'b', cardId: cardOf(50).id }),
   );
   expect(listPlayerStatusRows(engine.game)).toEqual([
     {

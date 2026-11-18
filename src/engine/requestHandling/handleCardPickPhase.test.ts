@@ -100,7 +100,7 @@ test.each([
 test('handles the pick card request with the pick card action', () => {
   expect(
     handleCardPickPhaseChecked(cardPick(), pickRequest('a', aceOfAda.id)),
-  ).toEqual({ actions: [pickCard({ playerId: 'a', card: aceOfAda })] });
+  ).toEqual({ actions: [pickCard({ playerId: 'a', cardId: aceOfAda.id })] });
 });
 
 test('returns an error if the card is not in the hand of the player', () => {
@@ -150,7 +150,7 @@ test('reveals the picked cards with their placements once every player has picke
     handleCardPickPhaseChecked(state, pickRequest('a', cardOf(12).id)),
   ).toEqual({
     actions: [
-      pickCard({ playerId: 'a', card: cardOf(12) }),
+      pickCard({ playerId: 'a', cardId: cardOf(12).id }),
       revealPickedCards({
         revealedCards: [
           { playerId: 'b', card: cardOf(11) },
@@ -230,6 +230,6 @@ test('does not reveal when a pick only replaces the pick of the player', () => {
   expect(
     handleCardPickPhaseChecked(state, pickRequest('a', otherOfAda.id)),
   ).toEqual({
-    actions: [pickCard({ playerId: 'a', card: otherOfAda })],
+    actions: [pickCard({ playerId: 'a', cardId: otherOfAda.id })],
   });
 });

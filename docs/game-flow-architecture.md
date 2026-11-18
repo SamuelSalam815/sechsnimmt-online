@@ -58,9 +58,12 @@ See docs/data-type-design.md.
 The failure is the rejection of the request, and the handling returns it as it is.
 
 A found value then travels in the action.
-The pick card action carries the card itself, not the ID that the request held.
+The place card action carries the card itself, not a card ID.
 The reducer therefore repeats no search, and no code decides twice whether the data exists.
 A second search could only confirm the first, because the reducer of a rejected request never runs.
+
+The pick card action carries only the card ID, because each client gets the pick, and the card is hidden from the other players.
+Its reducer needs no card: it writes the card ID as the pick of the seat.
 
 Layer 3 still searches for data that no request names, for example the seat that a revealed card leaves.
 Such a search passes through `force`, which throws the message of a miss.

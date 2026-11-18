@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { Card } from '#engine/dataTypes/cards/card.ts';
+import type { Card, CardId } from '#engine/dataTypes/cards/card.ts';
 import type { GameRules } from '#engine/dataTypes/game/gameRules.ts';
 import {
   assertRoundInProgress,
@@ -40,9 +40,11 @@ export interface StartRoundPayload {
   round: Round;
 }
 
+// The card ID, not the card: the pick reaches every client, and the card is
+// hidden from the other players until the reveal.
 export interface PickCardPayload {
   playerId: PlayerId;
-  card: Card;
+  cardId: CardId;
 }
 
 // A player has at most one card picked at a time, so the player ID alone finds
@@ -84,8 +86,8 @@ export const gameSlice = createSlice({
     },
     pickCard(state, action: PayloadAction<PickCardPayload>) {
       assertRoundInProgress(state);
-      const { playerId, card } = action.payload;
-      findSeat(state.round, playerId).force().pickedCardId = card.id;
+      const { playerId, cardId } = action.payload;
+      findSeat(state.round, playerId).force().pickedCardId = cardId;
       state.version = minorVersionBump(state.version);
     },
     unpickCard(state, action: PayloadAction<UnpickCardPayload>) {

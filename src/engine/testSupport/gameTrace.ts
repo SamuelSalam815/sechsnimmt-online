@@ -19,6 +19,7 @@ import type {
   PlayerProfile,
 } from '#engine/dataTypes/playerState/player.ts';
 import { listRevealedCardsLowestFirst } from '#engine/dataTypes/table/revealResolution.ts';
+import { findSeat } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
   findCardInHand,
   listRoundSeats,
@@ -155,7 +156,9 @@ function describeAction(
     return 'start round';
   }
   if (pickCardAction.match(action)) {
-    return `${action.payload.playerId} picks ${describeCard(action.payload.card)}`;
+    const { playerId, cardId } = action.payload;
+    const seat = findSeat(roundStateOf(stateAfter).round, playerId).force();
+    return `${playerId} picks ${describeCard(findCardInHand(seat, cardId).force())}`;
   }
   if (unpickCard.match(action)) {
     return `${action.payload.playerId} unpicks`;

@@ -12,7 +12,7 @@ import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 import { startGameRequest } from '#testSupport/requests.ts';
 
 const card = cardOf(1);
-const action = pickCard({ playerId: 'a', card });
+const action = pickCard({ playerId: 'a', cardId: card.id });
 // Of the four applied actions, only the second made a major change.
 const history: AppliedAction[] = [
   {

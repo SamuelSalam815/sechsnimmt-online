@@ -1,4 +1,4 @@
-import type { Card } from '#engine/dataTypes/cards/card.ts';
+import type { CardId } from '#engine/dataTypes/cards/card.ts';
 import {
   GamePhase,
   type RoundGameState,
@@ -56,15 +56,15 @@ export function handleCardPickPhase(
   return checkPlayerExists
     .andThen(() => findSeat(round, playerId))
     .andThen((seat) => findCardInHand(seat, cardId))
-    .use((card) => ({ actions: pickActions(state, playerId, card) }));
+    .use((card) => ({ actions: pickActions(state, playerId, card.id) }));
 }
 
 function pickActions(
   state: RoundGameState,
   playerId: PlayerId,
-  card: Card,
+  cardId: CardId,
 ): GameAction[] {
-  const pickAction = pickCard({ playerId, card });
+  const pickAction = pickCard({ playerId, cardId });
   if (!wouldEveryOtherSeatHavePicked(state.round, playerId)) {
     return [pickAction];
   }

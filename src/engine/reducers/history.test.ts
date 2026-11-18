@@ -23,7 +23,7 @@ import { playersOf } from '#testSupport/gameStates.ts';
 
 const oldVersion: GameStateVersion = { sequence: 1, major: false };
 const newVersion: GameStateVersion = { sequence: 2, major: true };
-const action = pickCard({ playerId: 'a', card: cardOf(1) });
+const action = pickCard({ playerId: 'a', cardId: cardOf(1).id });
 
 describe('appendToHistory', () => {
   test('appends a game action with the versions around its application', () => {
@@ -82,8 +82,8 @@ describe('selectLastRevealEvents', () => {
     ],
   });
   const firstRevealActions = [
-    pickCard({ playerId: 'a', card: cardOf(25) }),
-    pickCard({ playerId: 'b', card: cardOf(30) }),
+    pickCard({ playerId: 'a', cardId: cardOf(25).id }),
+    pickCard({ playerId: 'b', cardId: cardOf(30).id }),
     firstReveal,
     takeRow(placementOf('a', 25, 1)),
     placeCard(placementOf('b', 30, 1)),
@@ -97,8 +97,8 @@ describe('selectLastRevealEvents', () => {
     ],
   });
   const secondRevealActions = [
-    pickCard({ playerId: 'a', card: cardOf(5) }),
-    pickCard({ playerId: 'b', card: cardOf(41) }),
+    pickCard({ playerId: 'a', cardId: cardOf(5).id }),
+    pickCard({ playerId: 'b', cardId: cardOf(41).id }),
     secondReveal,
     awaitRowPick(),
   ];

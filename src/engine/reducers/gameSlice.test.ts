@@ -81,7 +81,7 @@ test('moves to the card pick phase with the players and the round on startGame',
 });
 
 describe('pickCard', () => {
-  const pickAceOfAda = pickCard({ playerId: 'a', card: aceOfAda });
+  const pickAceOfAda = pickCard({ playerId: 'a', cardId: aceOfAda.id });
 
   test('picks the card of the player and leaves it in the hand', () => {
     const next = gameSlice.reducer(cardPick(), pickAceOfAda);
@@ -96,7 +96,7 @@ describe('pickCard', () => {
   test('replaces the pick if the player has already picked a card', () => {
     const picked = gameSlice.reducer(
       cardPick(),
-      pickCard({ playerId: 'a', card: otherOfAda }),
+      pickCard({ playerId: 'a', cardId: otherOfAda.id }),
     );
     expect(picksOf(gameSlice.reducer(picked, pickAceOfAda))).toEqual([
       aceOfAda.id,
@@ -119,7 +119,7 @@ describe('pickCard', () => {
 describe('unpickCard', () => {
   const picked = gameSlice.reducer(
     cardPick(),
-    pickCard({ playerId: 'a', card: aceOfAda }),
+    pickCard({ playerId: 'a', cardId: aceOfAda.id }),
   );
 
   test('drops the pick of the player and keeps the hand', () => {
@@ -140,7 +140,7 @@ describe('unpickCard', () => {
 describe('revealPickedCards', () => {
   const picked = gameSlice.reducer(
     cardPick(),
-    pickCard({ playerId: 'b', card: cardOfBen }),
+    pickCard({ playerId: 'b', cardId: cardOfBen.id }),
   );
   const revealOfBen = revealPickedCards({
     revealedCards: [{ playerId: 'b', card: cardOfBen }],
@@ -161,7 +161,7 @@ describe('revealPickedCards', () => {
 describe('placeCard', () => {
   const picked = gameSlice.reducer(
     cardPick(),
-    pickCard({ playerId: 'b', card: cardOfBen }),
+    pickCard({ playerId: 'b', cardId: cardOfBen.id }),
   );
   const placeCardOfBen = placeCard(placementOf('b', 60, 0));
 
@@ -299,7 +299,7 @@ test('an action throws if the phase holds no round', () => {
   expect(() =>
     gameSlice.reducer(
       INITIAL_GAME_STATE,
-      pickCard({ playerId: 'a', card: aceOfAda }),
+      pickCard({ playerId: 'a', cardId: aceOfAda.id }),
     ),
   ).toThrow();
 });
