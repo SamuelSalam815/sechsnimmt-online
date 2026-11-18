@@ -20,6 +20,7 @@ import {
   playersAdapter,
 } from '#engine/dataTypes/playerState/player.ts';
 import {
+  type CardPlacement,
   type RowPick,
   resolveReveal,
   resolveRowPick,
@@ -55,6 +56,15 @@ export interface UnpickCardPayload {
   playerId: PlayerId;
 }
 
+export interface RevealPickedCardsPayload {
+  placements: CardPlacement[];
+}
+
+// The first placement is the row pick itself.
+export interface PickRowPayload extends RowPick {
+  placements: CardPlacement[];
+}
+
 export interface AbandonGamePayload {
   playerId: PlayerId;
 }
@@ -84,7 +94,7 @@ export const gameSlice = createSlice({
         .pickedCardId;
       state.version = minorVersionBump(state.version);
     },
-    revealPickedCards(state) {
+    revealPickedCards(state, _action: PayloadAction<RevealPickedCardsPayload>) {
       assertRoundInProgress(state);
       resolveReveal(state);
       state.phase = findPhaseAfterPlacements(state);
@@ -92,7 +102,7 @@ export const gameSlice = createSlice({
       // chose its card without knowing the revealed cards.
       state.version = majorVersionBump(state.version);
     },
-    pickRow(state, action: PayloadAction<RowPick>) {
+    pickRow(state, action: PayloadAction<PickRowPayload>) {
       assertRoundInProgress(state);
       resolveRowPick(state, action.payload);
       state.phase = findPhaseAfterPlacements(state);

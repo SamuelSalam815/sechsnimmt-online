@@ -18,7 +18,7 @@ import {
   startRound,
   unpickCard,
 } from '#engine/reducers/gameSlice.ts';
-import { cardOf, rowOf, seatOf } from '#testSupport/cards.ts';
+import { cardOf, placementOf, rowOf, seatOf } from '#testSupport/cards.ts';
 import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 
 const ada = { id: 'a', name: 'Ada' };
@@ -137,17 +137,20 @@ describe('revealPickedCards', () => {
     cardPick(),
     pickCard({ playerId: 'b', card: cardOfBen }),
   );
+  const revealOfBen = revealPickedCards({
+    placements: [placementOf('b', 60, 0)],
+  });
 
   // resolveReveal decides the phase and places the cards. See
   // dataTypes/table/revealResolution.test.ts.
   test('takes the phase from the resolved reveal', () => {
-    const next = gameSlice.reducer(picked, revealPickedCards());
+    const next = gameSlice.reducer(picked, revealOfBen);
     expect(next.phase).toBe(GamePhase.CardPick);
     expect(picksOf(next)).toEqual([undefined, undefined]);
   });
 
   test('makes a major version change', () => {
-    const next = gameSlice.reducer(picked, revealPickedCards());
+    const next = gameSlice.reducer(picked, revealOfBen);
     // The reveal follows the pick, which was the first change.
     expect(next.version).toEqual({ sequence: 2, major: true });
   });
@@ -161,7 +164,12 @@ describe('revealPickedCards', () => {
         [seatOf('a', [aceOfAda]), seatOf('b', [cardOfBen], cardOfBen)],
       ),
     );
-    const next = gameSlice.reducer(fullRow, revealPickedCards());
+    const next = gameSlice.reducer(
+      fullRow,
+      revealPickedCards({
+        placements: [placementOf('b', 60, 0, [1, 2, 3, 4, 5])],
+      }),
+    );
     // The row counts 1 penalty for each card and 2 for the 5.
     expect(penaltyScoresOf(next)).toEqual([0, 6]);
   });
@@ -177,7 +185,11 @@ describe('pickRow', () => {
       [seatOf('a', [aceOfAda, otherOfAda], aceOfAda), seatOf('b', [])],
     ),
   );
-  const pickRowOfAda = pickRow({ playerId: 'a', rowIndex: 0 });
+  const pickRowOfAda = pickRow({
+    playerId: 'a',
+    rowIndex: 0,
+    placements: [placementOf('a', 1, 0, [50])],
+  });
 
   // resolveRowPick decides the phase and places the cards. See
   // dataTypes/table/revealResolution.test.ts.

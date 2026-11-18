@@ -14,7 +14,7 @@ import { handleRowPickPhase } from '#engine/requestHandling/handleRowPickPhase.t
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
-import { cardOf, rowOf, seatOf } from '#testSupport/cards.ts';
+import { cardOf, placementOf, rowOf, seatOf } from '#testSupport/cards.ts';
 import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 import { abandonRequest, startGameRequest } from '#testSupport/requests.ts';
 
@@ -48,9 +48,15 @@ function pickRowRequest(playerId: PlayerId, rowIndex: number): GameRequest {
   };
 }
 
-test('handles the pick row request with the pick row action', () => {
+test('handles the pick row request with the pick row action and its placements', () => {
   expect(handleRowPickPhase(rowPick(), pickRowRequest('a', 1))).toEqual({
-    actions: [pickRow({ playerId: 'a', rowIndex: 1 })],
+    actions: [
+      pickRow({
+        playerId: 'a',
+        rowIndex: 1,
+        placements: [placementOf('a', 1, 1, [20]), placementOf('b', 60, 0)],
+      }),
+    ],
   });
 });
 
@@ -85,7 +91,11 @@ test('gives the row with the largest penalty to the player who must pick a row a
   // first of them goes to Ada.
   expect(handleRowPickPhase(rowPick(), abandonRequest('a'))).toEqual({
     actions: [
-      pickRow({ playerId: 'a', rowIndex: 0 }),
+      pickRow({
+        playerId: 'a',
+        rowIndex: 0,
+        placements: [placementOf('a', 1, 0, [10]), placementOf('b', 60, 1)],
+      }),
       abandonGame({ playerId: 'a' }),
     ],
   });
@@ -97,7 +107,13 @@ test('keeps the player who must pick a row in the game when that row ends it', (
   expect(
     handleRowPickPhase(rowPick(scoredPlayers), abandonRequest('a')),
   ).toEqual({
-    actions: [pickRow({ playerId: 'a', rowIndex: 0 })],
+    actions: [
+      pickRow({
+        playerId: 'a',
+        rowIndex: 0,
+        placements: [placementOf('a', 1, 0, [10])],
+      }),
+    ],
   });
 });
 

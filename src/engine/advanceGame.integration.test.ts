@@ -4,6 +4,8 @@ import type { Deck } from '#engine/dataTypes/cards/deck.ts';
 import type { GameRules } from '#engine/dataTypes/game/gameRules.ts';
 import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
 import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
+import type { CardPlacement } from '#engine/dataTypes/table/revealResolution.ts';
+import { gameSlice } from '#engine/reducers/gameSlice.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { initialRootState, type RootState } from '#engine/store.ts';
@@ -24,9 +26,20 @@ function deckOf(hands: number[][], rows: number[]): Deck {
   return { cards: [...hands.flat(), ...rows].map(cardOf) };
 }
 
+function describePlacement(placement: CardPlacement): string {
+  const { playerId, card, rowIndex, takenCards } = placement;
+  const description = `${playerId} places ${card.faceValue} in row ${rowIndex}`;
+  if (takenCards.length === 0) {
+    return description;
+  }
+  const takenFaceValues = takenCards.map((takenCard) => takenCard.faceValue);
+  return `${description} and takes ${takenFaceValues.join(', ')}`;
+}
+
 type LogEntry =
   | { request: string; lastVersionSeen: number; rejected?: string }
   | { phase: GamePhase }
+  | { placements: string[] }
   | { finalScores: Record<PlayerId, number> };
 
 test('plays a full game with stale and bad requests mixed in', () => {
@@ -51,6 +64,16 @@ test('plays a full game with stale and bad requests mixed in', () => {
       request: description,
       lastVersionSeen: request.lastVersionSeen,
     });
+    for (const { action } of outcome.history.slice(rootState.history.length)) {
+      if (
+        gameSlice.actions.revealPickedCards.match(action) ||
+        gameSlice.actions.pickRow.match(action)
+      ) {
+        log.push({
+          placements: action.payload.placements.map(describePlacement),
+        });
+      }
+    }
     if (outcome.game.phase !== rootState.game.phase) {
       log.push({ phase: outcome.game.phase });
     }

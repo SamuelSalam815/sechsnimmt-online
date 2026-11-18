@@ -1,5 +1,7 @@
+import { createNextState } from '@reduxjs/toolkit';
 import type { Card } from '#engine/dataTypes/cards/card.ts';
 import {
+  assertRoundInProgress,
   GamePhase,
   type RoundGameState,
 } from '#engine/dataTypes/game/gameState.ts';
@@ -7,6 +9,10 @@ import {
   findPlayer,
   type PlayerId,
 } from '#engine/dataTypes/playerState/player.ts';
+import {
+  type CardPlacement,
+  resolveReveal,
+} from '#engine/dataTypes/table/revealResolution.ts';
 import {
   findPick,
   findSeat,
@@ -64,11 +70,13 @@ function pickActions(
   playerId: PlayerId,
   card: Card,
 ): GameAction[] {
-  const actions: GameAction[] = [pickCard({ playerId, card })];
-  if (wouldEveryOtherSeatHavePicked(state.round, playerId)) {
-    actions.push(revealPickedCards());
+  const pickAction = pickCard({ playerId, card });
+  if (!wouldEveryOtherSeatHavePicked(state.round, playerId)) {
+    return [pickAction];
   }
-  return actions;
+  const stateAfterPick = gameSlice.reducer(state, pickAction);
+  assertRoundInProgress(stateAfterPick);
+  return [pickAction, revealAction(stateAfterPick)];
 }
 
 // The players who stay may all have picked already, and the reveal then waits
@@ -83,7 +91,16 @@ function abandonActions(
     stateAfterAbandon.phase !== GamePhase.GameOver &&
     wouldEveryOtherSeatHavePicked(state.round, playerId)
   ) {
-    return [abandonAction, revealPickedCards()];
+    assertRoundInProgress(stateAfterAbandon);
+    return [abandonAction, revealAction(stateAfterAbandon)];
   }
   return [abandonAction];
+}
+
+function revealAction(state: RoundGameState): GameAction {
+  let placements: CardPlacement[] = [];
+  createNextState(state, (draft) => {
+    placements = resolveReveal(draft);
+  });
+  return revealPickedCards({ placements });
 }

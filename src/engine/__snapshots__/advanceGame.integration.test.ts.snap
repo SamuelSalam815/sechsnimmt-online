@@ -37,6 +37,9 @@ exports[`plays a full game with stale and bad requests mixed in 1`] = `
     "request": "cy picks 12",
   },
   {
+    "placements": [],
+  },
+  {
     "phase": "rowPick",
   },
   {
@@ -57,6 +60,13 @@ exports[`plays a full game with stale and bad requests mixed in 1`] = `
   {
     "lastVersionSeen": 5,
     "request": "ada picks the row 3",
+  },
+  {
+    "placements": [
+      "ada places 5 in row 3 and takes 40",
+      "ben places 11 in row 0",
+      "cy places 12 in row 0",
+    ],
   },
   {
     "phase": "cardPick",
@@ -84,6 +94,13 @@ exports[`plays a full game with stale and bad requests mixed in 1`] = `
     "request": "cy picks 23",
   },
   {
+    "placements": [
+      "ada places 21 in row 1",
+      "ben places 22 in row 1",
+      "cy places 23 in row 1",
+    ],
+  },
+  {
     "lastVersionSeen": 10,
     "request": "ada picks 41",
   },
@@ -94,6 +111,13 @@ exports[`plays a full game with stale and bad requests mixed in 1`] = `
   {
     "lastVersionSeen": 12,
     "request": "cy picks 43",
+  },
+  {
+    "placements": [
+      "ada places 41 in row 2",
+      "ben places 42 in row 2",
+      "cy places 43 in row 2",
+    ],
   },
   {
     "phase": "endOfRound",
@@ -128,6 +152,13 @@ exports[`plays a full game with stale and bad requests mixed in 1`] = `
     "request": "cy picks 53",
   },
   {
+    "placements": [
+      "ada places 51 in row 0",
+      "ben places 52 in row 0",
+      "cy places 53 in row 0",
+    ],
+  },
+  {
     "lastVersionSeen": 19,
     "request": "ada picks 54",
   },
@@ -138,6 +169,13 @@ exports[`plays a full game with stale and bad requests mixed in 1`] = `
   {
     "lastVersionSeen": 21,
     "request": "cy picks 56",
+  },
+  {
+    "placements": [
+      "ada places 54 in row 0",
+      "ben places 55 in row 0 and takes 50, 51, 52, 53, 54",
+      "cy places 56 in row 0",
+    ],
   },
   {
     "lastVersionSeen": 23,
@@ -152,11 +190,21 @@ exports[`plays a full game with stale and bad requests mixed in 1`] = `
     "request": "cy picks 58",
   },
   {
+    "placements": [],
+  },
+  {
     "phase": "rowPick",
   },
   {
     "lastVersionSeen": 27,
     "request": "ada picks the row 0",
+  },
+  {
+    "placements": [
+      "ada places 1 in row 0 and takes 55, 56",
+      "ben places 57 in row 0",
+      "cy places 58 in row 0",
+    ],
   },
   {
     "phase": "endOfRound",
@@ -181,11 +229,19 @@ exports[`plays a full game with stale and bad requests mixed in 1`] = `
     "request": "cy picks 68",
   },
   {
+    "placements": [],
+  },
+  {
     "phase": "rowPick",
   },
   {
     "lastVersionSeen": 33,
     "request": "ada picks the row 0",
+  },
+  {
+    "placements": [
+      "ada places 3 in row 0 and takes 66",
+    ],
   },
   {
     "phase": "gameOver",

@@ -17,7 +17,7 @@ import { handleCardPickPhase } from '#engine/requestHandling/handleCardPickPhase
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { ErrorCode } from '#engine/result.ts';
-import { cardOf, seatOf } from '#testSupport/cards.ts';
+import { cardOf, placementOf, rowOf, seatOf } from '#testSupport/cards.ts';
 import { playersOf, roundGameStateOf } from '#testSupport/gameStates.ts';
 import { abandonRequest, startGameRequest } from '#testSupport/requests.ts';
 
@@ -115,10 +115,22 @@ test('returns an error if another player owns the picked card', () => {
   });
 });
 
-test('reveals the picked cards once every player has picked one', () => {
-  const state = cardPick([['b', aceOfBen]]);
-  expect(handleCardPickPhase(state, pickRequest('a', aceOfAda.id))).toEqual({
-    actions: [pickCard({ playerId: 'a', card: aceOfAda }), revealPickedCards()],
+test('reveals the picked cards with their placements once every player has picked one', () => {
+  const state = roundGameStateOf(
+    GamePhase.CardPick,
+    playersOf([ada, ben]),
+    createRound(
+      [rowOf(10)],
+      [seatOf('a', [cardOf(12)]), seatOf('b', [cardOf(11)], cardOf(11))],
+    ),
+  );
+  expect(handleCardPickPhase(state, pickRequest('a', cardOf(12).id))).toEqual({
+    actions: [
+      pickCard({ playerId: 'a', card: cardOf(12) }),
+      revealPickedCards({
+        placements: [placementOf('b', 11, 0), placementOf('a', 12, 0)],
+      }),
+    ],
   });
 });
 
@@ -142,7 +154,7 @@ test('reveals the picked cards when every player who stays has picked one', () =
     GamePhase.CardPick,
     playersOf([ada, ben, { id: 'c', name: 'Cy' }]),
     createRound(
-      [],
+      [rowOf(2)],
       [
         seatOf('a', [aceOfAda]),
         seatOf('b', [aceOfBen], aceOfBen),
@@ -151,7 +163,12 @@ test('reveals the picked cards when every player who stays has picked one', () =
     ),
   );
   expect(handleCardPickPhase(state, abandonRequest('a'))).toEqual({
-    actions: [abandonGame({ playerId: 'a' }), revealPickedCards()],
+    actions: [
+      abandonGame({ playerId: 'a' }),
+      revealPickedCards({
+        placements: [placementOf('b', 3, 0), placementOf('c', 4, 0)],
+      }),
+    ],
   });
 });
 

@@ -23,7 +23,7 @@ import {
 } from '#engine/dataTypes/table/roundLifecycle.ts';
 import type { RoundSeat } from '#engine/dataTypes/table/roundSeat.ts';
 import { ErrorCode } from '#engine/result.ts';
-import { cardOf, rowOf, seatOf } from '#testSupport/cards.ts';
+import { cardOf, placementOf, rowOf, seatOf } from '#testSupport/cards.ts';
 
 // The penalty scores name the score that a player carries into the reveal.
 function gameOf(
@@ -56,20 +56,6 @@ function resolveOnDraft(
     placements = resolve(draft);
   });
   return { placements, game: nextGame };
-}
-
-function placementOf(
-  playerId: PlayerId,
-  faceValue: number,
-  rowIndex: number,
-  takenFaceValues: number[] = [],
-): CardPlacement {
-  return {
-    playerId,
-    card: cardOf(faceValue),
-    rowIndex,
-    takenCards: takenFaceValues.map(cardOf),
-  };
 }
 
 function faceValuesOfRows(round: Round): number[][] {

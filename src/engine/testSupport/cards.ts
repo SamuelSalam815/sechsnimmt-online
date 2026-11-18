@@ -2,6 +2,7 @@
 import { type Card, createCards } from '#engine/dataTypes/cards/card.ts';
 import { type Deck, getDeckFaceValues } from '#engine/dataTypes/cards/deck.ts';
 import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
+import type { CardPlacement } from '#engine/dataTypes/table/revealResolution.ts';
 import {
   createRoundSeat,
   type RoundSeat,
@@ -51,4 +52,18 @@ export function seatOf(
     seat.pickedCardId = pickedCard.id;
   }
   return seat;
+}
+
+export function placementOf(
+  playerId: PlayerId,
+  faceValue: number,
+  rowIndex: number,
+  takenFaceValues: number[] = [],
+): CardPlacement {
+  return {
+    playerId,
+    card: cardOf(faceValue),
+    rowIndex,
+    takenCards: takenFaceValues.map(cardOf),
+  };
 }
