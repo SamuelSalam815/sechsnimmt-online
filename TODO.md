@@ -1,6 +1,6 @@
 # TODO
 
-- Hide the hidden information from the clients. The start game and start round actions carry every hand, and the pick card action carries the picked card. The event stream must send each client a view of the history without the cards of the other players. A filtered history must still replay: the `placeCard` and `takeRow` reducers take the card out of the hand of its player, and `playPickedCard` throws when that hand is unknown.
+- Hide the hidden information from the clients. In progress: `docs/hidden-information-plan.md`. The start game and start round actions carry every hand, and the pick card action carries the picked card. The event stream must send each client a view of the history without the cards of the other players. A filtered history must still replay: the `placeCard` and `takeRow` reducers take the card out of the hand of its player, and `playPickedCard` throws when that hand is unknown.
 - Add integration trace scenarios for abandon (in card pick, in row pick, too few players) and for unpick (pick, unpick, pick again).
 - Mark a player with a short disconnect in the room display and the game display. The room view has the `connected` flag of each player. Nice to have; the user wants it later.
 - Start a new game after the game over. The room keeps `gameStarted` and has no request for a new game.
