@@ -22,14 +22,21 @@ export function RoomDisplay() {
     if (countdownStartedAt === null) {
       return;
     }
-    const elapsedMilliseconds = Date.now() - countdownStartedAt;
-    const timeout = setTimeout(
-      () => setNow(Date.now()),
-      COUNTDOWN_STEP_MILLISECONDS -
-        (elapsedMilliseconds % COUNTDOWN_STEP_MILLISECONDS),
-    );
+    let timeout: ReturnType<typeof setTimeout>;
+    function renderAtNextStep(startedAt: number) {
+      const elapsedMilliseconds = Date.now() - startedAt;
+      timeout = setTimeout(
+        () => {
+          setNow(Date.now());
+          renderAtNextStep(startedAt);
+        },
+        COUNTDOWN_STEP_MILLISECONDS -
+          (elapsedMilliseconds % COUNTDOWN_STEP_MILLISECONDS),
+      );
+    }
+    renderAtNextStep(countdownStartedAt);
     return () => clearTimeout(timeout);
-  }, [countdownStartedAt, now]);
+  }, [countdownStartedAt]);
 
   if (session === null || roomView === null) {
     return <p>Connecting…</p>;
