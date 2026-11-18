@@ -1,11 +1,12 @@
 import { PenaltyTallies } from '#client/game/PenaltyTallies.tsx';
 import { type Card, getPenalty } from '#engine/dataTypes/cards/card.ts';
 
-// A gradient from ink to red did not set the penalties apart enough.
-function findPenaltyColor(penalty: number): string {
+// A colored face value and tallies did not stand out enough, neither as a
+// gradient from ink to red nor in three steps. The card itself takes the color.
+function findPenaltyBackground(penalty: number): string {
   if (penalty >= 7) return 'var(--color-accent)';
   if (penalty >= 5) return 'var(--color-support)';
-  return 'var(--color-ink)';
+  return 'var(--color-panel)';
 }
 
 const CARD_SPACE = {
@@ -49,9 +50,10 @@ export function CardView({
         alignItems: 'center',
         padding: '0.2em',
         border: `1px solid ${highlighted ? 'var(--color-header)' : 'var(--color-ink)'}`,
-        background: highlighted ? 'var(--color-header)' : 'var(--color-panel)',
-        // The penalty colors do not stand out from the header color.
-        color: highlighted ? 'var(--color-panel)' : findPenaltyColor(penalty),
+        background: highlighted
+          ? 'var(--color-header)'
+          : findPenaltyBackground(penalty),
+        color: highlighted ? 'var(--color-panel)' : 'var(--color-ink)',
         fontSize: 'inherit',
       }}
     >
