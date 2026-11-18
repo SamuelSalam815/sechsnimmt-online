@@ -1,0 +1,13 @@
+/* The values come from docs/color-palette.json. */
+:root {
+  --color-background: #cdc8b0;
+  --color-panel: #dad4bb;
+  --color-header: #686458;
+  --color-ink: #4e4b42;
+  --color-accent: #cd664d;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-ink);
+}
