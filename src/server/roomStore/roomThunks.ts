@@ -1,5 +1,6 @@
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
+import { projectHistoryForViewer } from '#engine/reducers/historyProjection.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import {
@@ -17,6 +18,7 @@ import {
 import {
   CODE_NAME_ADJECTIVES,
   findRoomPlayer,
+  findViewerId,
   isRoomFull,
   listRoomPlayers,
   MAX_NAME_LENGTH,
@@ -194,7 +196,10 @@ export function openStream(
     const { room, engine } = getState();
     effects.writeToStream(streamId, {
       eventName: 'gameActions',
-      actions: engine.history,
+      actions: projectHistoryForViewer(
+        engine.history,
+        findViewerId(room, clientToken),
+      ),
     });
     if (room === roomBefore) {
       effects.writeToStream(streamId, {

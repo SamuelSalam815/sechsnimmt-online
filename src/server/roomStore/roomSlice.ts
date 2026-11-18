@@ -158,6 +158,14 @@ export function findRoomPlayer(
     : state.players.entities[clientToken];
 }
 
+// Undefined for a client without a seat, which sees no hand.
+export function findViewerId(
+  state: RoomState,
+  clientToken: string | undefined,
+): PlayerId | undefined {
+  return findRoomPlayer(state, clientToken)?.playerId;
+}
+
 export function listRoomPlayers(state: RoomState): RoomPlayer[] {
   return state.players.ids.map(
     (clientToken) => state.players.entities[clientToken],

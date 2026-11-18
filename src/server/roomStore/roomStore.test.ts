@@ -3,6 +3,7 @@ import { describe, expect, test } from 'vitest';
 import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
 import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { startRound } from '#engine/reducers/gameSlice.ts';
+import { projectHistoryForViewer } from '#engine/reducers/historyProjection.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { REDACTED_CLIENT_TOKEN } from '#server/infrastructure/logger.ts';
 import { engineActionsApplied } from '#server/roomStore/engineBridge.ts';
@@ -306,8 +307,41 @@ describe('streams', () => {
     );
     expect(historyWrite?.streamEvent).toEqual({
       eventName: 'gameActions',
-      actions: fake.store.getState().engine.history,
+      actions: projectHistoryForViewer(
+        fake.store.getState().engine.history,
+        'player1',
+      ),
     });
+  });
+
+  test('the deal reaches each stream with only the hand of its player', () => {
+    const fake = roomOfAdaAndBen();
+    fake.store.dispatch(openStream(4, 'secret-1'));
+    fake.store.dispatch(openStream(5, undefined));
+    fake.store.dispatch(getReady({ clientToken: 'secret-1' }));
+    const writesBefore = fake.streamWrites.length;
+    fake.store.dispatch(getReady({ clientToken: 'secret-2' }));
+    const { history } = fake.store.getState().engine;
+    expect(
+      fake.streamWrites
+        .slice(writesBefore)
+        .filter((write) => write.streamEvent.eventName === 'gameActions'),
+    ).toEqual([
+      {
+        streamId: 4,
+        streamEvent: {
+          eventName: 'gameActions',
+          actions: projectHistoryForViewer(history, 'player1'),
+        },
+      },
+      {
+        streamId: 5,
+        streamEvent: {
+          eventName: 'gameActions',
+          actions: projectHistoryForViewer(history, undefined),
+        },
+      },
+    ]);
   });
 
   test('a stream without a seat gets the history and the view and changes no player', () => {

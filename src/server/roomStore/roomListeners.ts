@@ -1,5 +1,6 @@
 import type { TypedStartListening } from '@reduxjs/toolkit';
-import { selectRoomView } from '#server/roomStore/roomSlice.ts';
+import { projectHistoryForViewer } from '#engine/reducers/historyProjection.ts';
+import { findViewerId, selectRoomView } from '#server/roomStore/roomSlice.ts';
 import type {
   RoomDispatch,
   RoomEffects,
@@ -40,10 +41,19 @@ export function registerRoomListeners(
     effect: (_action, listenerApi) => {
       const previousHistory = listenerApi.getOriginalState().engine.history;
       const currentState = listenerApi.getState();
-      writeToEveryStream(currentState, listenerApi.extra, {
-        eventName: 'gameActions',
-        actions: currentState.engine.history.slice(previousHistory.length),
-      });
+      const newActions = currentState.engine.history.slice(
+        previousHistory.length,
+      );
+      for (const streamId of currentState.eventStream.ids) {
+        const { clientToken } = currentState.eventStream.entities[streamId];
+        listenerApi.extra.writeToStream(streamId, {
+          eventName: 'gameActions',
+          actions: projectHistoryForViewer(
+            newActions,
+            findViewerId(currentState.room, clientToken),
+          ),
+        });
+      }
     },
   });
 
