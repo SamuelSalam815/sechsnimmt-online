@@ -1,8 +1,12 @@
 import { PenaltyTallies } from '#client/PenaltyTallies.tsx';
 import { type Card, getPenalty } from '#engine/dataTypes/cards/card.ts';
 
-// The penalty of 55, the highest that a card has.
-const HOTTEST_PENALTY = 7;
+// A gradient from ink to red did not set the penalties apart enough.
+function findPenaltyColor(penalty: number): string {
+  if (penalty >= 7) return 'var(--color-accent)';
+  if (penalty >= 5) return 'var(--color-support)';
+  return 'var(--color-ink)';
+}
 
 const CARD_SPACE = {
   boxSizing: 'border-box',
@@ -32,8 +36,6 @@ export function CardView({
   onClick?: () => void;
 }) {
   const penalty = getPenalty(card);
-  const heatPercent = ((penalty - 1) / (HOTTEST_PENALTY - 1)) * 100;
-  const heatColor = `color-mix(in oklab, var(--color-ink), var(--color-accent) ${heatPercent}%)`;
   return (
     <button
       type="button"
@@ -48,8 +50,8 @@ export function CardView({
         padding: '0.2em',
         border: `1px solid ${highlighted ? 'var(--color-header)' : 'var(--color-ink)'}`,
         background: highlighted ? 'var(--color-header)' : 'var(--color-panel)',
-        // The heat colors do not stand out from the header color.
-        color: highlighted ? 'var(--color-panel)' : heatColor,
+        // The penalty colors do not stand out from the header color.
+        color: highlighted ? 'var(--color-panel)' : findPenaltyColor(penalty),
         fontSize: 'inherit',
       }}
     >
