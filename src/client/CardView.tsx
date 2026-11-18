@@ -1,3 +1,4 @@
+import { PenaltyTallies } from '#client/PenaltyTallies.tsx';
 import { type Card, getPenalty } from '#engine/dataTypes/cards/card.ts';
 
 export function CardView({
@@ -30,9 +31,9 @@ export function CardView({
         fontSize: 'inherit',
       }}
     >
-      <small>{penalty}</small>
+      <PenaltyTallies penalty={penalty} />
       <strong>{card.faceValue}</strong>
-      <small>{penalty}</small>
+      <PenaltyTallies penalty={penalty} />
     </button>
   );
 }
