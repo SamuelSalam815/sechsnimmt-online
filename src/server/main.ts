@@ -2,14 +2,11 @@ import { createServer } from 'node:http';
 import { networkInterfaces } from 'node:os';
 import express from 'express';
 import { builtClient, viteClient } from '#server/clientServing.ts';
-import { eventStreamActor } from '#server/eventStream/eventStream.ts';
-import { gameRunnerActor } from '#server/gameRunner/gameRunner.ts';
 import {
   developmentLogger,
   productionLogger,
 } from '#server/infrastructure/logger.ts';
-import { restHandlerRouter } from '#server/restHandler/restHandler.ts';
-import { roomActor } from '#server/room/room.ts';
+import { roomRouter } from '#server/roomStore/roomRouter.ts';
 
 const port = 3000;
 
@@ -17,31 +14,11 @@ const inProduction = process.env.NODE_ENV === 'production';
 const logger = inProduction ? productionLogger() : developmentLogger();
 const clientServing = inProduction ? builtClient : viteClient;
 
-const eventStream = eventStreamActor(
-  (message) => gameRunner.actor.send(message),
-  (message) => room.actor.send(message),
-  logger,
-);
-const gameRunner = gameRunnerActor(
-  (message) => eventStream.actor.send(message),
-  (message) => room.actor.send(message),
-  logger,
-);
-const room = roomActor(
-  (message) => eventStream.actor.send(message),
-  (message) => gameRunner.actor.send(message),
-  logger,
-);
-const restHandler = restHandlerRouter(logger);
-
 const app = express();
 const httpServer = createServer(app);
 
 app.use('/api', express.json());
-app.use('/api', restHandler);
-app.use('/api', eventStream.router);
-app.use('/api', gameRunner.router);
-app.use('/api', room.router);
+app.use('/api', roomRouter(logger));
 await clientServing.attach(app, httpServer);
 
 httpServer.listen(port, () => {
