@@ -374,6 +374,6 @@ test('plays a full game with stale and bad requests mixed in', async () => {
   pickCard('ben', 83);
 
   await expect(`${trace.join('\n')}\n`).toMatchFileSnapshot(
-    '__snapshots__/advanceGame.integration.txt',
+    '__snapshots__/advanceGame.integration.full-game-with-stale-and-bad-requests.txt',
   );
 });
