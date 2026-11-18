@@ -32,7 +32,7 @@ export function listPlayerStatusRows(game: GameState): PlayerStatusRow[] {
   return listRoundSeats(game.round.seats)
     .map((seat) => ({
       playerId: seat.playerId,
-      name: findPlayerName(game.players, seat.playerId),
+      name: game.players.entities[seat.playerId]?.name ?? seat.playerId,
       penaltyScore: game.players.entities[seat.playerId]?.penaltyScore ?? 0,
       roundPenalty: getPenaltyTotal(seat.penaltyPile),
       hasPicked: seat.pickedCardId !== undefined,
@@ -78,7 +78,7 @@ export function statusLineText(
       const rowPicker = findRowPicker(game);
       return rowPicker === ownPlayerId
         ? 'Pick a row to take'
-        : `Waiting for ${findPlayerName(game.players, rowPicker)} to pick a row`;
+        : `Waiting for ${findPlayerName(engine.history, rowPicker)} to pick a row`;
     }
     // The plan has no text for it: the server deals the next round at once,
     // so the phase shows only for a moment.
@@ -113,7 +113,7 @@ export function listReportRows(engine: RootState): string[] {
   return selectLastRevealEvents(engine.history).flatMap((revealEvent) => {
     if ('takenCards' in revealEvent) {
       const name = findPlayerName(
-        game.players,
+        engine.history,
         revealEvent.action.payload.playerId,
       );
       return [`${name} took ${describeCards(revealEvent.takenCards)}`];
@@ -121,7 +121,7 @@ export function listReportRows(engine: RootState): string[] {
     if (revealPickedCards.match(revealEvent.action)) {
       return revealEvent.action.payload.revealedCards.map(
         ({ playerId, card }) =>
-          `${findPlayerName(game.players, playerId)} played ${card.faceValue}`,
+          `${findPlayerName(engine.history, playerId)} played ${card.faceValue}`,
       );
     }
     return [];
@@ -143,13 +143,39 @@ function describeCards(cards: readonly Card[]): string {
   return cards.map((card) => card.faceValue).join(', ');
 }
 
-// A player who left the game has no entry any more, so the ID stands in.
+// The players of the last start of the game include those who left it since,
+// whose entries the game no longer holds.
+function findStartedPlayers(
+  history: readonly AppliedAction[],
+): Players | undefined {
+  let startedPlayers: Players | undefined;
+  for (const { action } of history) {
+    if (startGame.match(action)) {
+      startedPlayers = action.payload.players;
+    }
+  }
+  return startedPlayers;
+}
+
+// An abandon is final, so the game display marks it. A short disconnect is
+// not marked: the room view tells of it, and its grace timer may still end it.
+export function listLeftPlayerNames(engine: RootState): string[] {
+  const { game } = engine;
+  const startedPlayers = findStartedPlayers(engine.history);
+  if (game.phase === GamePhase.PreStart || startedPlayers === undefined) {
+    return [];
+  }
+  return startedPlayers.ids
+    .filter((playerId) => game.players.entities[playerId] === undefined)
+    .map((playerId) => startedPlayers.entities[playerId].name);
+}
+
 function findPlayerName(
-  players: Players,
+  history: readonly AppliedAction[],
   playerId: PlayerId | undefined,
 ): string {
   if (playerId === undefined) {
     return 'nobody';
   }
-  return players.entities[playerId]?.name ?? playerId;
+  return findStartedPlayers(history)?.entities[playerId]?.name ?? playerId;
 }

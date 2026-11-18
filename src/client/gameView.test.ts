@@ -4,6 +4,7 @@ import {
   countRounds,
   findRowPicker,
   listHandLowestFirst,
+  listLeftPlayerNames,
   listPlayerStatusRows,
   listReportRows,
   statusLineText,
@@ -12,6 +13,7 @@ import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
 import { createPlayers } from '#engine/dataTypes/playerState/player.ts';
 import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
+  abandonGame,
   awaitCardPick,
   awaitRowPick,
   endGame,
@@ -152,4 +154,21 @@ test('the hand lists the own cards lowest first', () => {
     cardOf(5),
     cardOf(100),
   ]);
+});
+
+test('the game display names the players who left the game', () => {
+  const engine = replay(
+    startAction,
+    ...pickActions,
+    ...revealActions,
+    ...rowPickActions,
+    abandonGame({ playerId: 'a' }),
+  );
+  expect(listLeftPlayerNames(engine)).toEqual(['Ada']);
+  // The report of the last reveal still names the player who left.
+  expect(listReportRows(engine)).toContain('Ada took 10');
+});
+
+test('no player has left a game that every player still plays', () => {
+  expect(listLeftPlayerNames(replay(startAction))).toEqual([]);
 });
