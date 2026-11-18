@@ -1,3 +1,4 @@
+import type { Middleware } from '@reduxjs/toolkit';
 import pino, { type Logger } from 'pino';
 
 export function productionLogger(): Logger {
@@ -34,4 +35,23 @@ function withNestedClientTokensRedacted(value: unknown): unknown {
     return withClientTokensRedacted(value);
   }
   return value;
+}
+
+// Logs each action whole, with its client tokens redacted. The store reduces
+// the action as it came.
+export function actionLoggingMiddleware(
+  logger: Logger,
+  logsAtDebugLevel: (actionType: string) => boolean,
+): Middleware {
+  return () => (next) => (action) => {
+    if (typeof action === 'object' && action !== null && 'type' in action) {
+      const logEntry = withClientTokensRedacted(action);
+      if (logsAtDebugLevel(String(action.type))) {
+        logger.debug(logEntry, 'dispatched');
+      } else {
+        logger.info(logEntry, 'dispatched');
+      }
+    }
+    return next(action);
+  };
 }

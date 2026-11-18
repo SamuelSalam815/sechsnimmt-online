@@ -5,9 +5,9 @@ import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import { startRound } from '#engine/reducers/gameSlice.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { REDACTED_CLIENT_TOKEN } from '#server/infrastructure/logger.ts';
+import { engineActionsApplied } from '#server/roomStore/engineBridge.ts';
 import {
   createRoomStore,
-  engineActionsApplied,
   type RoomStore,
   type StreamEvent,
 } from '#server/roomStore/roomStore.ts';

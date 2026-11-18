@@ -1,3 +1,6 @@
+import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
+import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
+import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import {
   malformedBody,
@@ -6,6 +9,7 @@ import {
   readInteger,
   readString,
 } from '#server/infrastructure/requestBody.ts';
+import { applyEngineRequest } from '#server/roomStore/engineBridge.ts';
 import {
   streamClosed,
   streamOpened,
@@ -19,10 +23,7 @@ import {
   playerRemoved,
   selectRoomView,
 } from '#server/roomStore/roomSlice.ts';
-import {
-  applyEngineRequest,
-  type RoomThunk,
-} from '#server/roomStore/roomStore.ts';
+import type { RoomStoreState, RoomThunk } from '#server/roomStore/roomStore.ts';
 
 const MAX_NAME_LENGTH = 24;
 
@@ -194,6 +195,41 @@ export function expireGraceTimer(graceTimerId: number): RoomThunk<void> {
           playerId: player.playerId,
         }),
       );
+    }
+  };
+}
+
+export function isDealDue(state: RoomStoreState): boolean {
+  const { phase } = state.engine.game;
+  return (
+    state.room.gameStarted &&
+    (phase === GamePhase.PreStart || phase === GamePhase.EndOfRound)
+  );
+}
+
+// The room holds 2 to 10 players when its game starts, so the engine accepts
+// every deal that falls due.
+export function deal(): RoomThunk<void> {
+  return (dispatch, getState, effects) => {
+    const { room, engine } = getState();
+    const lastVersionSeen = engine.game.version.sequence;
+    const newShuffledDeck = effects.shuffleDeck();
+    const request: GameRequest =
+      engine.game.phase === GamePhase.PreStart
+        ? {
+            type: RequestType.StartGame,
+            lastVersionSeen,
+            players: listRoomPlayers(room).map((player) => ({
+              id: player.playerId,
+              name: player.name,
+            })),
+            gameRules: STANDARD_GAME_RULES,
+            newShuffledDeck,
+          }
+        : { type: RequestType.StartRound, lastVersionSeen, newShuffledDeck };
+    const rejection = dispatch(applyEngineRequest(request));
+    if (rejection !== undefined) {
+      throw new Error(rejection.message);
     }
   };
 }
