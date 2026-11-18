@@ -45,6 +45,31 @@ export interface RoomView {
   }[];
 }
 
+// A code name is one of these in front of the chosen name. It tells apart
+// the players who chose the same name.
+export const CODE_NAME_ADJECTIVES = [
+  'Cheeky',
+  'Cautious',
+  'Bold',
+  'Sleepy',
+  'Sneaky',
+  'Jolly',
+  'Grumpy',
+  'Lucky',
+  'Brave',
+  'Clumsy',
+  'Dizzy',
+  'Fancy',
+  'Gentle',
+  'Hasty',
+  'Mighty',
+  'Noisy',
+  'Quiet',
+  'Silly',
+  'Witty',
+  'Zesty',
+];
+
 export const roomPlayersAdapter = createEntityAdapter({
   selectId: (player: RoomPlayer) => player.clientToken,
 });

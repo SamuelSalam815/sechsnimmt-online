@@ -15,12 +15,14 @@ import {
   streamOpened,
 } from '#server/roomStore/eventStreamSlice.ts';
 import {
+  CODE_NAME_ADJECTIVES,
   findRoomPlayer,
   isRoomFull,
   listRoomPlayers,
   playerJoined,
   playerReady,
   playerRemoved,
+  type RoomState,
   selectRoomView,
 } from '#server/roomStore/roomSlice.ts';
 import type { RoomStoreState, RoomThunk } from '#server/roomStore/roomStore.ts';
@@ -60,8 +62,11 @@ interface PlayerRequestBody {
 }
 
 export function joinRoom(
-  // The caller makes the token, because a random value is impure.
+  // The caller makes the token and the fraction, because a random value is
+  // impure.
   clientToken: string,
+  // From 0 up to but not including 1, as `Math.random()` gives it.
+  randomFraction: number,
   requestBody: unknown,
 ): RoomThunk<RoomReply> {
   return (dispatch, getState) => {
@@ -83,13 +88,30 @@ export function joinRoom(
     if (isRoomFull(room)) {
       return rejected(409, 'The room is full');
     }
-    dispatch(playerJoined({ clientToken, name }));
+    const codeNameAdjective = chooseCodeNameAdjective(room, randomFraction);
+    dispatch(
+      playerJoined({ clientToken, name: `${codeNameAdjective} ${name}` }),
+    );
     const player = findRoomPlayer(getState().room, clientToken);
     return {
       statusCode: 200,
       body: { clientToken, playerId: player?.playerId },
     };
   };
+}
+
+// A room holds fewer players than there are adjectives, so an unused one
+// always remains.
+function chooseCodeNameAdjective(
+  room: RoomState,
+  randomFraction: number,
+): string {
+  const players = listRoomPlayers(room);
+  const unusedAdjectives = CODE_NAME_ADJECTIVES.filter(
+    (adjective) =>
+      !players.some((player) => player.name.startsWith(`${adjective} `)),
+  );
+  return unusedAdjectives[Math.floor(randomFraction * unusedAdjectives.length)];
 }
 
 export function getReady(requestBody: unknown): RoomThunk<RoomReply> {

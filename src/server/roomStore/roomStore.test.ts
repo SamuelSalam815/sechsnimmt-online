@@ -6,6 +6,7 @@ import { startRound } from '#engine/reducers/gameSlice.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { REDACTED_CLIENT_TOKEN } from '#server/infrastructure/logger.ts';
 import { engineActionsApplied } from '#server/roomStore/engineBridge.ts';
+import { selectRoomView } from '#server/roomStore/roomSlice.ts';
 import {
   createRoomStore,
   type RoomStore,
@@ -51,11 +52,12 @@ function fakeRoom(): FakeRoom {
   return { store, startedGraceTimerIds, streamWrites, logLines };
 }
 
-// Ada is player1 with the token secret-1, Ben is player2 with secret-2.
+// Ada is player1 with the token secret-1, Ben is player2 with secret-2. The
+// fraction 0 gives each the first adjective that is still unused.
 function roomOfAdaAndBen(): FakeRoom {
   const fake = fakeRoom();
-  fake.store.dispatch(joinRoom('secret-1', { name: 'Ada' }));
-  fake.store.dispatch(joinRoom('secret-2', { name: 'Ben' }));
+  fake.store.dispatch(joinRoom('secret-1', 0, { name: 'Ada' }));
+  fake.store.dispatch(joinRoom('secret-2', 0, { name: 'Ben' }));
   return fake;
 }
 
@@ -84,7 +86,7 @@ describe('join', () => {
   test('seats the player under the next ID, answers with the token and starts the grace timer', () => {
     const fake = fakeRoom();
     expect(
-      fake.store.dispatch(joinRoom('secret-new', { name: ' Ada ' })),
+      fake.store.dispatch(joinRoom('secret-new', 0, { name: ' Ada ' })),
     ).toEqual({
       statusCode: 200,
       body: { clientToken: 'secret-new', playerId: 'player1' },
@@ -92,7 +94,7 @@ describe('join', () => {
     expect(fake.store.getState().room.players.entities['secret-new']).toEqual({
       clientToken: 'secret-new',
       playerId: 'player1',
-      name: 'Ada',
+      name: 'Cheeky Ada',
       ready: false,
       streamIds: [],
       graceTimerId: 0,
@@ -103,7 +105,7 @@ describe('join', () => {
   test('broadcasts the new view of the room to the open streams', () => {
     const fake = fakeRoom();
     fake.store.dispatch(openStream(0, undefined));
-    fake.store.dispatch(joinRoom('secret-1', { name: 'Ada' }));
+    fake.store.dispatch(joinRoom('secret-1', 0, { name: 'Ada' }));
     expect(fake.streamWrites.at(-1)).toEqual({
       streamId: 0,
       streamEvent: {
@@ -113,7 +115,7 @@ describe('join', () => {
           players: [
             {
               playerId: 'player1',
-              name: 'Ada',
+              name: 'Cheeky Ada',
               ready: false,
               connected: false,
             },
@@ -124,12 +126,42 @@ describe('join', () => {
   });
 
   test.each([
+    [0, 'Cheeky'],
+    [0.5, 'Dizzy'],
+    [0.99, 'Zesty'],
+  ])(
+    'the fraction %d puts the adjective %s in front of the name',
+    (randomFraction, adjective) => {
+      const fake = fakeRoom();
+      fake.store.dispatch(
+        joinRoom('secret-1', randomFraction, { name: 'Sam' }),
+      );
+      expect(fake.store.getState().room.players.entities['secret-1'].name).toBe(
+        `${adjective} Sam`,
+      );
+    },
+  );
+
+  test('chooses only among the adjectives that no player uses', () => {
+    const fake = fakeRoom();
+    fake.store.dispatch(joinRoom('secret-1', 0, { name: 'Sam' }));
+    fake.store.dispatch(joinRoom('secret-2', 0.99, { name: 'Sam' }));
+    fake.store.dispatch(joinRoom('secret-3', 0, { name: 'Sam' }));
+    fake.store.dispatch(joinRoom('secret-4', 0.99, { name: 'Sam' }));
+    expect(
+      selectRoomView(fake.store.getState().room).players.map(
+        (player) => player.name,
+      ),
+    ).toEqual(['Cheeky Sam', 'Zesty Sam', 'Cautious Sam', 'Witty Sam']);
+  });
+
+  test.each([
     ['no name', {}],
     ['a blank name', { name: '  ' }],
     ['a name that is too long', { name: 'A'.repeat(25) }],
   ])('rejects a request body with %s', (_, requestBody) => {
     expect(
-      fakeRoom().store.dispatch(joinRoom('secret-new', requestBody)),
+      fakeRoom().store.dispatch(joinRoom('secret-new', 0, requestBody)),
     ).toEqual({
       statusCode: 400,
       body: { message: 'The request body needs a name of 1 to 24 characters' },
@@ -139,7 +171,9 @@ describe('join', () => {
   test('rejects a join after the start of the game', () => {
     const fake = startedGame();
     const stateBefore = fake.store.getState();
-    expect(fake.store.dispatch(joinRoom('secret-3', { name: 'Cy' }))).toEqual({
+    expect(
+      fake.store.dispatch(joinRoom('secret-3', 0, { name: 'Cy' })),
+    ).toEqual({
       statusCode: 409,
       body: { message: 'The game has started' },
     });
@@ -149,9 +183,11 @@ describe('join', () => {
   test('rejects a join to a room of 10 players', () => {
     const fake = fakeRoom();
     for (let playerNumber = 1; playerNumber <= 10; playerNumber++) {
-      fake.store.dispatch(joinRoom(`secret-${playerNumber}`, { name: 'P' }));
+      fake.store.dispatch(joinRoom(`secret-${playerNumber}`, 0, { name: 'P' }));
     }
-    expect(fake.store.dispatch(joinRoom('secret-11', { name: 'Cy' }))).toEqual({
+    expect(
+      fake.store.dispatch(joinRoom('secret-11', 0, { name: 'Cy' })),
+    ).toEqual({
       statusCode: 409,
       body: { message: 'The room is full' },
     });
@@ -182,7 +218,7 @@ describe('ready', () => {
 
   test('a single ready player does not start the game', () => {
     const fake = fakeRoom();
-    fake.store.dispatch(joinRoom('secret-1', { name: 'Ada' }));
+    fake.store.dispatch(joinRoom('secret-1', 0, { name: 'Ada' }));
     fake.store.dispatch(getReady({ clientToken: 'secret-1' }));
     expect(fake.store.getState().room.gameStarted).toBe(false);
   });
@@ -407,7 +443,7 @@ describe('grace period', () => {
   test('the removal of the one player who is not ready starts the game', () => {
     const fake = fakeRoom();
     for (const playerNumber of [1, 2, 3]) {
-      fake.store.dispatch(joinRoom(`secret-${playerNumber}`, { name: 'P' }));
+      fake.store.dispatch(joinRoom(`secret-${playerNumber}`, 0, { name: 'P' }));
     }
     fake.store.dispatch(getReady({ clientToken: 'secret-1' }));
     fake.store.dispatch(getReady({ clientToken: 'secret-2' }));
@@ -446,11 +482,11 @@ describe('grace period', () => {
 
 test('logs each action without its client tokens', () => {
   const fake = fakeRoom();
-  fake.store.dispatch(joinRoom('secret-1', { name: 'Ada' }));
+  fake.store.dispatch(joinRoom('secret-1', 0, { name: 'Ada' }));
   expect(fake.logLines).toContainEqual({
     level: 30,
     type: 'room/playerJoined',
-    payload: { clientToken: REDACTED_CLIENT_TOKEN, name: 'Ada' },
+    payload: { clientToken: REDACTED_CLIENT_TOKEN, name: 'Cheeky Ada' },
     msg: 'dispatched',
   });
   expect(JSON.stringify(fake.logLines)).not.toContain('secret-1');

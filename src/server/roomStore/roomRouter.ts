@@ -70,7 +70,10 @@ export function roomRouter(logger: Logger): Router {
     response.json({ message: 'pong' });
   });
   router.post('/room/join', (request, response) => {
-    answer(response, store.dispatch(joinRoom(randomUUID(), request.body)));
+    answer(
+      response,
+      store.dispatch(joinRoom(randomUUID(), Math.random(), request.body)),
+    );
   });
   router.post('/room/ready', (request, response) => {
     answer(response, store.dispatch(getReady(request.body)));
