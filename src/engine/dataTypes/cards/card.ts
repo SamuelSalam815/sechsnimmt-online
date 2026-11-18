@@ -1,3 +1,5 @@
+import { ErrorCode, fail, type Result, success } from '#engine/result.ts';
+
 // Identifies a card without revealing its face value.
 export type CardId = number;
 
@@ -5,6 +7,26 @@ export type CardId = number;
 export interface Card {
   readonly id: CardId;
   readonly faceValue: number;
+}
+
+// The card ID stays, because the reducers find a card in a hand by its card ID.
+export interface HiddenCard {
+  readonly id: CardId;
+}
+
+export type HandCard = Card | HiddenCard;
+
+export function hideCard(card: Card): HiddenCard {
+  return { id: card.id };
+}
+
+export function checkCardNotHidden(handCard: HandCard): Result<Card> {
+  return 'faceValue' in handCard
+    ? success(handCard)
+    : fail(
+        ErrorCode.UnknownEntity,
+        `The face value of the card ID ${handCard.id} is hidden`,
+      );
 }
 
 export const DECK_SIZE = 104;

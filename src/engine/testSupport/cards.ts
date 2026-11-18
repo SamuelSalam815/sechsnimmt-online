@@ -1,5 +1,9 @@
 // Test support. It builds the cards, rows and seats that the tests share.
-import { type Card, createCards } from '#engine/dataTypes/cards/card.ts';
+import {
+  type Card,
+  createCards,
+  type HandCard,
+} from '#engine/dataTypes/cards/card.ts';
 import { type Deck, getDeckFaceValues } from '#engine/dataTypes/cards/deck.ts';
 import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 import {
@@ -35,7 +39,7 @@ export function orderedDeck(): Deck {
 
 export function seatOf(
   playerId: PlayerId,
-  hand: readonly Card[],
+  hand: readonly HandCard[],
   pickedCard?: Card,
 ): RoundSeat {
   const seat = createRoundSeat(playerId, hand);

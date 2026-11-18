@@ -1,10 +1,13 @@
 import { describe, expect, test } from 'vitest';
 import {
+  checkCardNotHidden,
   createCards,
   getPenalty,
   getPenaltyTotal,
+  hideCard,
 } from '#engine/dataTypes/cards/card.ts';
 import { getDeckFaceValues } from '#engine/dataTypes/cards/deck.ts';
+import { ErrorCode } from '#engine/result.ts';
 import { cardOf } from '#testSupport/cards.ts';
 
 describe('createCards', () => {
@@ -24,6 +27,28 @@ describe('createCards', () => {
       expect(() => createCards([faceValue])).toThrow();
     },
   );
+});
+
+describe('hideCard', () => {
+  test('keeps only the card ID', () => {
+    expect(hideCard(cardOf(42))).toEqual({ id: cardOf(42).id });
+  });
+});
+
+describe('checkCardNotHidden', () => {
+  test('gives a card that is not hidden', () => {
+    expect(checkCardNotHidden(cardOf(42))).toEqual({
+      ok: true,
+      value: cardOf(42),
+    });
+  });
+
+  test('fails for a hidden card', () => {
+    expect(checkCardNotHidden(hideCard(cardOf(42)))).toMatchObject({
+      ok: false,
+      failure: { errorCode: ErrorCode.UnknownEntity },
+    });
+  });
 });
 
 describe('getPenalty', () => {

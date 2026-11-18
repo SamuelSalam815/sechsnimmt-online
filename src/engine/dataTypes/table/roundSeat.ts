@@ -1,5 +1,10 @@
 import { createEntityAdapter, type EntityState } from '@reduxjs/toolkit';
-import type { Card, CardId } from '#engine/dataTypes/cards/card.ts';
+import {
+  type Card,
+  type CardId,
+  checkCardNotHidden,
+  type HandCard,
+} from '#engine/dataTypes/cards/card.ts';
 import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 import { ErrorCode, lookup, type Result } from '#engine/result.ts';
 
@@ -7,7 +12,7 @@ import { ErrorCode, lookup, type Result } from '#engine/result.ts';
 // and so does the penalty score that each of them carries.
 export interface RoundSeat {
   playerId: PlayerId;
-  hand: Card[];
+  hand: HandCard[];
   // A picked card stays in the hand. The reveal takes it out. One field is the
   // rule that a player picks one card.
   pickedCardId?: CardId;
@@ -29,7 +34,7 @@ export function listRoundSeats(seats: RoundSeats): RoundSeat[] {
 
 export function createRoundSeat(
   playerId: PlayerId,
-  hand: readonly Card[],
+  hand: readonly HandCard[],
 ): RoundSeat {
   return { playerId, hand: [...hand], penaltyPile: [] };
 }
@@ -39,7 +44,7 @@ export function findCardInHand(seat: RoundSeat, cardId: CardId): Result<Card> {
     seat.hand.find((card) => card.id === cardId),
     ErrorCode.RuleViolation,
     `The hand of the player ${seat.playerId} does not hold the card ID ${cardId}`,
-  );
+  ).andThen(checkCardNotHidden);
 }
 
 // The placed card leaves the hand, and the pick leaves with it.

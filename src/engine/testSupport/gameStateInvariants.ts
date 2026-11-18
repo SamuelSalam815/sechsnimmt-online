@@ -1,7 +1,7 @@
 // Test support. It checks the properties of a game state that no rule
 // computes. A check of the phase, the scores or the player count would restate
 // the rules, which the examples of the request handling tests carry instead.
-import type { Card } from '#engine/dataTypes/cards/card.ts';
+import type { HandCard } from '#engine/dataTypes/cards/card.ts';
 import {
   assertRoundInProgress,
   GamePhase,
@@ -12,7 +12,7 @@ import { listRoundSeats } from '#engine/dataTypes/table/roundSeat.ts';
 import { type GameAction, gameSlice } from '#engine/reducers/gameSlice.ts';
 
 // Each card of the round in its one place: a hand, a row or a penalty pile.
-export function listCardsOfRound(state: GameState): Card[] {
+export function listCardsOfRound(state: GameState): HandCard[] {
   if (state.phase === GamePhase.PreStart) {
     return [];
   }

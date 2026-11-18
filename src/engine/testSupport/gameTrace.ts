@@ -2,7 +2,11 @@
 // request and its response.
 import { assert, expect } from 'vitest';
 import { advanceGame } from '#engine/advanceGame.ts';
-import { type Card, getPenalty } from '#engine/dataTypes/cards/card.ts';
+import {
+  type Card,
+  checkCardNotHidden,
+  getPenalty,
+} from '#engine/dataTypes/cards/card.ts';
 import type { Deck } from '#engine/dataTypes/cards/deck.ts';
 import type { GameRules } from '#engine/dataTypes/game/gameRules.ts';
 import {
@@ -84,7 +88,7 @@ function describeState(state: GameState): string[] {
     ...describeRows(state),
     ...listRoundSeats(round.seats).flatMap((seat) => [
       `${seat.playerId}:`,
-      `  hand: ${describeCards(seat.hand)}`,
+      `  hand: ${describeCards(seat.hand.map((handCard) => checkCardNotHidden(handCard).force()))}`,
       `  picked card: ${describePickedCard(seat)}`,
       `  penalty pile: ${describeCards(seat.penaltyPile)}`,
       `  penalty score: ${statePlayers.entities[seat.playerId].penaltyScore}`,

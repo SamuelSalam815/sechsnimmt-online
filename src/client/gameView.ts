@@ -1,4 +1,8 @@
-import { type Card, getPenaltyTotal } from '#engine/dataTypes/cards/card.ts';
+import {
+  type Card,
+  checkCardNotHidden,
+  getPenaltyTotal,
+} from '#engine/dataTypes/cards/card.ts';
 import { GamePhase, type GameState } from '#engine/dataTypes/game/gameState.ts';
 import type {
   PlayerId,
@@ -136,7 +140,10 @@ export function listHandLowestFirst(
     return [];
   }
   const hand = game.round.seats.entities[ownPlayerId]?.hand ?? [];
-  return [...hand].sort((a, b) => a.faceValue - b.faceValue);
+  // The server hides only the hands of the other players.
+  return hand
+    .map((handCard) => checkCardNotHidden(handCard).force())
+    .sort((a, b) => a.faceValue - b.faceValue);
 }
 
 function describeCards(cards: readonly Card[]): string {

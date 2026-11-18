@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { hideCard } from '#engine/dataTypes/cards/card.ts';
 import {
   createRound,
   type Round,
@@ -28,6 +29,13 @@ describe('findCardInHand', () => {
       failure: { errorCode: ErrorCode.RuleViolation },
     });
   });
+
+  test('fails for a hidden card', () => {
+    expect(findCardInHand(seatOf('a', [hideCard(ace)]), ace.id)).toMatchObject({
+      ok: false,
+      failure: { errorCode: ErrorCode.UnknownEntity },
+    });
+  });
 });
 
 describe('playPickedCard', () => {
@@ -35,6 +43,12 @@ describe('playPickedCard', () => {
     const seat = seatOf('a', [ace, other], ace);
     playPickedCard(seat, ace);
     expect(seat).toEqual(seatOf('a', [other]));
+  });
+
+  test('takes a hidden card out of the hand by its card ID', () => {
+    const seat = seatOf('a', [hideCard(ace), hideCard(other)], ace);
+    playPickedCard(seat, ace);
+    expect(seat).toEqual(seatOf('a', [hideCard(other)]));
   });
 
   test('throws for a card that the hand does not hold', () => {
