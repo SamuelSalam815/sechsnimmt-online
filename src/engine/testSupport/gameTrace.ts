@@ -41,6 +41,7 @@ import {
   takeRow,
   unpickCard,
 } from '#engine/reducers/gameSlice.ts';
+import { projectHistoryForViewer } from '#engine/reducers/historyProjection.ts';
 import type { GameRequest } from '#engine/requests/gameRequest.ts';
 import { RequestType } from '#engine/requests/requestType.ts';
 import { initialRootState, type RootState } from '#engine/store.ts';
@@ -49,6 +50,7 @@ import {
   assertGameStateInvariants,
   listCardsOfRound,
 } from '#testSupport/gameStateInvariants.ts';
+import { projectGameState } from '#testSupport/gameStates.ts';
 
 // The face value and the card ID are both numbers, so the trace names each of
 // them.
@@ -255,6 +257,16 @@ export function createGameTrace(players: readonly PlayerProfile[]) {
       trace.push(...describeDump(stateDumpTitle, describeState(game)));
     }
     rootState = outcome;
+    expectReplayForEveryViewer();
+  }
+
+  function expectReplayForEveryViewer(): void {
+    for (const viewerId of [...players.map(({ id }) => id), undefined]) {
+      const replayedGame = projectHistoryForViewer(rootState.history, viewerId)
+        .map(({ action }) => action)
+        .reduce(gameSlice.reducer, initialRootState.game);
+      expect(replayedGame).toEqual(projectGameState(rootState.game, viewerId));
+    }
   }
 
   function startGame(rules: GameRules, deck: Deck, seen = currentVersion()) {

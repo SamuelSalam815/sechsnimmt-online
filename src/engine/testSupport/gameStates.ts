@@ -1,9 +1,11 @@
 // Test support. It builds the game states that the tests of several layers
 // start from.
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
-import type {
-  RoundGameState,
-  RoundPhase,
+import {
+  GamePhase,
+  type GameState,
+  type RoundGameState,
+  type RoundPhase,
 } from '#engine/dataTypes/game/gameState.ts';
 import {
   type GameStateVersion,
@@ -15,7 +17,10 @@ import {
   type PlayerProfile,
   type Players,
 } from '#engine/dataTypes/playerState/player.ts';
-import type { Round } from '#engine/dataTypes/table/roundLifecycle.ts';
+import {
+  hideOtherHands,
+  type Round,
+} from '#engine/dataTypes/table/roundLifecycle.ts';
 
 export function playersOf(
   profiles: readonly PlayerProfile[],
@@ -43,4 +48,15 @@ export function roundGameStateOf(
   version: GameStateVersion = INITIAL_GAME_STATE_VERSION,
 ): RoundGameState {
   return { phase, version, gameRules: STANDARD_GAME_RULES, players, round };
+}
+
+// The game state that the history of the viewer must replay to.
+export function projectGameState(
+  state: GameState,
+  viewerId: PlayerId | undefined,
+): GameState {
+  if (state.phase === GamePhase.PreStart) {
+    return state;
+  }
+  return { ...state, round: hideOtherHands(state.round, viewerId) };
 }
