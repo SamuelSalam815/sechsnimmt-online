@@ -1,30 +1,17 @@
 import { type Card, DECK_SIZE } from '#engine/dataTypes/cards/card.ts';
 
-declare const deckBrand: unique symbol;
-
-// Represents a particular shuffling of cards
+// A particular shuffling of the cards.
 export interface Deck {
-  readonly cards: readonly Card[];
-  readonly [deckBrand]: true;
+  cards: Card[];
 }
 
-// Represents the consequence of drawing a number of cards from a deck
 export interface DeckDraw {
-  readonly newDeck: Deck;
-  readonly cards: readonly Card[];
-}
-
-function brandAsDeck(cards: readonly Card[]): Deck {
-  // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
-  return { cards } as Deck;
+  newDeck: Deck;
+  cards: Card[];
 }
 
 export function getDeckFaceValues(): number[] {
   return Array.from({ length: DECK_SIZE }, (_, i) => i + 1);
-}
-
-export function createDeck(cards: readonly Card[]): Deck {
-  return brandAsDeck([...cards]);
 }
 
 export function drawCardsFromDeck(deck: Deck, count: number): DeckDraw {
@@ -34,7 +21,11 @@ export function drawCardsFromDeck(deck: Deck, count: number): DeckDraw {
     );
   }
   return {
-    newDeck: brandAsDeck(deck.cards.slice(count)),
+    newDeck: { cards: deck.cards.slice(count) },
     cards: deck.cards.slice(0, count),
   };
+}
+
+export function createDeck(cards: readonly Card[]): Deck {
+  return { cards: [...cards] };
 }

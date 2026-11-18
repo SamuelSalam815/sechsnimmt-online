@@ -10,8 +10,6 @@ export const MAX_PLAYER_COUNT = 10;
 
 export type PlayerId = string;
 
-declare const playerBrand: unique symbol;
-
 export interface Player {
   readonly id: PlayerId;
   readonly name: string;
@@ -19,24 +17,14 @@ export interface Player {
   // the cards of the penalty pile of the running round. A penalty pile ends
   // with its round, while the penalty limit applies to the whole game.
   readonly penaltyScore: number;
-  readonly [playerBrand]: true;
 }
 
 // What a client knows about a player when it starts the game. The penalty
 // score belongs to the game, so no request carries it.
 export type PlayerProfile = Pick<Player, 'id' | 'name'>;
 
-function brandAsPlayer(
-  id: PlayerId,
-  name: string,
-  penaltyScore: number,
-): Player {
-  // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
-  return { id, name, penaltyScore } as Player;
-}
-
 export function createPlayer(profile: PlayerProfile): Player {
-  return brandAsPlayer(profile.id, profile.name, 0);
+  return { id: profile.id, name: profile.name, penaltyScore: 0 };
 }
 
 export function findPlayer(
@@ -61,11 +49,10 @@ export function addPenaltyToPlayer(
       `The penalty of the player ${penaltyTotal.playerId} does not belong to the player ${player.id}`,
     );
   }
-  return brandAsPlayer(
-    player.id,
-    player.name,
-    player.penaltyScore + penaltyTotal.penaltyIncrease,
-  );
+  return {
+    ...player,
+    penaltyScore: player.penaltyScore + penaltyTotal.penaltyIncrease,
+  };
 }
 
 export function addPenaltiesToPlayers(

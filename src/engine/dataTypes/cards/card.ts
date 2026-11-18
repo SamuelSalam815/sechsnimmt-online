@@ -1,13 +1,10 @@
 // Identifies a card without revealing its face value.
 export type CardId = number;
 
-declare const cardBrand: unique symbol;
-
 // The representation of a playing card in sechsnimmt
 export interface Card {
   readonly id: CardId;
   readonly faceValue: number;
-  readonly [cardBrand]: true;
 }
 
 export const DECK_SIZE = 104;
@@ -20,8 +17,7 @@ function createCard(faceValue: number, position: number): Card {
   if (!Number.isInteger(faceValue) || faceValue < 1 || faceValue > DECK_SIZE) {
     throw new Error(`Unrecognized card face value: ${faceValue}`);
   }
-  // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
-  return { id: position, faceValue } as Card;
+  return { id: position, faceValue };
 }
 
 export function getPenaltyTotal(cards: readonly Card[]): number {

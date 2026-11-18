@@ -16,9 +16,7 @@ export enum GamePhase {
 
 export type RoundPhase = Exclude<GamePhase, GamePhase.PreStart>;
 
-declare const gameStateBrand: unique symbol;
-
-type GameStateFields =
+export type GameState =
   | { readonly phase: GamePhase.PreStart; readonly version: GameStateVersion }
   | {
       readonly phase: RoundPhase;
@@ -30,22 +28,10 @@ type GameStateFields =
       readonly round: Round;
     };
 
-export type GameState = GameStateFields & {
-  readonly [gameStateBrand]: true;
-};
-
 export type RoundGameState = Extract<GameState, { round: Round }>;
 
-function brandAsGameState(fields: GameStateFields): GameState {
-  // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
-  return fields as GameState;
-}
-
 export function createInitialGameState(): GameState {
-  return brandAsGameState({
-    phase: GamePhase.PreStart,
-    version: INITIAL_GAME_STATE_VERSION,
-  });
+  return { phase: GamePhase.PreStart, version: INITIAL_GAME_STATE_VERSION };
 }
 
 export function createGameState(
@@ -55,7 +41,7 @@ export function createGameState(
   players: readonly Player[],
   round: Round,
 ): GameState {
-  return brandAsGameState({ phase, version, gameRules, players, round });
+  return { phase, version, gameRules, players, round };
 }
 
 export function assertRoundInProgress(

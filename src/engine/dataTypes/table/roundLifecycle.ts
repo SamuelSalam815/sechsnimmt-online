@@ -17,8 +17,6 @@ import { ErrorCode, lookup, type Result } from '#engine/result.ts';
 
 export const ROW_COUNT = 4;
 
-declare const roundBrand: unique symbol;
-
 // The card that each player has picked, by player ID. One entry per player is
 // the rule that a player picks one card.
 export type CardPicks = Readonly<Partial<Record<PlayerId, CardId>>>;
@@ -32,26 +30,18 @@ export interface Round {
   // A picked card stays in the hand of its owner. The reveal takes it out.
   readonly picks: CardPicks;
   readonly penaltyPiles: readonly PenaltyPile[];
-  readonly [roundBrand]: true;
-}
-
-type RoundFields = Omit<Round, typeof roundBrand>;
-
-function brandAsRound(fields: RoundFields): Round {
-  // biome-ignore lint/nursery/noUnsafeTypeAssertion: constructor for the owning module
-  return fields as Round;
 }
 
 export function createRound(
   rows: readonly Row[],
   hands: readonly Hand[],
 ): Round {
-  return brandAsRound({
+  return {
     rows,
     hands,
     picks: {},
     penaltyPiles: hands.map((hand) => createPenaltyPile(hand.playerId)),
-  });
+  };
 }
 
 // The setup of docs/game-rules.md.
@@ -119,27 +109,27 @@ export function pickCardInRound(
   playerId: PlayerId,
   card: Card,
 ): Round {
-  return brandAsRound({
+  return {
     ...round,
     picks: { ...round.picks, [playerId]: card.id },
-  });
+  };
 }
 
 export function unpickCardInRound(round: Round, playerId: PlayerId): Round {
-  return brandAsRound({ ...round, picks: picksWithout(round.picks, playerId) });
+  return { ...round, picks: picksWithout(round.picks, playerId) };
 }
 
 // The cards of the hand, the pick and the penalty pile of the player leave the
 // game with the player.
 export function removePlayerFromRound(round: Round, playerId: PlayerId): Round {
-  return brandAsRound({
+  return {
     ...round,
     hands: round.hands.filter((hand) => hand.playerId !== playerId),
     picks: picksWithout(round.picks, playerId),
     penaltyPiles: round.penaltyPiles.filter(
       (pile) => pile.playerId !== playerId,
     ),
-  });
+  };
 }
 
 // The placed card leaves the hand of its owner, and the pick of that player
@@ -151,12 +141,12 @@ export function placePickedCard(
   rows: readonly Row[],
 ): Round {
   const hand = findHand(round, playerId).force();
-  return brandAsRound({
+  return {
     ...round,
     rows,
     hands: handsWith(round.hands, removeCardFromHand(hand, card)),
     picks: picksWithout(round.picks, playerId),
-  });
+  };
 }
 
 export function takeCardsIntoPenaltyPile(
@@ -165,13 +155,13 @@ export function takeCardsIntoPenaltyPile(
   cards: readonly Card[],
 ): Round {
   const pile = findPileOfPlayer(round.penaltyPiles, playerId).force();
-  return brandAsRound({
+  return {
     ...round,
     penaltyPiles: pilesWith(
       round.penaltyPiles,
       addCardsToPenaltyPile(pile, cards),
     ),
-  });
+  };
 }
 
 function picksWithout(picks: CardPicks, playerId: PlayerId): CardPicks {
