@@ -39,10 +39,8 @@ export interface CardPlacement {
   readonly takenCards: readonly Card[];
 }
 
-// A revealed card keeps its seat, so that the cards that its placement takes
-// go to the penalty pile of that seat.
-interface RevealedCard {
-  readonly seat: RoundSeat;
+export interface RevealedCard {
+  readonly playerId: PlayerId;
   readonly card: Card;
 }
 
@@ -56,11 +54,12 @@ interface RevealedCard {
 //   stay picked.
 export function resolveReveal(game: RoundGameState): CardPlacement[] {
   const placements: CardPlacement[] = [];
-  for (const { seat, card } of revealedCardsLowestFirst(game.round)) {
+  for (const { playerId, card } of listRevealedCardsLowestFirst(game.round)) {
     const rowIndex = findRowIndexForCard(game.round.rows, card);
     if (rowIndex === undefined) {
       return placements;
     }
+    const seat = findSeat(game.round, playerId).force();
     playPickedCard(seat, card);
     const takenCards = addCardToRow(game.round.rows[rowIndex], card);
     placements.push(
@@ -116,9 +115,9 @@ export function findCardForRowPick(
   round: Round,
   playerId: PlayerId,
 ): Result<Card> {
-  const lowestRevealedCard = revealedCardsLowestFirst(round).at(0);
+  const lowestRevealedCard = listRevealedCardsLowestFirst(round).at(0);
   return lookup(
-    lowestRevealedCard?.seat.playerId === playerId
+    lowestRevealedCard?.playerId === playerId
       ? lowestRevealedCard.card
       : undefined,
     ErrorCode.RuleViolation,
@@ -156,14 +155,14 @@ function takeCards(
   return addPenaltyToPlayer(player, takenCards, game.gameRules.penaltyLimit);
 }
 
-function revealedCardsLowestFirst(round: Round): RevealedCard[] {
+export function listRevealedCardsLowestFirst(round: Round): RevealedCard[] {
   const revealedCards: RevealedCard[] = [];
   for (const seat of listRoundSeats(round.seats)) {
     if (seat.pickedCardId === undefined) {
       continue;
     }
     revealedCards.push({
-      seat,
+      playerId: seat.playerId,
       card: findCardInHand(seat, seat.pickedCardId).force(),
     });
   }
@@ -171,9 +170,9 @@ function revealedCardsLowestFirst(round: Round): RevealedCard[] {
 }
 
 // Rules 1 and 2: of the rows whose last card is lower than the card, the
-// index of the row whose last card is the highest. Undefined for rule 4: the player chooses the
-// row to take.
-function findRowIndexForCard(
+// index of the row whose last card is the highest. Undefined for rule 4: the
+// player chooses the row to take.
+export function findRowIndexForCard(
   rows: readonly Row[],
   card: Card,
 ): number | undefined {

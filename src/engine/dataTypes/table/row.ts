@@ -14,6 +14,11 @@ export function getLastCardOfRow(row: Row): Card {
   return row.cards[row.cards.length - 1];
 }
 
+// Placement rule 3 of docs/game-rules.md: a card for a full row takes it.
+export function isRowFull(row: Row): boolean {
+  return row.cards.length >= ROW_CAPACITY;
+}
+
 // Placement rule 3 of docs/game-rules.md. The cards that the player takes
 // come back, so that no caller asks about the capacity of the row.
 export function addCardToRow(row: Row, card: Card): Card[] {

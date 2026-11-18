@@ -56,6 +56,13 @@ export function addPenaltyToPlayer(
   return player.penaltyScore >= penaltyLimit;
 }
 
+export function hasReachedPenaltyLimit(
+  player: Player,
+  penaltyLimit: number,
+): boolean {
+  return player.penaltyScore >= penaltyLimit;
+}
+
 export function hasEnoughPlayers(players: Players): boolean {
   return players.ids.length >= MIN_PLAYER_COUNT;
 }

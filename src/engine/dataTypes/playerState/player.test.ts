@@ -5,6 +5,7 @@ import {
   createPlayers,
   findPlayer,
   hasEnoughPlayers,
+  hasReachedPenaltyLimit,
   type Player,
 } from '#engine/dataTypes/playerState/player.ts';
 import { ErrorCode } from '#engine/result.ts';
@@ -73,6 +74,16 @@ describe('addPenaltyToPlayer', () => {
       true,
     );
     expect(ada.penaltyScore).toBe(66);
+  });
+});
+
+describe('hasReachedPenaltyLimit', () => {
+  test('is false below the limit and true at it', () => {
+    const ada = unscoredAda();
+    ada.penaltyScore = 65;
+    expect(hasReachedPenaltyLimit(ada, 66)).toBe(false);
+    ada.penaltyScore = 66;
+    expect(hasReachedPenaltyLimit(ada, 66)).toBe(true);
   });
 });
 

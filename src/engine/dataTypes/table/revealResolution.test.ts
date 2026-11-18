@@ -13,7 +13,9 @@ import {
 import {
   type CardPlacement,
   findCardForRowPick,
+  findRowIndexForCard,
   findRowIndexOfLargestPenalty,
+  listRevealedCardsLowestFirst,
   resolveReveal,
   resolveRowPick,
 } from '#engine/dataTypes/table/revealResolution.ts';
@@ -284,6 +286,27 @@ describe('resolveRowPick', () => {
     expect(faceValuesOfRows(game.round)).toEqual([[5], [20, 21]]);
     // The card of Ben is not placed.
     expect(picksOf(game.round)).toEqual({ a: undefined, b: cardOf(25).id });
+  });
+});
+
+describe('findRowIndexForCard', () => {
+  const rows = [rowOf(12), rowOf(37), rowOf(43), rowOf(58)];
+
+  test('gives the row whose last card is the closest lower one', () => {
+    expect(findRowIndexForCard(rows, cardOf(44))).toBe(2);
+  });
+
+  test('gives undefined for a card lower than the last card of every row', () => {
+    expect(findRowIndexForCard(rows, cardOf(5))).toBeUndefined();
+  });
+});
+
+describe('listRevealedCardsLowestFirst', () => {
+  test('lists the picked card of each seat, lowest first', () => {
+    expect(listRevealedCardsLowestFirst(rowPickRound())).toEqual([
+      { playerId: 'a', card: cardOf(5) },
+      { playerId: 'b', card: cardOf(25) },
+    ]);
   });
 });
 
