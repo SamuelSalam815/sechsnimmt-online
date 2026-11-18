@@ -141,21 +141,15 @@ describe('revealPickedCards', () => {
     placements: [placementOf('b', 60, 0)],
   });
 
-  // resolveReveal decides the phase and places the cards. See
-  // dataTypes/table/revealResolution.test.ts.
-  test('takes the phase from the resolved reveal', () => {
-    const next = gameSlice.reducer(picked, revealOfBen);
+  test('moves each placed card from the hand to the end of its row', () => {
+    const next = roundStateOf(gameSlice.reducer(picked, revealOfBen));
+    expect(next.round.rows).toEqual([rowOf(50, 60)]);
+    expect(next.round.seats.entities.b).toEqual(seatOf('b', []));
+    // Ada still holds cards.
     expect(next.phase).toBe(GamePhase.CardPick);
-    expect(picksOf(next)).toEqual([undefined, undefined]);
   });
 
-  test('makes a major version change', () => {
-    const next = gameSlice.reducer(picked, revealOfBen);
-    // The reveal follows the pick, which was the first change.
-    expect(next.version).toEqual({ sequence: 2, major: true });
-  });
-
-  test('grows the penalty score of a player that takes a row', () => {
+  test('starts the row again with the card and gives the taken cards to the player', () => {
     const fullRow = roundGameStateOf(
       GamePhase.CardPick,
       players,
@@ -164,14 +158,76 @@ describe('revealPickedCards', () => {
         [seatOf('a', [aceOfAda]), seatOf('b', [cardOfBen], cardOfBen)],
       ),
     );
-    const next = gameSlice.reducer(
-      fullRow,
-      revealPickedCards({
-        placements: [placementOf('b', 60, 0, [1, 2, 3, 4, 5])],
-      }),
+    const next = roundStateOf(
+      gameSlice.reducer(
+        fullRow,
+        revealPickedCards({
+          placements: [placementOf('b', 60, 0, [1, 2, 3, 4, 5])],
+        }),
+      ),
+    );
+    expect(next.round.rows).toEqual([rowOf(60)]);
+    expect(next.round.seats.entities.b.penaltyPile).toEqual(
+      [1, 2, 3, 4, 5].map(cardOf),
     );
     // The row counts 1 penalty for each card and 2 for the 5.
     expect(penaltyScoresOf(next)).toEqual([0, 6]);
+  });
+
+  test('moves to the row pick phase when a pick remains', () => {
+    const next = gameSlice.reducer(
+      picked,
+      revealPickedCards({ placements: [] }),
+    );
+    expect(next.phase).toBe(GamePhase.RowPick);
+  });
+
+  test('moves to the end of round phase when every hand is empty', () => {
+    const lastCards = roundGameStateOf(
+      GamePhase.CardPick,
+      players,
+      createRound(
+        [rowOf(50)],
+        [
+          seatOf('a', [cardOf(70)], cardOf(70)),
+          seatOf('b', [cardOfBen], cardOfBen),
+        ],
+      ),
+    );
+    const next = gameSlice.reducer(
+      lastCards,
+      revealPickedCards({
+        placements: [placementOf('b', 60, 0), placementOf('a', 70, 0)],
+      }),
+    );
+    expect(next.phase).toBe(GamePhase.EndOfRound);
+  });
+
+  // The pick of Ada stays, which alone would give the row pick phase.
+  test('moves to the game over phase when a score reaches the penalty limit', () => {
+    const nearLimit = roundGameStateOf(
+      GamePhase.CardPick,
+      playersOf([ada, ben], { b: 63 }),
+      createRound(
+        [rowOf(50), rowOf(80)],
+        [
+          seatOf('a', [cardOf(90)], cardOf(90)),
+          seatOf('b', [cardOfBen], cardOfBen),
+        ],
+      ),
+    );
+    const next = gameSlice.reducer(
+      nearLimit,
+      revealPickedCards({ placements: [placementOf('b', 60, 0, [50])] }),
+    );
+    // The 50 counts 3 penalty, which makes 66.
+    expect(next.phase).toBe(GamePhase.GameOver);
+  });
+
+  test('makes a major version change', () => {
+    const next = gameSlice.reducer(picked, revealOfBen);
+    // The reveal follows the pick, which was the first change.
+    expect(next.version).toEqual({ sequence: 2, major: true });
   });
 });
 
@@ -191,18 +247,16 @@ describe('pickRow', () => {
     placements: [placementOf('a', 1, 0, [50])],
   });
 
-  // resolveRowPick decides the phase and places the cards. See
-  // dataTypes/table/revealResolution.test.ts.
-  test('takes the phase from the resolved row pick', () => {
-    const next = gameSlice.reducer(rowPick, pickRowOfAda);
-    expect(next.phase).toBe(GamePhase.CardPick);
-    expect(roundStateOf(next).round.rows).toEqual([rowOf(1)]);
-  });
-
-  test('grows the penalty score of the player by the taken row', () => {
-    const next = gameSlice.reducer(rowPick, pickRowOfAda);
+  test('starts the row with the card and gives the taken row to the player', () => {
+    const next = roundStateOf(gameSlice.reducer(rowPick, pickRowOfAda));
+    expect(next.round.rows).toEqual([rowOf(1)]);
+    expect(next.round.seats.entities.a).toEqual({
+      ...seatOf('a', [otherOfAda]),
+      penaltyPile: [cardOf(50)],
+    });
     // The 50 counts 3 penalty.
     expect(penaltyScoresOf(next)).toEqual([3, 0]);
+    expect(next.phase).toBe(GamePhase.CardPick);
   });
 
   test('makes a major version change', () => {

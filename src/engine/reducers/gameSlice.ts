@@ -14,24 +14,26 @@ import {
   minorVersionBump,
 } from '#engine/dataTypes/game/gameStateVersion.ts';
 import {
+  addPenaltyToPlayer,
+  findPlayer,
   hasEnoughPlayers,
   type PlayerId,
   type Players,
   playersAdapter,
 } from '#engine/dataTypes/playerState/player.ts';
-import {
-  type CardPlacement,
-  type RowPick,
-  resolveReveal,
-  resolveRowPick,
+import type {
+  CardPlacement,
+  RowPick,
 } from '#engine/dataTypes/table/revealResolution.ts';
 import {
   everyHandIsEmpty,
+  findRow,
   findSeat,
   type Round,
 } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
   listRoundSeats,
+  playPickedCard,
   roundSeatsAdapter,
 } from '#engine/dataTypes/table/roundSeat.ts';
 
@@ -94,18 +96,16 @@ export const gameSlice = createSlice({
         .pickedCardId;
       state.version = minorVersionBump(state.version);
     },
-    revealPickedCards(state, _action: PayloadAction<RevealPickedCardsPayload>) {
+    revealPickedCards(state, action: PayloadAction<RevealPickedCardsPayload>) {
       assertRoundInProgress(state);
-      resolveReveal(state);
-      state.phase = findPhaseAfterPlacements(state);
+      applyCardPlacements(state, action.payload.placements);
       // The reveal is a major change: a request that saw an earlier version
       // chose its card without knowing the revealed cards.
       state.version = majorVersionBump(state.version);
     },
     pickRow(state, action: PayloadAction<PickRowPayload>) {
       assertRoundInProgress(state);
-      resolveRowPick(state, action.payload);
-      state.phase = findPhaseAfterPlacements(state);
+      applyCardPlacements(state, action.payload.placements);
       // The row pick is a major change: it places the cards that the reveal
       // left picked.
       state.version = majorVersionBump(state.version);
@@ -134,6 +134,34 @@ export const gameSlice = createSlice({
     },
   },
 });
+
+function applyCardPlacements(
+  game: RoundGameState,
+  placements: readonly CardPlacement[],
+): void {
+  for (const placement of placements) {
+    applyCardPlacement(game, placement);
+  }
+  game.phase = findPhaseAfterPlacements(game);
+}
+
+function applyCardPlacement(
+  game: RoundGameState,
+  placement: CardPlacement,
+): void {
+  const { playerId, card, rowIndex, takenCards } = placement;
+  const seat = findSeat(game.round, playerId).force();
+  playPickedCard(seat, card);
+  const row = findRow(game.round, rowIndex).force();
+  if (takenCards.length === 0) {
+    row.cards.push(card);
+    return;
+  }
+  row.cards = [card];
+  seat.penaltyPile.push(...takenCards);
+  const player = findPlayer(game.players, playerId).force();
+  addPenaltyToPlayer(player, takenCards, game.gameRules.penaltyLimit);
+}
 
 // A placement that reaches the penalty limit leaves the cards that follow it
 // picked, so the score comes before the picks.
