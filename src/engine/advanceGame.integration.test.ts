@@ -10,6 +10,7 @@ import {
 } from '#engine/dataTypes/game/gameState.ts';
 import type { PlayerId } from '#engine/dataTypes/playerState/player.ts';
 import { listRevealedCardsLowestFirst } from '#engine/dataTypes/table/revealResolution.ts';
+import { listRoundSeats } from '#engine/dataTypes/table/roundSeat.ts';
 import type { Row } from '#engine/dataTypes/table/row.ts';
 import {
   abandonGame,
@@ -58,11 +59,55 @@ function describeCard(card: Card): string {
 }
 
 function describeCards(cards: readonly Card[]): string {
-  return cards.map(describeCard).join(', ');
+  return cards.length === 0 ? 'none' : cards.map(describeCard).join(', ');
 }
 
 function describeRows(rows: readonly Row[]): string {
   return rows.map((row) => describeCards(row.cards)).join(' | ');
+}
+
+function describeDump(title: string, lines: readonly string[]): string[] {
+  return ['', `  === ${title} ===`, ...lines.map((line) => `    ${line}`), ''];
+}
+
+function describePicks(state: GameState): string[] {
+  return listRevealedCardsLowestFirst(roundStateOf(state).round).map(
+    ({ playerId, card }) => `${playerId}: ${describeCard(card)}`,
+  );
+}
+
+function describeState(state: GameState): string[] {
+  const { phase, round, players: statePlayers } = roundStateOf(state);
+  return [
+    `phase: ${phase}`,
+    ...round.rows.map(
+      (row, rowIndex) => `row ${rowIndex}: ${describeCards(row.cards)}`,
+    ),
+    ...listRoundSeats(round.seats).flatMap((seat) => [
+      `${seat.playerId}:`,
+      `  hand: ${describeCards(seat.hand)}`,
+      `  penalty pile: ${describeCards(seat.penaltyPile)}`,
+      `  penalty score: ${statePlayers.entities[seat.playerId].penaltyScore}`,
+    ]),
+  ];
+}
+
+// A pick or an unpick changes one seat only, so its response gets no dump.
+function stateDumpTitleOf(actions: readonly GameAction[]): string | undefined {
+  const firstAction = actions[0];
+  if (startGameAction.match(firstAction)) {
+    return 'state at the start of the game';
+  }
+  if (startRoundAction.match(firstAction)) {
+    return 'state at the start of the round';
+  }
+  if (takeRow.match(firstAction)) {
+    return 'state after the row pick';
+  }
+  if (actions.some((action) => revealPickedCards.match(action))) {
+    return 'state after the reveal';
+  }
+  return undefined;
 }
 
 function roundStateOf(state: GameState): RoundGameState {
@@ -170,8 +215,16 @@ test('plays a full game with stale and bad requests mixed in', async () => {
       );
       return;
     }
+    const actions = outcome.history
+      .slice(rootState.history.length)
+      .map(({ action }) => action);
     let game = rootState.game;
-    for (const { action } of outcome.history.slice(rootState.history.length)) {
+    for (const action of actions) {
+      if (revealPickedCards.match(action)) {
+        trace.push(
+          ...describeDump('picks before the reveal', describePicks(game)),
+        );
+      }
       const nextGame = gameSlice.reducer(game, action);
       assertGameStateInvariants(nextGame);
       if (!startGameAction.match(action) && !startRoundAction.match(action)) {
@@ -181,6 +234,10 @@ test('plays a full game with stale and bad requests mixed in', async () => {
       }
       trace.push(`  response: ${describeAction(game, action, nextGame)}`);
       game = nextGame;
+    }
+    const stateDumpTitle = stateDumpTitleOf(actions);
+    if (stateDumpTitle !== undefined) {
+      trace.push(...describeDump(stateDumpTitle, describeState(game)));
     }
     rootState = outcome;
   }
