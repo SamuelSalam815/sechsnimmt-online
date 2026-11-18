@@ -40,14 +40,14 @@ On an immer draft they give a copy, and a write into that copy is lost.
 ## Reducers write into the draft
 
 A case reducer of `gameSlice` writes into its immer draft.
-A rule that changes the state, for example `resolveReveal`, takes the draft and changes it in place.
-It gives back only what the reducer cannot read from the state, for example the next phase.
+A rule that changes the state, for example `resolveReveal`, takes a draft and changes it in place.
+It gives back only what its caller cannot read from the state, for example the card placements.
 
 The state types therefore hold no `readonly`.
 A request type and an action payload keep `readonly`, because nothing writes into them.
 
 A rule function runs only on a draft.
-A test therefore runs it inside `createNextState`, as a reducer would.
+A test therefore runs it inside `createNextState`, as its caller does.
 A value that an adapter built is frozen, and a write into it outside a draft throws.
 
 Request handling sometimes needs to foresee the outcome of an action, for example whether an abandon ends the game.

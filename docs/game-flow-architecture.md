@@ -40,7 +40,7 @@ They alone progress the game.
 A rejected request never reaches them.
 
 A reducer writes into its immer draft.
-It sets a field, or it hands the draft to a rule of a data type, and it bumps the version.
+It sets a field, hands the draft to a rule of a data type, or applies the outcome that the action carries, and it bumps the version.
 The data types hold the rules of the game and their own invariants.
 See docs/data-type-design.md.
 
@@ -65,6 +65,22 @@ A second search could only confirm the first, because the reducer of a rejected 
 Layer 3 still searches for data that no request names, for example the seat that a revealed card leaves.
 Such a search passes through `force`, which throws the message of a miss.
 A miss there is a bug in this code, not a rejected request.
+
+## Reveal outcome
+
+The reveal and the row pick actions carry their outcome as a list of card placements.
+A placement names the player, the card and the row, and the cards that the player takes, if any.
+The first placement of a row pick is the row pick itself.
+The request handling runs the rules of the reveal on a copy of the state and puts the placements into the payload.
+The reducers only apply the placements.
+They then set the next phase with plain checks of the state.
+
+The history therefore keeps the outcome of each reveal, and a client reports a reveal from the history.
+When the server hides the picked cards of the other players, a client cannot compute a reveal itself.
+The payload is then the only way that a client learns the revealed cards.
+
+A payload that only reports the outcome, next to a reducer that still computes it, was rejected.
+The two copies of the outcome could disagree, and a client without the picked cards still could not replay a reveal.
 
 ## Game state version
 
