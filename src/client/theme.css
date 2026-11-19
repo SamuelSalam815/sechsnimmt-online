@@ -186,8 +186,7 @@ body {
   grid-template-columns: minmax(0, 1fr) 2rem 2rem;
 }
 
-/* Shorter than the row, so that the fill keeps clear of the lines between
-   the players. */
+/* Shorter than the row, so that the fills of two players keep apart. */
 .player-list-name {
   line-height: 1.5rem;
   padding-inline: 0.25rem;
@@ -234,10 +233,6 @@ body {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-.player-list-scores .player-list-row + .player-list-row {
-  border-top: var(--score);
 }
 
 .player-list-score {
