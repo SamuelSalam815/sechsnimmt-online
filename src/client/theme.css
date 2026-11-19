@@ -21,7 +21,9 @@ body {
   box-sizing: border-box;
   width: var(--card-size);
   height: var(--card-size);
-  margin: 0.1rem;
+  /* Wider than the ring, so that the ring of a row shows around its cards
+     and not over them. */
+  margin: 0.15rem;
 }
 
 .card-miniature {
@@ -79,13 +81,19 @@ body {
 .table-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  /* Every row keeps the space of the ring, so that the rows do not move when
-     the row pick starts. */
-  padding: var(--ring-width);
+}
+
+/* The line sits at the top edge of the row, halfway between the margins of
+   the cards above and below it, so that the rows keep the spacing of the
+   cards in a row. A border would add to that spacing. */
+.table-row + .table-row {
+  background:
+    linear-gradient(var(--color-ink), var(--color-ink)) top / 100% 0.0625rem
+    no-repeat;
 }
 
 .table-row-button {
+  padding: 0;
   border: none;
   background: none;
   color: inherit;
