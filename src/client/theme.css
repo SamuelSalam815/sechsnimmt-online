@@ -244,6 +244,12 @@ body {
   text-align: center;
 }
 
+/* Ink, not the panel text of the negative fill: the panel color does not
+   read on the inactive header color. */
+.status-line-waiting {
+  background: var(--color-header-inactive);
+}
+
 .outline-button {
   padding: 0.25rem 0.75rem;
   border: 0.0625rem solid var(--color-ink);

@@ -19,7 +19,7 @@ export function StatusLine({
   return (
     <MiniWindow title={`Round ${countRounds(history)}`}>
       <p
-        className={`status-line ${isWaitingForOtherPicks(game, session.playerId) ? 'negative-text' : ''}`}
+        className={`status-line ${isWaitingForOtherPicks(game, session.playerId) ? 'status-line-waiting' : ''}`}
       >
         {statusLineText(game, history, session.playerId)}
       </p>

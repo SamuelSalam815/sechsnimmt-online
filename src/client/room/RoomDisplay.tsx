@@ -55,7 +55,9 @@ export function RoomDisplay() {
       title="Players"
       className={`mini-window-narrow ${awaitingOwnReady ? 'awaiting-input' : ''}`}
     >
-      <p className={`status-line ${waitingForOthers ? 'negative-text' : ''}`}>
+      <p
+        className={`status-line ${waitingForOthers ? 'status-line-waiting' : ''}`}
+      >
         {countdownStartedAt === null
           ? roomStatusText(roomView, session.playerId)
           : countdownText(now - countdownStartedAt)}
