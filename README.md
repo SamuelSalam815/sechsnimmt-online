@@ -216,6 +216,18 @@ npm run host
 - [ ] A new game after the game over
 - [ ] A mark for a player with a short disconnect
 - [ ] Containerized development
+- [ ] Containerized deployment
+- [ ] A grid overlay and a vignette
+- [ ] Tests on mobile devices and a layout that suits them
+- [ ] A room browser
+- [ ] A spectator mode
+- [ ] Games kept in a database
+- [ ] Replays of games from the database
+- [ ] A stress test
+
+Nice to have:
+
+- [ ] Animations
 
 `TODO.md` holds the open work and the open questions.
 
