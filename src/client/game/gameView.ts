@@ -162,6 +162,7 @@ export function listLastRevealCardIds(
 
 export type GameLogLine =
   | { kind: 'roundStart'; roundNumber: number }
+  | { kind: 'revealSeparator' }
   | {
       kind: 'placement';
       playerName: string;
@@ -178,7 +179,7 @@ export type GameLogLine =
     };
 
 // The reveal shows no line of its own: the placements after it name each
-// revealed card.
+// revealed card. A separator stands between two reveals of a round.
 export function listGameLogLines(
   history: readonly AppliedAction[],
 ): GameLogLine[] {
@@ -189,6 +190,10 @@ export function listGameLogLines(
     if (startGame.match(action) || startRound.match(action)) {
       roundNumber++;
       gameLogLines.push({ kind: 'roundStart', roundNumber });
+    } else if (revealPickedCards.match(action)) {
+      if (gameLogLines.at(-1)?.kind !== 'roundStart') {
+        gameLogLines.push({ kind: 'revealSeparator' });
+      }
     } else if (placeCard.match(action)) {
       const { playerId, card, rowIndex } = action.payload;
       gameLogLines.push({

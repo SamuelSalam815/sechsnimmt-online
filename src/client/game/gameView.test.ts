@@ -140,6 +140,36 @@ test('the game log has one line for each placed card and none for the reveal', (
   ]);
 });
 
+test('the game log separates two reveals of a round', () => {
+  const engine = replayForViewer(
+    'a',
+    startAction,
+    ...pickActions,
+    ...revealActions,
+    ...rowPickActions,
+    pickCard({ playerId: 'a', cardId: cardOf(100).id }),
+    pickCard({ playerId: 'b', cardId: cardOf(50).id }),
+    revealPickedCards({
+      revealedCards: [
+        { playerId: 'b', card: cardOf(50) },
+        { playerId: 'a', card: cardOf(100) },
+      ],
+    }),
+    placeCard(placementOf('b', 50, 3)),
+    placeCard(placementOf('a', 100, 3)),
+  );
+  expect(
+    listGameLogLines(engine.history).map((gameLogLine) => gameLogLine.kind),
+  ).toEqual([
+    'roundStart',
+    'take',
+    'placement',
+    'revealSeparator',
+    'placement',
+    'placement',
+  ]);
+});
+
 test('the game log starts each round with a line of its own', () => {
   const engine = replayForViewer(
     'a',

@@ -11,6 +11,8 @@ function GameLogLineView({ gameLogLine }: { gameLogLine: GameLogLine }) {
           {`— Round ${gameLogLine.roundNumber} —`}
         </li>
       );
+    case 'revealSeparator':
+      return <li className="game-log-reveal-separator" />;
     case 'placement':
       return (
         <li className="game-log-line">

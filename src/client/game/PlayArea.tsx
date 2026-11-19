@@ -52,7 +52,7 @@ export function PlayArea({
               <EmptyCardSlot key={`empty ${slotIndex}`} />
             ))}
             <span className="row-penalty-total negative-text">
-              {`+${getPenaltyTotal(row.cards)}`}
+              {getPenaltyTotal(row.cards)}
             </span>
           </>
         );
@@ -63,7 +63,7 @@ export function PlayArea({
             type="button"
             aria-label={`Take row ${rowIndex + 1}`}
             onClick={() => sendRowPick(rowIndex)}
-            className="table-row table-row-button red-ring-on-hover"
+            className="table-row table-row-button"
           >
             {rowContent}
           </button>
