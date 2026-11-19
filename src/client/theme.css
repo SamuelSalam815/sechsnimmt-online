@@ -184,7 +184,7 @@ body {
   content: "";
   position: absolute;
   inset-inline: 5%;
-  border-top: var(--score-width) solid var(--color-locked-slot);
+  border-top: var(--score);
 }
 
 /* Each line sits in the middle of the space between two rows. */
