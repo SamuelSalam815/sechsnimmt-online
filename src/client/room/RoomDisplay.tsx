@@ -48,42 +48,46 @@ export function RoomDisplay() {
     !isAwaitingOwnReady(roomView, session.playerId);
 
   return (
-    <MiniWindow title="Players" className="mini-window-narrow">
-      <p
-        className={`status-line ${waitingForOthers ? 'status-line-waiting' : ''}`}
-      >
-        {countdownStartedAt === null
-          ? roomStatusText(roomView, session.playerId)
-          : countdownText(now - countdownStartedAt)}
-      </p>
-      <ul className="player-list player-list-room">
-        {listPlayerRows(roomView, session.playerId).map((playerRow) => (
-          <li
-            key={playerRow.playerId}
-            className={`player-list-row ${playerRow.isOwnPlayer ? 'player-list-own-row' : ''}`}
-          >
-            <span
-              className={`player-list-name ${playerRow.ready ? 'negative-text' : ''}`}
+    <>
+      <MiniWindow title="Players" className="mini-window-narrow">
+        <p
+          className={`status-line ${waitingForOthers ? 'status-line-waiting' : ''}`}
+        >
+          {countdownStartedAt === null
+            ? roomStatusText(roomView, session.playerId)
+            : countdownText(now - countdownStartedAt)}
+        </p>
+        <ul className="player-list player-list-room">
+          {listPlayerRows(roomView, session.playerId).map((playerRow) => (
+            <li
+              key={playerRow.playerId}
+              className={`player-list-row ${playerRow.isOwnPlayer ? 'player-list-own-row' : ''}`}
             >
-              {playerRow.name}
-              {playerRow.isOwnPlayer && (
-                <span className="visually-hidden"> (you)</span>
-              )}
-            </span>
-          </li>
-        ))}
-      </ul>
+              <span
+                className={`player-list-name ${playerRow.ready ? 'negative-text' : ''}`}
+              >
+                {playerRow.name}
+                {playerRow.isOwnPlayer && (
+                  <span className="visually-hidden"> (you)</span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </MiniWindow>
       {ownPlayer !== undefined && !roomView.gameStarted && (
-        <div className="window-actions">
-          <button
-            type="button"
-            onClick={() => toggleReady(session, ownPlayer.ready)}
-            className={`solid-button ${ownPlayer.ready ? 'solid-button-pressed' : ''}`}
-          >
-            {ownPlayer.ready ? 'Unready' : 'Ready'}
-          </button>
-        </div>
+        <MiniWindow title={ownPlayer.name} className="mini-window-narrow">
+          <div className="window-actions">
+            <button
+              type="button"
+              onClick={() => toggleReady(session, ownPlayer.ready)}
+              className={`solid-button ${ownPlayer.ready ? 'solid-button-pressed' : ''}`}
+            >
+              {ownPlayer.ready ? 'Unready' : 'Ready'}
+            </button>
+          </div>
+        </MiniWindow>
       )}
-    </MiniWindow>
+    </>
   );
 }
