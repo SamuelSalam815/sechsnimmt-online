@@ -340,11 +340,21 @@ body {
   padding: 0.5rem;
 }
 
+/* One grid for the whole log, so that the name column of every line takes
+   the width of the longest name while the cards still fit. */
 .game-log {
+  display: grid;
+  grid-template-columns: minmax(5rem, max-content) minmax(min-content, 1fr);
+  align-content: start;
+  column-gap: 0.25rem;
   height: 11.5rem;
   margin-block: 0;
   padding: 0;
   list-style: none;
+}
+
+.game-log > li {
+  grid-column: 1 / -1;
 }
 
 .game-log-reveal-separator {
@@ -352,11 +362,9 @@ body {
   border-top: var(--score);
 }
 
-/* The name column has one width for every line, so that the cards of the
-   lines align. */
 .game-log-line {
   display: grid;
-  grid-template-columns: 5rem 1fr;
+  grid-template-columns: subgrid;
   align-items: center;
   padding-inline: 0.25rem;
 }
