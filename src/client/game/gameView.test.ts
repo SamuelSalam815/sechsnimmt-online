@@ -87,7 +87,7 @@ test('the status line counts the picks in the card pick phase', () => {
     'Waiting for others (1 of 2)',
   );
   expect(statusLineText(roundOf(engine), engine.history, 'b')).toBe(
-    'Round 1 – pick a card (1 of 2 picked)',
+    'Pick a card (1 of 2 picked)',
   );
 });
 

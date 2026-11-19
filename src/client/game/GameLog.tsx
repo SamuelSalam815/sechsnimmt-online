@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { CardView } from '#client/game/CardView.tsx';
 import { type GameLogLine, listGameLogLines } from '#client/game/gameView.ts';
+import { MiniWindow } from '#client/game/MiniWindow.tsx';
 import { useAppSelector } from '#client/store/hooks.ts';
 
 function GameLogLineView({ gameLogLine }: { gameLogLine: GameLogLine }) {
@@ -56,8 +57,7 @@ export function GameLog() {
   }, [gameLogLineCount]);
 
   return (
-    <section>
-      <div className="section-header negative-text">Log</div>
+    <MiniWindow title="Log">
       <ol ref={gameLogRef} className="game-log">
         {gameLogLines.map((gameLogLine, gameLogLineIndex) => (
           <GameLogLineView
@@ -67,6 +67,6 @@ export function GameLog() {
           />
         ))}
       </ol>
-    </section>
+    </MiniWindow>
   );
 }

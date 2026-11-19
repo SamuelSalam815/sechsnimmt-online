@@ -111,39 +111,35 @@ body {
 
 .play-area {
   flex: 1 1 auto;
-  padding-inline-start: 0.75rem;
 }
 
 .player-status {
   flex: 0 1 9rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-self: flex-start;
+}
+
+.player-status-list {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* Every row has the same columns, so that the blocks of the players align. */
+/* Every row has the same columns, so that the names and scores of the
+   players align. */
 .player-status-row {
   display: grid;
   grid-template-columns: 1fr 2rem 2rem;
-  gap: 0.25rem;
-}
-
-.player-status-name,
-.player-status-score,
-.player-status-left-mark {
-  display: flex;
   align-items: center;
-  height: 2rem;
-  background: var(--color-panel);
+  min-height: 2rem;
 }
 
-/* A block, not a flex box: text-overflow cuts no text in a flex box. */
+.player-status-row + .player-status-row {
+  border-top: 0.0625rem solid var(--color-ink);
+}
+
 .player-status-name {
-  display: block;
-  line-height: 2rem;
+  justify-self: start;
+  max-width: 100%;
   padding-inline: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -151,21 +147,14 @@ body {
 }
 
 .player-status-score {
-  justify-content: center;
+  text-align: center;
 }
 
 .player-status-left {
   color: var(--color-faded);
 }
 
-.player-status-left-mark {
-  grid-column: span 2;
-  justify-content: center;
-  color: var(--color-faded);
-}
-
 .table-row-button {
-  position: relative;
   padding: 0;
   border: none;
   background: none;
@@ -173,23 +162,34 @@ body {
   font: inherit;
 }
 
-/* The square sits in the inset of the play area, left of the row. */
-.table-row-button:hover::before,
-.table-row-button:focus-visible::before {
-  content: "";
-  position: absolute;
-  left: -0.625rem;
-  top: 50%;
-  width: 0.5rem;
-  height: 0.5rem;
-  transform: translateY(-50%);
-  background: var(--color-accent);
+/* The lines sit in the margins of the cards, so that they sandwich the row
+   without moving it. */
+.table-row-button:hover,
+.table-row-button:focus-visible {
+  box-shadow:
+    inset 0 var(--ring-width) 0 var(--color-accent),
+    inset 0 calc(-1 * var(--ring-width)) 0 var(--color-accent);
 }
 
-.section-header {
+.mini-window {
   margin-block: 0.5rem;
+}
+
+.mini-window-header {
   padding: 0.25rem 0.5rem;
   font-weight: bold;
+}
+
+.mini-window-body {
+  padding: 0.25rem 0.5rem;
+  background: var(--color-panel);
+}
+
+.status-line {
+  margin: 0;
+  padding-block: 0.25rem;
+  border-block: 0.0625rem solid var(--color-ink);
+  text-align: center;
 }
 
 .name-tag {

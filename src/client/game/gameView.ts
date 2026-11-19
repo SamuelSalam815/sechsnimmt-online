@@ -68,7 +68,6 @@ export function statusLineText(
   history: readonly AppliedAction[],
   ownPlayerId: PlayerId,
 ): string {
-  const roundNumber = countRounds(history);
   switch (game.phase) {
     case GamePhase.CardPick: {
       const seats = listRoundSeats(game.round.seats);
@@ -79,7 +78,7 @@ export function statusLineText(
         game.round.seats.entities[ownPlayerId]?.pickedCard !== undefined;
       return ownCardPicked
         ? `Waiting for others (${pickedCount} of ${seats.length})`
-        : `Round ${roundNumber} – pick a card (${pickedCount} of ${seats.length} picked)`;
+        : `Pick a card (${pickedCount} of ${seats.length} picked)`;
     }
     case GamePhase.RowPick: {
       const rowPicker = findRowPicker(game);
@@ -90,7 +89,7 @@ export function statusLineText(
     // The plan has no text for it: the server deals the next round at once,
     // so the phase shows only for a moment.
     case GamePhase.EndOfRound:
-      return `Round ${roundNumber} is over`;
+      return 'The round is over';
     case GamePhase.GameOver:
       return gameOverText(game.players);
   }
