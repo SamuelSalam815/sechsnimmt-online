@@ -21,7 +21,7 @@ export function GameDisplay() {
       <StatusLine session={session} game={game} />
       <div className="table-and-players">
         <PlayArea session={session} game={game} />
-        <PlayerStatus game={game} />
+        <PlayerStatus session={session} game={game} />
       </div>
       <GameLog />
       <HandArea session={session} game={game} />

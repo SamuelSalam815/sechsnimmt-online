@@ -161,6 +161,7 @@ body {
 }
 
 .player-list {
+  --own-row-gutter: 0.5rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -171,11 +172,13 @@ body {
 }
 
 /* The name column has one width in every row of a list, so that the names
-   and what follows them align. */
+   and what follows them align. Every row keeps the gutter that the lines of
+   the own row take, so that the rows keep one width. */
 .player-list-row {
   display: grid;
   align-items: center;
   min-height: 2rem;
+  padding-inline: var(--own-row-gutter);
 }
 
 /* The names take all the width that the score squares leave. */
@@ -193,20 +196,16 @@ body {
   white-space: nowrap;
 }
 
-/* Every name keeps the margin that the lines of the own row take, so that
-   every name has the same width. */
 .player-list-room .player-list-row {
   grid-template-columns: minmax(0, 1fr);
 }
 
 .player-list-room .player-list-name {
-  margin-inline: 0.5rem;
   text-align: center;
 }
 
 /* The lines belong to the row, not the name: the name clips what overflows it
-   to cut a long name. Each line sits in the middle of the margin beside the
-   name. */
+   to cut a long name. Each line sits in the middle of the gutter. */
 .player-list-own-row {
   position: relative;
 }
@@ -220,11 +219,11 @@ body {
 }
 
 .player-list-own-row::before {
-  left: calc(0.25rem - 0.5 * var(--score-width));
+  left: calc(0.5 * (var(--own-row-gutter) - var(--score-width)));
 }
 
 .player-list-own-row::after {
-  right: calc(0.25rem - 0.5 * var(--score-width));
+  right: calc(0.5 * (var(--own-row-gutter) - var(--score-width)));
 }
 
 /* Read by a screen reader in place of the lines. */
