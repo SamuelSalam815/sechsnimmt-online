@@ -109,3 +109,7 @@ Ben 25 → row 2
 ```
 
 Rows count from 1 in the log. "+3" is the penalty of the taken cards. The log scrolls when it is taller than its space. Build the lines in a pure function in `gameView.ts`, with unit tests that replay a projected history, as `gameView.test.ts` does.
+
+### 2.8 Row spacing and separators
+
+The space between two rows equals the space between two cards in a row. A thin horizontal line in `--color-ink` separates each two rows.
