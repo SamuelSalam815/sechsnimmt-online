@@ -10,7 +10,7 @@ export function PlayerStatus({ game }: { game: RoundGameState }) {
   const history = useAppSelector((state) => state.engine.history);
   return (
     <MiniWindow title="Scores" className="player-status">
-      <ul className="player-list player-list-scores">
+      <ul className="player-list player-list-scores score-scrollbar">
         {listPlayerStatusRows(game).map((playerStatusRow) => (
           <li key={playerStatusRow.playerId} className="player-list-row">
             <span
