@@ -15,11 +15,13 @@ export function CardView({
   card,
   highlighted = false,
   inkRing = false,
+  miniature = false,
   onClick,
 }: {
   card: Card;
   highlighted?: boolean;
   inkRing?: boolean;
+  miniature?: boolean;
   onClick?: () => void;
 }) {
   const penalty = getPenalty(card);
@@ -27,6 +29,7 @@ export function CardView({
     ? 'negative-text'
     : findPenaltyClassName(penalty);
   const ringClassName = inkRing ? 'ink-ring' : '';
+  const sizeClassName = miniature ? 'card-miniature' : '';
   const cardFace = (
     <>
       <PenaltyTallies penalty={penalty} />
@@ -37,7 +40,9 @@ export function CardView({
   // picker clicks can be a button around its cards.
   if (onClick === undefined) {
     return (
-      <div className={`card-space card ${colorClassName} ${ringClassName}`}>
+      <div
+        className={`card-space ${sizeClassName} card ${colorClassName} ${ringClassName}`}
+      >
         {cardFace}
       </div>
     );
@@ -46,7 +51,7 @@ export function CardView({
     <button
       type="button"
       onClick={onClick}
-      className={`card-space card ${colorClassName} ${ringClassName} red-ring-on-hover lift-on-hover`}
+      className={`card-space ${sizeClassName} card ${colorClassName} ${ringClassName} red-ring-on-hover lift-on-hover`}
     >
       {cardFace}
     </button>

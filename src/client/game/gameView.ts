@@ -5,7 +5,10 @@ import {
   getPenaltyTotal,
 } from '#engine/dataTypes/cards/card.ts';
 import {
+  assertRoundInProgress,
   GamePhase,
+  type GameState,
+  INITIAL_GAME_STATE,
   type RoundGameState,
 } from '#engine/dataTypes/game/gameState.ts';
 import type {
@@ -15,9 +18,12 @@ import type {
 import { listRevealedCardsLowestFirst } from '#engine/dataTypes/table/revealResolution.ts';
 import { listRoundSeats } from '#engine/dataTypes/table/roundSeat.ts';
 import {
+  gameSlice,
+  placeCard,
   revealPickedCards,
   startGame,
   startRound,
+  takeRow,
 } from '#engine/reducers/gameSlice.ts';
 import {
   type AppliedAction,
@@ -105,23 +111,6 @@ function gameOverText(players: Players): string {
   return `Game over – ${winnerNames.slice(0, -1).join(', ')} and ${lastWinnerName} win`;
 }
 
-// The reveal already names every played card, so a placement adds no line.
-export function listReportRows(history: readonly AppliedAction[]): string[] {
-  return selectLastRevealEvents(history).flatMap((revealEvent) => {
-    if ('takenCards' in revealEvent) {
-      const name = findPlayerName(history, revealEvent.action.payload.playerId);
-      return [`${name} took ${describeCards(revealEvent.takenCards)}`];
-    }
-    if (revealPickedCards.match(revealEvent.action)) {
-      return revealEvent.action.payload.revealedCards.map(
-        ({ playerId, card }) =>
-          `${findPlayerName(history, playerId)} played ${card.faceValue}`,
-      );
-    }
-    return [];
-  });
-}
-
 export function listHandLowestFirst(
   game: RoundGameState,
   ownPlayerId: PlayerId,
@@ -171,8 +160,59 @@ export function listLastRevealCardIds(
   return new Set(placedCardIds.filter((cardId) => tableCardIds.has(cardId)));
 }
 
-function describeCards(cards: readonly Card[]): string {
-  return cards.map((card) => card.faceValue).join(', ');
+export type GameLogLine =
+  | { kind: 'roundStart'; roundNumber: number }
+  | {
+      kind: 'placement';
+      playerName: string;
+      card: Card;
+      rowNumber: number;
+    }
+  | {
+      kind: 'take';
+      playerName: string;
+      card: Card;
+      rowNumber: number;
+      takenCards: readonly Card[];
+      takenPenalty: number;
+    };
+
+// The reveal shows no line of its own: the placements after it name each
+// revealed card.
+export function listGameLogLines(
+  history: readonly AppliedAction[],
+): GameLogLine[] {
+  const gameLogLines: GameLogLine[] = [];
+  let roundNumber = 0;
+  let game: GameState = INITIAL_GAME_STATE;
+  for (const { action } of history) {
+    if (startGame.match(action) || startRound.match(action)) {
+      roundNumber++;
+      gameLogLines.push({ kind: 'roundStart', roundNumber });
+    } else if (placeCard.match(action)) {
+      const { playerId, card, rowIndex } = action.payload;
+      gameLogLines.push({
+        kind: 'placement',
+        playerName: findPlayerName(history, playerId),
+        card,
+        rowNumber: rowIndex + 1,
+      });
+    } else if (takeRow.match(action)) {
+      assertRoundInProgress(game);
+      const { playerId, card, rowIndex } = action.payload;
+      const takenCards = game.round.rows[rowIndex].cards;
+      gameLogLines.push({
+        kind: 'take',
+        playerName: findPlayerName(history, playerId),
+        card,
+        rowNumber: rowIndex + 1,
+        takenCards,
+        takenPenalty: getPenaltyTotal(takenCards),
+      });
+    }
+    game = gameSlice.reducer(game, action);
+  }
+  return gameLogLines;
 }
 
 // The players of the last start of the game include those who left it since,

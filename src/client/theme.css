@@ -24,6 +24,11 @@ body {
   margin: 0.1rem;
 }
 
+.card-miniature {
+  --card-size: 2rem;
+  margin-inline: 0.25rem;
+}
+
 .empty-card-slot {
   background: var(--color-locked-slot);
 }
@@ -103,6 +108,30 @@ body {
   background: none;
   color: var(--color-ink);
   font: inherit;
+}
+
+.app-column {
+  max-width: 25rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+.game-log {
+  height: 11.5rem;
+  overflow-y: auto;
+  margin-block: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.game-log-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.game-log-round-start {
+  text-align: center;
 }
 
 /* The shared patterns come last, so that they win over the classes of the

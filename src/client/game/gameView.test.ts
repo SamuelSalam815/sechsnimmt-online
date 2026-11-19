@@ -3,11 +3,11 @@ import { expect, test } from 'vitest';
 import {
   countRounds,
   findRowPicker,
+  listGameLogLines,
   listHandLowestFirst,
   listLastRevealCardIds,
   listLeftPlayerNames,
   listPlayerStatusRows,
-  listReportRows,
   statusLineText,
 } from '#client/game/gameView.ts';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
@@ -106,18 +106,58 @@ test('no player picks a row in the card pick phase', () => {
   expect(findRowPicker(roundOf(replay(startAction)))).toBeUndefined();
 });
 
-test('the report names the played cards and the taken cards', () => {
-  const engine = replay(
+function replayForViewer(
+  viewerId: string,
+  ...actions: UnknownAction[]
+): RootState {
+  const fullEngine = replay(...actions);
+  return replay(
+    ...projectHistoryForViewer(fullEngine.history, viewerId).map(
+      ({ action }) => action,
+    ),
+  );
+}
+
+test('the game log has one line for each placed card and none for the reveal', () => {
+  const engine = replayForViewer(
+    'b',
     startAction,
     ...pickActions,
     ...revealActions,
     ...rowPickActions,
   );
-  expect(listReportRows(engine.history)).toEqual([
-    'Ada played 5',
-    'Ben played 25',
-    'Ada took 10',
+  expect(listGameLogLines(engine.history)).toEqual([
+    { kind: 'roundStart', roundNumber: 1 },
+    {
+      kind: 'take',
+      playerName: 'Ada',
+      card: cardOf(5),
+      rowNumber: 1,
+      takenCards: [cardOf(10)],
+      takenPenalty: 3,
+    },
+    { kind: 'placement', playerName: 'Ben', card: cardOf(25), rowNumber: 2 },
   ]);
+});
+
+test('the game log starts each round with a line of its own', () => {
+  const engine = replayForViewer(
+    'a',
+    startAction,
+    ...pickActions,
+    ...revealActions,
+    ...rowPickActions,
+    endRound(),
+    startRound({
+      round: createRound(
+        [rowOf(25), rowOf(35), rowOf(45), rowOf(55)],
+        [seatOf('a', [cardOf(60)]), seatOf('b', [cardOf(70)])],
+      ),
+    }),
+  );
+  expect(
+    listGameLogLines(engine.history).map((gameLogLine) => gameLogLine.kind),
+  ).toEqual(['roundStart', 'take', 'placement', 'roundStart']);
 });
 
 test('the player status lists the lowest penalty score first', () => {
@@ -188,8 +228,8 @@ test('the game display reads the history that hides the other hands', () => {
   expect(listHandLowestFirst(roundOf(engineOfAda), 'a')).toEqual(
     listHandLowestFirst(roundOf(fullEngine), 'a'),
   );
-  expect(listReportRows(engineOfAda.history)).toEqual(
-    listReportRows(fullEngine.history),
+  expect(listGameLogLines(engineOfAda.history)).toEqual(
+    listGameLogLines(fullEngine.history),
   );
   expect(listPlayerStatusRows(roundOf(engineOfAda))).toEqual(
     listPlayerStatusRows(roundOf(fullEngine)),
@@ -221,8 +261,10 @@ test('the game display names the players who left the game', () => {
     abandonGame({ playerId: 'a' }),
   );
   expect(listLeftPlayerNames(roundOf(engine), engine.history)).toEqual(['Ada']);
-  // The report of the last reveal still names the player who left.
-  expect(listReportRows(engine.history)).toContain('Ada took 10');
+  // The game log still names the player who left.
+  expect(listGameLogLines(engine.history)).toContainEqual(
+    expect.objectContaining({ kind: 'take', playerName: 'Ada' }),
+  );
 });
 
 test('no player has left a game that every player still plays', () => {

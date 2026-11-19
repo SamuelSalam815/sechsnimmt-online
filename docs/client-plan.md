@@ -26,7 +26,7 @@ The pick of another player is a hidden card until the reveal puts the revealed c
 The rules decide each step of a reveal and give one action for each event: `revealPickedCards`, `placeCard`, `takeRow`, and the phase actions `awaitCardPick`, `awaitRowPick`, `endRound` and `endGame`.
 The reducers only apply them, so a client replays the decisions of the server and makes none itself.
 `docs/game-flow-architecture.md` describes this split.
-The report area reads the events of the last reveal from the history with `selectLastRevealEvents`.
+The game log replays the whole history. The play area reads the events of the last reveal with `selectLastRevealEvents` to ring the cards that it placed.
 
 ### Start pause
 
@@ -131,10 +131,10 @@ The integration test writes one text trace per scenario in `src/engine/__snapsho
   - the rows of the player status, lowest penalty score first, each with the total score, the penalty of the round in brackets from `getPenaltyTotal(seat.penaltyPile)`, and whether the player has picked;
   - the text of the status line and the round number;
   - the row picker: `awaitRowPick` has no payload, so the selector finds the player of the lowest revealed card (`listRevealedCardsLowestFirst`);
-  - the rows of the report, with the names for `selectLastRevealEvents`; a `takeRow` event carries its taken cards.
-- `CardView.tsx`: a square with the face value in the center and `getPenalty(card)` at the top center and the bottom center.
-- `PlayerStatus.tsx`, `StatusLine.tsx` and `ReportArea.tsx` show the selectors.
-  The report shows lines such as `<name> played <card>` and `<name> took <cards>`.
+  - the lines of the game log: a line at the start of each round and one for each placed card, with the taken cards of a take.
+- `CardView.tsx`: a square with the tallies of `getPenalty(card)` at the top center and the face value below them.
+- `PlayerStatus.tsx`, `StatusLine.tsx` and `GameLog.tsx` show the selectors.
+  The log shows lines such as `<name> <card> → row <n>` and `<name> <card> takes row <n>: <cards> (+<penalty>)`, with miniature cards.
 - `PlayArea.tsx` shows the rows; in the row pick phase, the rows are clickable for the player who picks.
 - `HandArea.tsx` has the name of the own player as its label and shows the hand lowest first.
   It highlights the picked card.

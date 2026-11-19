@@ -17,7 +17,7 @@ export default function App() {
 
   const screen = chooseScreen({ session, room }, now);
   return (
-    <div style={{ maxWidth: 'fit-content', marginInline: 'auto' }}>
+    <div className="app-column">
       {screen === 'namePrompt' && <NamePrompt />}
       {screen === 'roomDisplay' && <RoomDisplay />}
       {screen === 'gameDisplay' && <GameDisplay />}
