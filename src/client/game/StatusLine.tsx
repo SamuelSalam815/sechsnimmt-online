@@ -3,7 +3,7 @@ import {
   isWaitingForOtherPicks,
   statusLineText,
 } from '#client/game/gameView.ts';
-import { MiniWindow } from '#client/game/MiniWindow.tsx';
+import { MiniWindow } from '#client/MiniWindow.tsx';
 import type { Session } from '#client/store/clientStore.ts';
 import { useAppSelector } from '#client/store/hooks.ts';
 import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';

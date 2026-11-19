@@ -1,10 +1,12 @@
 import { getReady, getUnready } from '#client/connection/serverApi.ts';
 import { useRequestInFlight } from '#client/connection/useRequestInFlight.ts';
-import { NameTag } from '#client/NameTag.tsx';
+import { MiniWindow } from '#client/MiniWindow.tsx';
 import {
   COUNTDOWN_STEP_MILLISECONDS,
   countdownText,
+  isAwaitingOwnReady,
   listPlayerRows,
+  roomStatusText,
 } from '#client/room/roomDisplayView.ts';
 import type { Session } from '#client/store/clientStore.ts';
 import { useAppDispatch, useAppSelector } from '#client/store/hooks.ts';
@@ -23,7 +25,11 @@ export function RoomDisplay() {
   );
 
   if (session === null || roomView === null) {
-    return <p>Connecting…</p>;
+    return (
+      <MiniWindow title="Players" className="mini-window-narrow">
+        <p className="status-line">Connecting…</p>
+      </MiniWindow>
+    );
   }
   const ownPlayer = roomView.players.find(
     (player) => player.playerId === session.playerId,
@@ -37,29 +43,41 @@ export function RoomDisplay() {
     );
   }
 
+  const waitingForOthers =
+    countdownStartedAt === null &&
+    !isAwaitingOwnReady(roomView, session.playerId);
+
   return (
-    <div>
-      <ul>
+    <MiniWindow title="Players" className="mini-window-narrow">
+      <p className={`status-line ${waitingForOthers ? 'negative-text' : ''}`}>
+        {countdownStartedAt === null
+          ? roomStatusText(roomView, session.playerId)
+          : countdownText(now - countdownStartedAt)}
+      </p>
+      <ul className="player-list player-list-room">
         {listPlayerRows(roomView, session.playerId).map((playerRow) => (
-          <li key={playerRow.playerId}>
-            <NameTag name={playerRow.name} marked={playerRow.ready} />
-            {playerRow.isOwnPlayer && ' (you)'}
+          <li key={playerRow.playerId} className="player-list-row">
+            <span
+              className={`player-list-name ${playerRow.ready ? 'negative-text' : ''}`}
+            >
+              {playerRow.name}
+            </span>
+            {playerRow.isOwnPlayer && <span>(you)</span>}
           </li>
         ))}
       </ul>
       {ownPlayer !== undefined && !roomView.gameStarted && (
-        <button
-          type="button"
-          aria-pressed={ownPlayer.ready}
-          onClick={() => toggleReady(session, ownPlayer.ready)}
-          className={`ready-button red-ring-on-hover ${ownPlayer.ready ? 'negative-text' : ''}`}
-        >
-          Ready
-        </button>
+        <div className="window-actions">
+          <button
+            type="button"
+            aria-pressed={ownPlayer.ready}
+            onClick={() => toggleReady(session, ownPlayer.ready)}
+            className={`outline-button red-ring-on-hover ${ownPlayer.ready ? 'negative-text' : ''}`}
+          >
+            Ready
+          </button>
+        </div>
       )}
-      {countdownStartedAt !== null && (
-        <p>{countdownText(now - countdownStartedAt)}</p>
-      )}
-    </div>
+    </MiniWindow>
   );
 }

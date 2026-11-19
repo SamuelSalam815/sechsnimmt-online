@@ -2,7 +2,7 @@ import { pickCard, unpickCard } from '#client/connection/serverApi.ts';
 import { useRequestInFlight } from '#client/connection/useRequestInFlight.ts';
 import { CardView } from '#client/game/CardView.tsx';
 import { listHandLowestFirst } from '#client/game/gameView.ts';
-import { MiniWindow } from '#client/game/MiniWindow.tsx';
+import { MiniWindow } from '#client/MiniWindow.tsx';
 import type { Session } from '#client/store/clientStore.ts';
 import { useAppDispatch } from '#client/store/hooks.ts';
 import type { Card } from '#engine/dataTypes/cards/card.ts';

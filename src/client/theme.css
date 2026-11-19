@@ -120,28 +120,36 @@ body {
   align-self: flex-start;
 }
 
-.player-status-list {
+.player-list {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* The name column has one width for every row, as in the log, so that the
-   names and scores of the players align. */
-.player-status-row {
+/* The name column has one width in every list, as in the log, so that the
+   names and what follows them align. */
+.player-list-row {
   display: grid;
-  grid-template-columns: 5rem 2rem 2rem;
   align-items: center;
   min-height: 2rem;
 }
 
-.player-status-row + .player-status-row {
+.player-list-scores .player-list-row {
+  grid-template-columns: 5rem 2rem 2rem;
+}
+
+.player-list-room .player-list-row {
+  grid-template-columns: 5rem auto;
+  gap: 0.25rem;
+}
+
+.player-list-row + .player-list-row {
   border-top: var(--score);
 }
 
 /* Shorter than the row, so that the fill keeps clear of the lines between
    the players. */
-.player-status-name {
+.player-list-name {
   line-height: 1.5rem;
   padding-inline: 0.25rem;
   overflow: hidden;
@@ -149,11 +157,11 @@ body {
   white-space: nowrap;
 }
 
-.player-status-score {
+.player-list-score {
   text-align: center;
 }
 
-.player-status-left {
+.player-list-left {
   color: var(--color-faded);
 }
 
@@ -190,6 +198,28 @@ body {
   margin-block: 0.5rem;
 }
 
+.mini-window-narrow {
+  max-width: 20rem;
+  margin-inline: auto;
+}
+
+.window-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-block: 0.5rem;
+}
+
+.text-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.5rem;
+  border: 0.0625rem solid var(--color-ink);
+  background: var(--color-background);
+  color: var(--color-ink);
+  font: inherit;
+}
+
 .mini-window-header {
   padding: 0.25rem 0.5rem;
   font-weight: bold;
@@ -207,11 +237,7 @@ body {
   text-align: center;
 }
 
-.name-tag {
-  padding-inline: 0.25rem;
-}
-
-.ready-button {
+.outline-button {
   padding: 0.25rem 0.75rem;
   border: 0.0625rem solid var(--color-ink);
   background: none;

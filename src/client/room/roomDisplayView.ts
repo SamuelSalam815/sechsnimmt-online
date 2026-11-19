@@ -23,6 +23,27 @@ export function listPlayerRows(
   }));
 }
 
+export function isAwaitingOwnReady(
+  roomView: RoomView,
+  ownPlayerId: PlayerId,
+): boolean {
+  const ownPlayer = roomView.players.find(
+    (player) => player.playerId === ownPlayerId,
+  );
+  return !roomView.gameStarted && ownPlayer !== undefined && !ownPlayer.ready;
+}
+
+export function roomStatusText(
+  roomView: RoomView,
+  ownPlayerId: PlayerId,
+): string {
+  const readyCount = roomView.players.filter((player) => player.ready).length;
+  const readyCountText = `(${readyCount} of ${roomView.players.length} ready)`;
+  return isAwaitingOwnReady(roomView, ownPlayerId)
+    ? `Get ready ${readyCountText}`
+    : `Waiting for others ${readyCountText}`;
+}
+
 export function countdownText(elapsedMilliseconds: number): string {
   const stepCount = COUNTDOWN_MILLISECONDS / COUNTDOWN_STEP_MILLISECONDS;
   const passedStepCount = Math.min(

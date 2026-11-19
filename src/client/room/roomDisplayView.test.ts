@@ -1,5 +1,10 @@
 import { expect, test } from 'vitest';
-import { countdownText, listPlayerRows } from '#client/room/roomDisplayView.ts';
+import {
+  countdownText,
+  isAwaitingOwnReady,
+  listPlayerRows,
+  roomStatusText,
+} from '#client/room/roomDisplayView.ts';
 import type { RoomView } from '#server/roomStore/roomSlice.ts';
 
 const roomView: RoomView = {
@@ -27,4 +32,22 @@ test('the countdown line adds one number each second', () => {
 test('the countdown line stays in its bounds for a clock that is off', () => {
   expect(countdownText(-500)).toBe('Starting in 3…');
   expect(countdownText(3_500)).toBe('Starting in 1…');
+});
+
+test('the room awaits the ready of a player who is not ready', () => {
+  expect(isAwaitingOwnReady(roomView, 'b')).toBe(true);
+  expect(roomStatusText(roomView, 'b')).toBe('Get ready (1 of 2 ready)');
+});
+
+test('a ready player waits for the others', () => {
+  expect(isAwaitingOwnReady(roomView, 'a')).toBe(false);
+  expect(roomStatusText(roomView, 'a')).toBe(
+    'Waiting for others (1 of 2 ready)',
+  );
+});
+
+test('the room awaits no ready once the game has started', () => {
+  expect(isAwaitingOwnReady({ ...roomView, gameStarted: true }, 'b')).toBe(
+    false,
+  );
 });

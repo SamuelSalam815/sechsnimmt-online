@@ -3,6 +3,7 @@ import { GameDisplay } from '#client/game/GameDisplay.tsx';
 import { isAwaitingOwnInput } from '#client/game/gameView.ts';
 import { NamePrompt } from '#client/namePrompt/NamePrompt.tsx';
 import { RoomDisplay } from '#client/room/RoomDisplay.tsx';
+import { isAwaitingOwnReady } from '#client/room/roomDisplayView.ts';
 import { COUNTDOWN_MILLISECONDS, chooseScreen } from '#client/screenChoice.ts';
 import { useAppSelector } from '#client/store/hooks.ts';
 import { useCountdownClock } from '#client/useCountdownClock.ts';
@@ -19,11 +20,26 @@ export default function App() {
   );
 
   const screen = chooseScreen({ session, room }, now);
-  const awaitingOwnInput =
-    screen === 'gameDisplay' &&
-    session !== null &&
-    game.phase !== GamePhase.PreStart &&
-    isAwaitingOwnInput(game, session.playerId);
+  function isAwaitingOwnInputOnScreen(): boolean {
+    switch (screen) {
+      case 'namePrompt':
+        return true;
+      case 'roomDisplay':
+        return (
+          session !== null &&
+          room.roomView !== null &&
+          room.countdownStartedAt === null &&
+          isAwaitingOwnReady(room.roomView, session.playerId)
+        );
+      case 'gameDisplay':
+        return (
+          session !== null &&
+          game.phase !== GamePhase.PreStart &&
+          isAwaitingOwnInput(game, session.playerId)
+        );
+    }
+  }
+  const awaitingOwnInput = isAwaitingOwnInputOnScreen();
   return (
     <div
       className={`app-column ${awaitingOwnInput ? 'app-column-awaiting-input' : ''}`}

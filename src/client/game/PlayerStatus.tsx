@@ -2,7 +2,7 @@ import {
   listLeftPlayerNames,
   listPlayerStatusRows,
 } from '#client/game/gameView.ts';
-import { MiniWindow } from '#client/game/MiniWindow.tsx';
+import { MiniWindow } from '#client/MiniWindow.tsx';
 import { useAppSelector } from '#client/store/hooks.ts';
 import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';
 
@@ -10,28 +10,28 @@ export function PlayerStatus({ game }: { game: RoundGameState }) {
   const history = useAppSelector((state) => state.engine.history);
   return (
     <MiniWindow title="Scores" className="player-status">
-      <ul className="player-status-list">
+      <ul className="player-list player-list-scores">
         {listPlayerStatusRows(game).map((playerStatusRow) => (
-          <li key={playerStatusRow.playerId} className="player-status-row">
+          <li key={playerStatusRow.playerId} className="player-list-row">
             <span
-              className={`player-status-name ${playerStatusRow.hasPicked ? 'negative-text' : ''}`}
+              className={`player-list-name ${playerStatusRow.hasPicked ? 'negative-text' : ''}`}
             >
               {playerStatusRow.name}
             </span>
-            <span className="player-status-score" title="Penalty score">
+            <span className="player-list-score" title="Penalty score">
               {playerStatusRow.penaltyScore}
             </span>
-            <span className="player-status-score" title="Penalty this round">
+            <span className="player-list-score" title="Penalty this round">
               {playerStatusRow.roundPenalty}
             </span>
           </li>
         ))}
         {listLeftPlayerNames(game, history).map((leftPlayerName) => (
-          <li key={`left ${leftPlayerName}`} className="player-status-row">
-            <span className="player-status-name player-status-left">
+          <li key={`left ${leftPlayerName}`} className="player-list-row">
+            <span className="player-list-name player-list-left">
               {leftPlayerName}
             </span>
-            <span className="player-status-left">left</span>
+            <span className="player-list-left">left</span>
           </li>
         ))}
       </ul>
