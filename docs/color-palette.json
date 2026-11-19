@@ -1,6 +1,5 @@
 {
   "name": "NieR:Automata UI Palette",
-  "source": "Sampled (most frequent pixel value per region) from resources/*.png; mirrors swatch.html",
   "format": "hex-rgb",
   "colors": {
     "chip": {
