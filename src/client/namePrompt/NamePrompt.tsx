@@ -20,7 +20,7 @@ export function NamePrompt() {
   }
 
   return (
-    <MiniWindow title="Name" className="mini-window-narrow">
+    <MiniWindow title="Identification" className="mini-window-narrow">
       <form onSubmit={handleSubmit} className="window-actions">
         <input
           aria-label="Name"
@@ -30,7 +30,7 @@ export function NamePrompt() {
           className="text-input"
         />
         <button type="submit" className="solid-button">
-          Join
+          Affirm
         </button>
       </form>
     </MiniWindow>
