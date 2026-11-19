@@ -139,9 +139,10 @@ body {
   border-top: var(--score);
 }
 
+/* Shorter than the row, so that the fill keeps clear of the lines between
+   the players. */
 .player-status-name {
-  align-self: stretch;
-  line-height: 2rem;
+  line-height: 1.5rem;
   padding-inline: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
