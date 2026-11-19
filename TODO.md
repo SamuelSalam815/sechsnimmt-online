@@ -5,3 +5,4 @@
 - Start a new game after the game over. The room keeps `gameStarted` and has no request for a new game.
 - Decide how a slow event stream holds back. The room store writes each event to every open stream at once, and a client that reads slowly lets the buffer of its response grow without bound. One option is to close a stream whose buffer passes a limit, so that the client reconnects and gets the full history. Ask the user.
 - Clean up the logs. They write too many lines at once to be useful, but they must keep the full information. They hold every hand and the deck, because the room store logs each engine action at the info level; this is on purpose.
+- Look into containerized development, for example a dev container, so that the repository itself describes the setup of a development environment. Today the user sets it up from a separate sandbox template.
