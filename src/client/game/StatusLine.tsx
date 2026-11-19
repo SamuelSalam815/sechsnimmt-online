@@ -1,4 +1,8 @@
-import { countRounds, statusLineText } from '#client/game/gameView.ts';
+import {
+  countRounds,
+  isWaitingForOtherPicks,
+  statusLineText,
+} from '#client/game/gameView.ts';
 import { MiniWindow } from '#client/game/MiniWindow.tsx';
 import type { Session } from '#client/store/clientStore.ts';
 import { useAppSelector } from '#client/store/hooks.ts';
@@ -14,7 +18,9 @@ export function StatusLine({
   const history = useAppSelector((state) => state.engine.history);
   return (
     <MiniWindow title={`Round ${countRounds(history)}`}>
-      <p className="status-line">
+      <p
+        className={`status-line ${isWaitingForOtherPicks(game, session.playerId) ? 'negative-text' : ''}`}
+      >
         {statusLineText(game, history, session.playerId)}
       </p>
     </MiniWindow>

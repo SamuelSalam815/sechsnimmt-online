@@ -3,6 +3,8 @@ import { expect, test } from 'vitest';
 import {
   countRounds,
   findRowPicker,
+  isAwaitingOwnInput,
+  isWaitingForOtherPicks,
   listGameLogLines,
   listHandLowestFirst,
   listLastRevealCardIds,
@@ -380,4 +382,19 @@ test('a new round clears the cards of the last reveal', () => {
   expect(listLastRevealCardIds(roundOf(engine), engine.history)).toEqual(
     new Set(),
   );
+});
+
+test('the game awaits the input of a player who has not picked', () => {
+  const engine = replay(startAction, pickActions[0]);
+  expect(isAwaitingOwnInput(roundOf(engine), 'a')).toBe(false);
+  expect(isWaitingForOtherPicks(roundOf(engine), 'a')).toBe(true);
+  expect(isAwaitingOwnInput(roundOf(engine), 'b')).toBe(true);
+  expect(isWaitingForOtherPicks(roundOf(engine), 'b')).toBe(false);
+});
+
+test('the game awaits the input of the row picker only', () => {
+  const engine = replay(startAction, ...pickActions, ...revealActions);
+  expect(isAwaitingOwnInput(roundOf(engine), 'a')).toBe(true);
+  expect(isAwaitingOwnInput(roundOf(engine), 'b')).toBe(false);
+  expect(isWaitingForOtherPicks(roundOf(engine), 'b')).toBe(false);
 });

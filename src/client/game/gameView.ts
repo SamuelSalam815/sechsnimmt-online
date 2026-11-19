@@ -63,6 +63,30 @@ export function findRowPicker(game: RoundGameState): PlayerId | undefined {
   return listRevealedCardsLowestFirst(game.round).at(0)?.playerId;
 }
 
+export function isWaitingForOtherPicks(
+  game: RoundGameState,
+  ownPlayerId: PlayerId,
+): boolean {
+  return (
+    game.phase === GamePhase.CardPick &&
+    game.round.seats.entities[ownPlayerId]?.pickedCard !== undefined
+  );
+}
+
+export function isAwaitingOwnInput(
+  game: RoundGameState,
+  ownPlayerId: PlayerId,
+): boolean {
+  switch (game.phase) {
+    case GamePhase.CardPick:
+      return !isWaitingForOtherPicks(game, ownPlayerId);
+    case GamePhase.RowPick:
+      return findRowPicker(game) === ownPlayerId;
+    default:
+      return false;
+  }
+}
+
 export function statusLineText(
   game: RoundGameState,
   history: readonly AppliedAction[],
@@ -74,9 +98,7 @@ export function statusLineText(
       const pickedCount = seats.filter(
         (seat) => seat.pickedCard !== undefined,
       ).length;
-      const ownCardPicked =
-        game.round.seats.entities[ownPlayerId]?.pickedCard !== undefined;
-      return ownCardPicked
+      return isWaitingForOtherPicks(game, ownPlayerId)
         ? `Waiting for others (${pickedCount} of ${seats.length})`
         : `Pick a card (${pickedCount} of ${seats.length} picked)`;
     }
