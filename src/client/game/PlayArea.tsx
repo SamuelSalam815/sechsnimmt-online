@@ -35,25 +35,35 @@ export function PlayArea({
 
   return (
     <section>
-      {game.round.rows.map((row, rowIndex) => (
-        <div
+      {game.round.rows.map((row, rowIndex) => {
+        const rowContent = (
+          <>
+            {row.cards.map((card) => (
+              <CardView key={card.id} card={card} />
+            ))}
+            {emptySlotIndexes(row.cards.length).map((slotIndex) => (
+              <EmptyCardSlot key={`empty ${slotIndex}`} />
+            ))}
+          </>
+        );
+        return ownRowPick ? (
+          <button
+            // biome-ignore lint/suspicious/noArrayIndexKey: the rows keep their places for the whole round
+            key={rowIndex}
+            type="button"
+            aria-label={`Take row ${rowIndex + 1}`}
+            onClick={() => sendRowPick(rowIndex)}
+            className="table-row table-row-button red-ring-on-hover"
+          >
+            {rowContent}
+          </button>
+        ) : (
           // biome-ignore lint/suspicious/noArrayIndexKey: the rows keep their places for the whole round
-          key={rowIndex}
-          className="table-row"
-        >
-          {ownRowPick && (
-            <button type="button" onClick={() => sendRowPick(rowIndex)}>
-              Take
-            </button>
-          )}
-          {row.cards.map((card) => (
-            <CardView key={card.id} card={card} />
-          ))}
-          {emptySlotIndexes(row.cards.length).map((slotIndex) => (
-            <EmptyCardSlot key={`empty ${slotIndex}`} />
-          ))}
-        </div>
-      ))}
+          <div key={rowIndex} className="table-row">
+            {rowContent}
+          </div>
+        );
+      })}
     </section>
   );
 }

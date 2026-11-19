@@ -69,6 +69,16 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  /* Every row keeps the space of the ring, so that the rows do not move when
+     the row pick starts. */
+  padding: var(--ring-width);
+}
+
+.table-row-button {
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
 }
 
 /* The shared patterns come last, so that they win over the classes of the

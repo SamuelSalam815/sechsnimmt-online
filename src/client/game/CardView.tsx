@@ -24,18 +24,27 @@ export function CardView({
   const colorClassName = highlighted
     ? 'negative-text'
     : findPenaltyClassName(penalty);
-  const hoverClassName =
-    onClick === undefined ? '' : 'red-ring-on-hover lift-on-hover';
+  const cardFace = (
+    <>
+      <PenaltyTallies penalty={penalty} />
+      <strong>{card.faceValue}</strong>
+      <PenaltyTallies penalty={penalty} />
+    </>
+  );
+  // A card that cannot be clicked is no button, so that a row that the row
+  // picker clicks can be a button around its cards.
+  if (onClick === undefined) {
+    return (
+      <div className={`card-space card ${colorClassName}`}>{cardFace}</div>
+    );
+  }
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={onClick === undefined}
-      className={`card-space card ${colorClassName} ${hoverClassName}`}
+      className={`card-space card ${colorClassName} red-ring-on-hover lift-on-hover`}
     >
-      <PenaltyTallies penalty={penalty} />
-      <strong>{card.faceValue}</strong>
-      <PenaltyTallies penalty={penalty} />
+      {cardFace}
     </button>
   );
 }
