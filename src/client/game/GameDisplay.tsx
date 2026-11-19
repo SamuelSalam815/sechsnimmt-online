@@ -19,8 +19,10 @@ export function GameDisplay() {
   return (
     <div>
       <StatusLine session={session} game={game} />
-      <PlayArea session={session} game={game} />
-      <PlayerStatus game={game} />
+      <div className="table-and-players">
+        <PlayArea session={session} game={game} />
+        <PlayerStatus game={game} />
+      </div>
       <GameLog />
       <HandArea session={session} game={game} />
     </div>

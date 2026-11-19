@@ -9,7 +9,7 @@ import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';
 export function PlayerStatus({ game }: { game: RoundGameState }) {
   const history = useAppSelector((state) => state.engine.history);
   return (
-    <ul>
+    <ul className="player-status">
       {listPlayerStatusRows(game).map((playerStatusRow) => (
         <li key={playerStatusRow.playerId}>
           <NameTag

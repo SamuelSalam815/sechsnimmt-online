@@ -14,21 +14,27 @@ function GameLogLineView({ gameLogLine }: { gameLogLine: GameLogLine }) {
     case 'placement':
       return (
         <li className="game-log-line">
-          {gameLogLine.playerName}
-          <CardView card={gameLogLine.card} miniature />
-          {`→ row ${gameLogLine.rowNumber}`}
+          <span className="game-log-player-name">{gameLogLine.playerName}</span>
+          <span className="game-log-line-part">
+            <CardView card={gameLogLine.card} miniature />
+            {`→ row ${gameLogLine.rowNumber}`}
+          </span>
         </li>
       );
     case 'take':
       return (
         <li className="game-log-line">
-          {gameLogLine.playerName}
-          <CardView card={gameLogLine.card} miniature />
-          {`takes row ${gameLogLine.rowNumber}:`}
-          {gameLogLine.takenCards.map((takenCard) => (
-            <CardView key={takenCard.id} card={takenCard} miniature />
-          ))}
-          {`(+${gameLogLine.takenPenalty})`}
+          <span className="game-log-player-name">{gameLogLine.playerName}</span>
+          <span className="game-log-line-part">
+            <CardView card={gameLogLine.card} miniature />
+            {`takes row ${gameLogLine.rowNumber}`}
+          </span>
+          <span className="game-log-line-part">
+            {gameLogLine.takenCards.map((takenCard) => (
+              <CardView key={takenCard.id} card={takenCard} miniature />
+            ))}
+            {`(+${gameLogLine.takenPenalty})`}
+          </span>
         </li>
       );
   }
@@ -48,14 +54,17 @@ export function GameLog() {
   }, [gameLogLineCount]);
 
   return (
-    <ol ref={gameLogRef} className="game-log">
-      {gameLogLines.map((gameLogLine, gameLogLineIndex) => (
-        <GameLogLineView
-          // biome-ignore lint/suspicious/noArrayIndexKey: the log only grows at the end
-          key={gameLogLineIndex}
-          gameLogLine={gameLogLine}
-        />
-      ))}
-    </ol>
+    <section>
+      <div className="section-header negative-text">Log</div>
+      <ol ref={gameLogRef} className="game-log">
+        {gameLogLines.map((gameLogLine, gameLogLineIndex) => (
+          <GameLogLineView
+            // biome-ignore lint/suspicious/noArrayIndexKey: the log only grows at the end
+            key={gameLogLineIndex}
+            gameLogLine={gameLogLine}
+          />
+        ))}
+      </ol>
+    </section>
   );
 }

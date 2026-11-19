@@ -37,7 +37,7 @@ export function PlayArea({
   }
 
   return (
-    <section>
+    <section className="play-area">
       {game.round.rows.map((row, rowIndex) => {
         const rowContent = (
           <>
@@ -51,7 +51,7 @@ export function PlayArea({
             {emptySlotIndexes(row.cards.length).map((slotIndex) => (
               <EmptyCardSlot key={`empty ${slotIndex}`} />
             ))}
-            <span className="row-penalty-total">
+            <span className="row-penalty-total negative-text">
               {`+${getPenaltyTotal(row.cards)}`}
             </span>
           </>
