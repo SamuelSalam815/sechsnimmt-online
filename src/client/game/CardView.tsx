@@ -51,7 +51,7 @@ export function CardView({
     <button
       type="button"
       onClick={onClick}
-      className={`card-space ${sizeClassName} card ${colorClassName} ${ringClassName} lift-on-hover`}
+      className={`card-space ${sizeClassName} card ${colorClassName} ${ringClassName} card-lines-on-hover`}
     >
       {cardFace}
     </button>
