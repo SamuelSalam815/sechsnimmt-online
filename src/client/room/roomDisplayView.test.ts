@@ -12,8 +12,8 @@ const roomView: RoomView = {
 
 test('the player rows show the ready state and mark the own player', () => {
   expect(listPlayerRows(roomView, 'b')).toEqual([
-    { playerId: 'a', text: 'Cheeky Ada – ready' },
-    { playerId: 'b', text: 'Sleepy Bob (you) – not ready' },
+    { playerId: 'a', name: 'Cheeky Ada', isOwnPlayer: false, ready: true },
+    { playerId: 'b', name: 'Sleepy Bob', isOwnPlayer: true, ready: false },
   ]);
 });
 

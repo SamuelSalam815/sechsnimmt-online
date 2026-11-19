@@ -1,5 +1,6 @@
 import { getReady, getUnready } from '#client/connection/serverApi.ts';
 import { useRequestInFlight } from '#client/connection/useRequestInFlight.ts';
+import { NameTag } from '#client/NameTag.tsx';
 import {
   COUNTDOWN_STEP_MILLISECONDS,
   countdownText,
@@ -40,7 +41,10 @@ export function RoomDisplay() {
     <div>
       <ul>
         {listPlayerRows(roomView, session.playerId).map((playerRow) => (
-          <li key={playerRow.playerId}>{playerRow.text}</li>
+          <li key={playerRow.playerId}>
+            <NameTag name={playerRow.name} marked={playerRow.ready} />
+            {playerRow.isOwnPlayer && ' (you)'}
+          </li>
         ))}
       </ul>
       {ownPlayer !== undefined && !roomView.gameStarted && (

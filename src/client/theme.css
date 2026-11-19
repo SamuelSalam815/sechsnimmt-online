@@ -87,6 +87,10 @@ body {
   font-weight: bold;
 }
 
+.name-tag {
+  padding-inline: 0.25rem;
+}
+
 /* The shared patterns come last, so that they win over the classes of the
    elements that they style. The rings are inset, so that an element keeps
    its size when it shows one. */

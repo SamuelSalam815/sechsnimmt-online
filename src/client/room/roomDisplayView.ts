@@ -6,21 +6,21 @@ export const COUNTDOWN_STEP_MILLISECONDS = 1_000;
 
 export interface PlayerRow {
   playerId: PlayerId;
-  text: string;
+  name: string;
+  isOwnPlayer: boolean;
+  ready: boolean;
 }
 
 export function listPlayerRows(
   roomView: RoomView,
   ownPlayerId: PlayerId,
 ): PlayerRow[] {
-  return roomView.players.map((player) => {
-    const ownMark = player.playerId === ownPlayerId ? ' (you)' : '';
-    const readyText = player.ready ? 'ready' : 'not ready';
-    return {
-      playerId: player.playerId,
-      text: `${player.name}${ownMark} – ${readyText}`,
-    };
-  });
+  return roomView.players.map((player) => ({
+    playerId: player.playerId,
+    name: player.name,
+    isOwnPlayer: player.playerId === ownPlayerId,
+    ready: player.ready,
+  }));
 }
 
 export function countdownText(elapsedMilliseconds: number): string {
