@@ -72,11 +72,10 @@ export function RoomDisplay() {
         <div className="window-actions">
           <button
             type="button"
-            aria-pressed={ownPlayer.ready}
             onClick={() => toggleReady(session, ownPlayer.ready)}
             className={`solid-button ${ownPlayer.ready ? 'solid-button-pressed' : ''}`}
           >
-            Ready
+            {ownPlayer.ready ? 'Unready' : 'Ready'}
           </button>
         </div>
       )}
