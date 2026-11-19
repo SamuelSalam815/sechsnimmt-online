@@ -113,3 +113,9 @@ Rows count from 1 in the log. "+3" is the penalty of the taken cards. The log sc
 ### 2.8 Row spacing and separators
 
 The space between two rows equals the space between two cards in a row. A thin horizontal line in `--color-ink` separates each two rows.
+
+### Additions from the session
+
+- 2.7: The log goes between the play area and the hand. It is about 5 lines tall and scrolls to the newest line. A miniature card (the full card, scaled to about 2rem) replaces each face value: `Ada [5] takes row 1: [10][13] (+3)` and `Ben [25] → row 2`.
+- Layout: one centered column, at most about 25rem wide: status line, play area, player list, log, hand.
+- 2.9 Row penalty total: each table row ends with its penalty total as plain ink text, `+4`.
