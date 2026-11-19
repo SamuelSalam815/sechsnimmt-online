@@ -30,8 +30,7 @@ export function CardView({
   const cardFace = (
     <>
       <PenaltyTallies penalty={penalty} />
-      <strong>{card.faceValue}</strong>
-      <PenaltyTallies penalty={penalty} />
+      <strong className="card-face-value">{card.faceValue}</strong>
     </>
   );
   // A card that cannot be clicked is no button, so that a row that the row
