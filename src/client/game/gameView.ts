@@ -99,19 +99,19 @@ export function statusLineText(
         (seat) => seat.pickedCard !== undefined,
       ).length;
       return isWaitingForOtherPicks(game, ownPlayerId)
-        ? `Waiting for others (${pickedCount} of ${seats.length})`
-        : `Pick a card (${pickedCount} of ${seats.length} picked)`;
+        ? `Awaiting operators (${pickedCount} of ${seats.length} locked)`
+        : `Select a unit (${pickedCount} of ${seats.length} locked)`;
     }
     case GamePhase.RowPick: {
       const rowPicker = findRowPicker(game);
       return rowPicker === ownPlayerId
-        ? 'Pick a row to take'
-        : `Waiting for ${findPlayerName(history, rowPicker)} to pick a row`;
+        ? 'Select a row to claim'
+        : `Awaiting ${findPlayerName(history, rowPicker)}: row selection`;
     }
     // The plan has no text for it: the server deals the next round at once,
     // so the phase shows only for a moment.
     case GamePhase.EndOfRound:
-      return 'The round is over';
+      return 'Cycle complete';
     case GamePhase.GameOver:
       return gameOverText(game.players);
   }
@@ -126,10 +126,10 @@ function gameOverText(players: Players): string {
     .filter((player) => player.penaltyScore === lowestScore)
     .map((player) => player.name);
   if (winnerNames.length === 1) {
-    return `Game over – ${winnerNames[0]} wins`;
+    return `Operation concluded – ${winnerNames[0]} prevails`;
   }
   const lastWinnerName = winnerNames.at(-1);
-  return `Game over – ${winnerNames.slice(0, -1).join(', ')} and ${lastWinnerName} win`;
+  return `Operation concluded – ${winnerNames.slice(0, -1).join(', ')} and ${lastWinnerName} prevail`;
 }
 
 export function listHandLowestFirst(

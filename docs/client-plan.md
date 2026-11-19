@@ -75,15 +75,16 @@ A new game after the game over is later work.
 
 ### Status line
 
-| Situation                            | Text                                              |
-| ------------------------------------ | ------------------------------------------------- |
-| Card pick, own card not picked       | `Round N – pick a card (k of m picked)`           |
-| Card pick, own card picked           | `Waiting for others (k of m)`                     |
-| Row pick, own row pick               | `Pick a row to take`                              |
-| Row pick, row pick of another player | `Waiting for <name> to pick a row`                |
-| Game over                            | `Game over – X wins` or `Game over – X and Y win` |
+| Situation                            | Text                                                                          |
+| ------------------------------------ | ----------------------------------------------------------------------------- |
+| Card pick, own card not picked       | `Select a unit (k of m locked)`                                               |
+| Card pick, own card picked           | `Awaiting operators (k of m locked)`                                          |
+| Row pick, own row pick               | `Select a row to claim`                                                       |
+| Row pick, row pick of another player | `Awaiting <name>: row selection`                                              |
+| End of round                         | `Cycle complete`                                                              |
+| Game over                            | `Operation concluded – X prevails` or `Operation concluded – X and Y prevail` |
 
-N is the number of `startGame` and `startRound` actions in the history.
+The header of the status window reads `Cycle N`, where N is the number of `startGame` and `startRound` actions in the history.
 
 ### Tests
 
@@ -123,7 +124,7 @@ The integration test writes one text trace per scenario in `src/engine/__snapsho
 ### S4 Name prompt and room display
 
 - `NamePrompt.tsx`: a text field and a join button.
-- `RoomDisplay.tsx`: a list of the players with their ready state, the ready toggle of the own player, and the countdown line, one number at a time: `Starting in 3…`, `Starting in 2…`, `Starting in 1…`.
+- `RoomDisplay.tsx`: a list of the players with their ready state, the ready toggle of the own player, and the countdown line, one number at a time: `Commencing in 3…`, `Commencing in 2…`, `Commencing in 1…`.
 
 ### S5 Game display
 

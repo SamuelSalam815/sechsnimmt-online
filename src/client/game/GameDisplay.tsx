@@ -14,7 +14,7 @@ export function GameDisplay() {
     return null;
   }
   if (game.phase === GamePhase.PreStart) {
-    return <p>Waiting for the deal</p>;
+    return <p>Awaiting deployment</p>;
   }
   return (
     <div>

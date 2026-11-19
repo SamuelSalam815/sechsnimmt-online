@@ -86,10 +86,10 @@ const rowPickActions = [
 test('the status line counts the picks in the card pick phase', () => {
   const engine = replay(startAction, pickActions[0]);
   expect(statusLineText(roundOf(engine), engine.history, 'a')).toBe(
-    'Waiting for others (1 of 2)',
+    'Awaiting operators (1 of 2 locked)',
   );
   expect(statusLineText(roundOf(engine), engine.history, 'b')).toBe(
-    'Pick a card (1 of 2 picked)',
+    'Select a unit (1 of 2 locked)',
   );
 });
 
@@ -97,10 +97,10 @@ test('the row picker is the player of the lowest revealed card', () => {
   const engine = replay(startAction, ...pickActions, ...revealActions);
   expect(findRowPicker(roundOf(engine))).toBe('a');
   expect(statusLineText(roundOf(engine), engine.history, 'a')).toBe(
-    'Pick a row to take',
+    'Select a row to claim',
   );
   expect(statusLineText(roundOf(engine), engine.history, 'b')).toBe(
-    'Waiting for Ada to pick a row',
+    'Awaiting Ada: row selection',
   );
 });
 
@@ -232,14 +232,14 @@ test('the game over names the winner with the lowest score', () => {
     endGame(),
   );
   expect(statusLineText(roundOf(engine), engine.history, 'a')).toBe(
-    'Game over – Ben wins',
+    'Operation concluded – Ben prevails',
   );
 });
 
 test('the game over names every winner of a tie', () => {
   const engine = replay(startAction, endRound(), endGame());
   expect(statusLineText(roundOf(engine), engine.history, 'a')).toBe(
-    'Game over – Ada and Ben win',
+    'Operation concluded – Ada and Ben prevail',
   );
 });
 
@@ -267,7 +267,7 @@ test('the game display reads the history that hides the other hands', () => {
     listPlayerStatusRows(roundOf(fullEngine)),
   );
   expect(statusLineText(roundOf(engineOfAda), engineOfAda.history, 'a')).toBe(
-    'Pick a row to take',
+    'Select a row to claim',
   );
 });
 
@@ -280,7 +280,7 @@ test('a viewer who sees the hand of the row picker hidden finds the row picker',
   );
   expect(findRowPicker(roundOf(engineOfBen))).toBe('a');
   expect(statusLineText(roundOf(engineOfBen), engineOfBen.history, 'b')).toBe(
-    'Waiting for Ada to pick a row',
+    'Awaiting Ada: row selection',
   );
 });
 

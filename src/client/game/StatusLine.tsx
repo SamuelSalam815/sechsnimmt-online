@@ -17,7 +17,7 @@ export function StatusLine({
 }) {
   const history = useAppSelector((state) => state.engine.history);
   return (
-    <MiniWindow title={`Round ${countRounds(history)}`}>
+    <MiniWindow title={`Cycle ${countRounds(history)}`}>
       <p
         className={`status-line ${isWaitingForOtherPicks(game, session.playerId) ? 'status-line-waiting' : ''}`}
       >

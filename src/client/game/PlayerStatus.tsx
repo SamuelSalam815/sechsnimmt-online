@@ -16,7 +16,7 @@ export function PlayerStatus({
 }) {
   const history = useAppSelector((state) => state.engine.history);
   return (
-    <MiniWindow title="Scores" className="player-status">
+    <MiniWindow title="Performance" className="player-status">
       <ul className="player-list player-list-scores score-scrollbar">
         {listPlayerStatusRows(game).map((playerStatusRow) => (
           <li

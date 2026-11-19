@@ -9,7 +9,7 @@ function GameLogLineView({ gameLogLine }: { gameLogLine: GameLogLine }) {
     case 'roundStart':
       return (
         <li className="game-log-round-start">
-          {`— Round ${gameLogLine.roundNumber} —`}
+          {`— Cycle ${gameLogLine.roundNumber} —`}
         </li>
       );
     case 'revealSeparator':
@@ -57,7 +57,7 @@ export function GameLog() {
   }, [gameLogLineCount]);
 
   return (
-    <MiniWindow title="Log">
+    <MiniWindow title="Event Log">
       <ol ref={gameLogRef} className="game-log score-scrollbar">
         {gameLogLines.map((gameLogLine, gameLogLineIndex) => (
           <GameLogLineView

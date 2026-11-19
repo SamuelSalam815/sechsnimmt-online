@@ -23,26 +23,28 @@ test('the player rows show the ready state and mark the own player', () => {
 });
 
 test('the countdown line adds one number each second', () => {
-  expect(countdownText(0)).toBe('Starting in 3…');
-  expect(countdownText(999)).toBe('Starting in 3…');
-  expect(countdownText(1_000)).toBe('Starting in 2…');
-  expect(countdownText(2_000)).toBe('Starting in 1…');
+  expect(countdownText(0)).toBe('Commencing in 3…');
+  expect(countdownText(999)).toBe('Commencing in 3…');
+  expect(countdownText(1_000)).toBe('Commencing in 2…');
+  expect(countdownText(2_000)).toBe('Commencing in 1…');
 });
 
 test('the countdown line stays in its bounds for a clock that is off', () => {
-  expect(countdownText(-500)).toBe('Starting in 3…');
-  expect(countdownText(3_500)).toBe('Starting in 1…');
+  expect(countdownText(-500)).toBe('Commencing in 3…');
+  expect(countdownText(3_500)).toBe('Commencing in 1…');
 });
 
 test('the room awaits the ready of a player who is not ready', () => {
   expect(isAwaitingOwnReady(roomView, 'b')).toBe(true);
-  expect(roomStatusText(roomView, 'b')).toBe('Get ready (1 of 2 ready)');
+  expect(roomStatusText(roomView, 'b')).toBe(
+    'Awaiting standby (1 of 2 on standby)',
+  );
 });
 
 test('a ready player waits for the others', () => {
   expect(isAwaitingOwnReady(roomView, 'a')).toBe(false);
   expect(roomStatusText(roomView, 'a')).toBe(
-    'Waiting for others (1 of 2 ready)',
+    'Awaiting personnel (1 of 2 on standby)',
   );
 });
 
