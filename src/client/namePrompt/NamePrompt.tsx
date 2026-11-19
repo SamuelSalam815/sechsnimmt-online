@@ -29,7 +29,7 @@ export function NamePrompt() {
           onChange={(event) => setTypedName(event.target.value)}
           className="text-input"
         />
-        <button type="submit" className="solid-button red-ring-on-hover">
+        <button type="submit" className="solid-button">
           Join
         </button>
       </form>

@@ -74,7 +74,7 @@ export function RoomDisplay() {
             type="button"
             aria-pressed={ownPlayer.ready}
             onClick={() => toggleReady(session, ownPlayer.ready)}
-            className={`solid-button red-ring-on-hover ${ownPlayer.ready ? 'solid-button-locked-in' : ''}`}
+            className={`solid-button ${ownPlayer.ready ? 'solid-button-pressed' : ''}`}
           >
             Ready
           </button>

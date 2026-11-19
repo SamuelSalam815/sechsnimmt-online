@@ -292,16 +292,14 @@ body {
 .solid-button {
   padding: 0.25rem 0.75rem;
   border: none;
-  background: var(--color-header);
-  color: var(--color-panel);
+  background: var(--color-header-inactive);
+  color: var(--color-ink);
   font: inherit;
 }
 
-/* The fill of the waiting status line, so that both show the locked in
-   state alike. */
-.solid-button-locked-in {
-  background: var(--color-header-inactive);
-  color: var(--color-ink);
+.solid-button-pressed {
+  background: var(--color-header);
+  color: var(--color-panel);
 }
 
 .app-column {
@@ -438,10 +436,6 @@ body {
 
 .ink-ring {
   box-shadow: 0 0 0 var(--ring-width) var(--color-ink);
-}
-
-.red-ring-on-hover:hover {
-  box-shadow: 0 0 0 var(--ring-width) var(--color-accent);
 }
 
 .negative-text {
