@@ -58,13 +58,18 @@ export function RoomDisplay() {
       </p>
       <ul className="player-list player-list-room">
         {listPlayerRows(roomView, session.playerId).map((playerRow) => (
-          <li key={playerRow.playerId} className="player-list-row">
+          <li
+            key={playerRow.playerId}
+            className={`player-list-row ${playerRow.isOwnPlayer ? 'player-list-own-row' : ''}`}
+          >
             <span
               className={`player-list-name ${playerRow.ready ? 'negative-text' : ''}`}
             >
               {playerRow.name}
+              {playerRow.isOwnPlayer && (
+                <span className="visually-hidden"> (you)</span>
+              )}
             </span>
-            {playerRow.isOwnPlayer && <span>(you)</span>}
           </li>
         ))}
       </ul>
