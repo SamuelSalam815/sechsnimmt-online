@@ -21,12 +21,17 @@ export function CardView({
   onClick?: () => void;
 }) {
   const penalty = getPenalty(card);
+  const colorClassName = highlighted
+    ? 'negative-text'
+    : findPenaltyClassName(penalty);
+  const hoverClassName =
+    onClick === undefined ? '' : 'red-ring-on-hover lift-on-hover';
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={onClick === undefined}
-      className={`card-space card ${highlighted ? 'negative-text' : findPenaltyClassName(penalty)}`}
+      className={`card-space card ${colorClassName} ${hoverClassName}`}
     >
       <PenaltyTallies penalty={penalty} />
       <strong>{card.faceValue}</strong>
