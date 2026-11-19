@@ -1,8 +1,21 @@
 # UI polish plan
 
-This plan is for the next session. Do the items in order: the simplifications first, then the UI changes. Commit each item when it is complete, as its own commit. Run `npm run format`, `npm run lint`, `npx tsc` and `npm test` before each commit.
+This plan is for the next session. It works on the branch `client-server-model`.
 
-The agent cannot see the UI in a browser. Say so in each report, and do not say that a visual change works.
+Before you start:
+
+- Read `CLAUDE.md` and `TODO.md`.
+- Raise with the user each `TODO.md` entry that touches this work.
+
+While you work:
+
+- Do the items in order: part 1 (simplifications) first, then part 2 (UI changes).
+- Commit each item when it is complete, as its own commit.
+- Run `npm run format`, `npm run lint`, `npx tsc` and `npm test` before each commit.
+- Do not push.
+- If this plan does not decide something, ask the user before you choose. Do not guess.
+
+You cannot see the UI in a browser. Do not say that a visual change works. In each report, tell the user what to check in the browser.
 
 Delete this file in the last commit, when every item is done.
 
