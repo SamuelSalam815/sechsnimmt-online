@@ -3,7 +3,10 @@ import {
   checkCardNotHidden,
   getPenaltyTotal,
 } from '#engine/dataTypes/cards/card.ts';
-import { GamePhase, type GameState } from '#engine/dataTypes/game/gameState.ts';
+import {
+  GamePhase,
+  type RoundGameState,
+} from '#engine/dataTypes/game/gameState.ts';
 import type {
   PlayerId,
   Players,
@@ -19,7 +22,6 @@ import {
   type AppliedAction,
   selectLastRevealEvents,
 } from '#engine/reducers/history.ts';
-import type { RootState } from '#engine/store.ts';
 
 export interface PlayerStatusRow {
   playerId: PlayerId;
@@ -29,10 +31,7 @@ export interface PlayerStatusRow {
   hasPicked: boolean;
 }
 
-export function listPlayerStatusRows(game: GameState): PlayerStatusRow[] {
-  if (game.phase === GamePhase.PreStart) {
-    return [];
-  }
+export function listPlayerStatusRows(game: RoundGameState): PlayerStatusRow[] {
   return listRoundSeats(game.round.seats)
     .map((seat) => ({
       playerId: seat.playerId,
@@ -50,7 +49,7 @@ export function countRounds(history: readonly AppliedAction[]): number {
   ).length;
 }
 
-export function findRowPicker(game: GameState): PlayerId | undefined {
+export function findRowPicker(game: RoundGameState): PlayerId | undefined {
   if (game.phase !== GamePhase.RowPick) {
     return undefined;
   }
@@ -58,14 +57,11 @@ export function findRowPicker(game: GameState): PlayerId | undefined {
 }
 
 export function statusLineText(
-  engine: RootState,
+  game: RoundGameState,
+  history: readonly AppliedAction[],
   ownPlayerId: PlayerId,
 ): string {
-  const { game } = engine;
-  if (game.phase === GamePhase.PreStart) {
-    return 'Waiting for the deal';
-  }
-  const roundNumber = countRounds(engine.history);
+  const roundNumber = countRounds(history);
   switch (game.phase) {
     case GamePhase.CardPick: {
       const seats = listRoundSeats(game.round.seats);
@@ -82,7 +78,7 @@ export function statusLineText(
       const rowPicker = findRowPicker(game);
       return rowPicker === ownPlayerId
         ? 'Pick a row to take'
-        : `Waiting for ${findPlayerName(engine.history, rowPicker)} to pick a row`;
+        : `Waiting for ${findPlayerName(history, rowPicker)} to pick a row`;
     }
     // The plan has no text for it: the server deals the next round at once,
     // so the phase shows only for a moment.
@@ -109,23 +105,16 @@ function gameOverText(players: Players): string {
 }
 
 // The reveal already names every played card, so a placement adds no line.
-export function listReportRows(engine: RootState): string[] {
-  const { game } = engine;
-  if (game.phase === GamePhase.PreStart) {
-    return [];
-  }
-  return selectLastRevealEvents(engine.history).flatMap((revealEvent) => {
+export function listReportRows(history: readonly AppliedAction[]): string[] {
+  return selectLastRevealEvents(history).flatMap((revealEvent) => {
     if ('takenCards' in revealEvent) {
-      const name = findPlayerName(
-        engine.history,
-        revealEvent.action.payload.playerId,
-      );
+      const name = findPlayerName(history, revealEvent.action.payload.playerId);
       return [`${name} took ${describeCards(revealEvent.takenCards)}`];
     }
     if (revealPickedCards.match(revealEvent.action)) {
       return revealEvent.action.payload.revealedCards.map(
         ({ playerId, card }) =>
-          `${findPlayerName(engine.history, playerId)} played ${card.faceValue}`,
+          `${findPlayerName(history, playerId)} played ${card.faceValue}`,
       );
     }
     return [];
@@ -133,12 +122,9 @@ export function listReportRows(engine: RootState): string[] {
 }
 
 export function listHandLowestFirst(
-  game: GameState,
+  game: RoundGameState,
   ownPlayerId: PlayerId,
 ): Card[] {
-  if (game.phase === GamePhase.PreStart) {
-    return [];
-  }
   const hand = game.round.seats.entities[ownPlayerId]?.hand ?? [];
   // The server hides only the hands of the other players.
   return hand
@@ -166,10 +152,12 @@ function findStartedPlayers(
 
 // An abandon is final, so the game display marks it. A short disconnect is
 // not marked: the room view tells of it, and its grace timer may still end it.
-export function listLeftPlayerNames(engine: RootState): string[] {
-  const { game } = engine;
-  const startedPlayers = findStartedPlayers(engine.history);
-  if (game.phase === GamePhase.PreStart || startedPlayers === undefined) {
+export function listLeftPlayerNames(
+  game: RoundGameState,
+  history: readonly AppliedAction[],
+): string[] {
+  const startedPlayers = findStartedPlayers(history);
+  if (startedPlayers === undefined) {
     return [];
   }
   return startedPlayers.ids

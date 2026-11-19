@@ -10,6 +10,10 @@ import {
   statusLineText,
 } from '#client/game/gameView.ts';
 import { STANDARD_GAME_RULES } from '#engine/dataTypes/game/gameRules.ts';
+import {
+  assertRoundInProgress,
+  type RoundGameState,
+} from '#engine/dataTypes/game/gameState.ts';
 import { createPlayers } from '#engine/dataTypes/playerState/player.ts';
 import { createRound } from '#engine/dataTypes/table/roundLifecycle.ts';
 import {
@@ -34,6 +38,11 @@ import { cardOf, placementOf, rowOf, seatOf } from '#testSupport/cards.ts';
 
 function replay(...actions: UnknownAction[]): RootState {
   return actions.reduce(rootReducer, initialRootState);
+}
+
+function roundOf(engine: RootState): RoundGameState {
+  assertRoundInProgress(engine.game);
+  return engine.game;
 }
 
 // Ada picks 5, which fits no row, so she takes a row. Ben picks 25.
@@ -72,21 +81,27 @@ const rowPickActions = [
 
 test('the status line counts the picks in the card pick phase', () => {
   const engine = replay(startAction, pickActions[0]);
-  expect(statusLineText(engine, 'a')).toBe('Waiting for others (1 of 2)');
-  expect(statusLineText(engine, 'b')).toBe(
+  expect(statusLineText(roundOf(engine), engine.history, 'a')).toBe(
+    'Waiting for others (1 of 2)',
+  );
+  expect(statusLineText(roundOf(engine), engine.history, 'b')).toBe(
     'Round 1 – pick a card (1 of 2 picked)',
   );
 });
 
 test('the row picker is the player of the lowest revealed card', () => {
   const engine = replay(startAction, ...pickActions, ...revealActions);
-  expect(findRowPicker(engine.game)).toBe('a');
-  expect(statusLineText(engine, 'a')).toBe('Pick a row to take');
-  expect(statusLineText(engine, 'b')).toBe('Waiting for Ada to pick a row');
+  expect(findRowPicker(roundOf(engine))).toBe('a');
+  expect(statusLineText(roundOf(engine), engine.history, 'a')).toBe(
+    'Pick a row to take',
+  );
+  expect(statusLineText(roundOf(engine), engine.history, 'b')).toBe(
+    'Waiting for Ada to pick a row',
+  );
 });
 
 test('no player picks a row in the card pick phase', () => {
-  expect(findRowPicker(replay(startAction).game)).toBeUndefined();
+  expect(findRowPicker(roundOf(replay(startAction)))).toBeUndefined();
 });
 
 test('the report names the played cards and the taken cards', () => {
@@ -96,7 +111,7 @@ test('the report names the played cards and the taken cards', () => {
     ...revealActions,
     ...rowPickActions,
   );
-  expect(listReportRows(engine)).toEqual([
+  expect(listReportRows(engine.history)).toEqual([
     'Ada played 5',
     'Ben played 25',
     'Ada took 10',
@@ -111,7 +126,7 @@ test('the player status lists the lowest penalty score first', () => {
     ...rowPickActions,
     pickCard({ playerId: 'b', cardId: cardOf(50).id }),
   );
-  expect(listPlayerStatusRows(engine.game)).toEqual([
+  expect(listPlayerStatusRows(roundOf(engine))).toEqual([
     {
       playerId: 'b',
       name: 'Ben',
@@ -142,16 +157,20 @@ test('the game over names the winner with the lowest score', () => {
     endRound(),
     endGame(),
   );
-  expect(statusLineText(engine, 'a')).toBe('Game over – Ben wins');
+  expect(statusLineText(roundOf(engine), engine.history, 'a')).toBe(
+    'Game over – Ben wins',
+  );
 });
 
 test('the game over names every winner of a tie', () => {
   const engine = replay(startAction, endRound(), endGame());
-  expect(statusLineText(engine, 'a')).toBe('Game over – Ada and Ben win');
+  expect(statusLineText(roundOf(engine), engine.history, 'a')).toBe(
+    'Game over – Ada and Ben win',
+  );
 });
 
 test('the hand lists the own cards lowest first', () => {
-  expect(listHandLowestFirst(replay(startAction).game, 'a')).toEqual([
+  expect(listHandLowestFirst(roundOf(replay(startAction)), 'a')).toEqual([
     cardOf(5),
     cardOf(100),
   ]);
@@ -164,14 +183,18 @@ test('the game display reads the history that hides the other hands', () => {
       ({ action }) => action,
     ),
   );
-  expect(listHandLowestFirst(engineOfAda.game, 'a')).toEqual(
-    listHandLowestFirst(fullEngine.game, 'a'),
+  expect(listHandLowestFirst(roundOf(engineOfAda), 'a')).toEqual(
+    listHandLowestFirst(roundOf(fullEngine), 'a'),
   );
-  expect(listReportRows(engineOfAda)).toEqual(listReportRows(fullEngine));
-  expect(listPlayerStatusRows(engineOfAda.game)).toEqual(
-    listPlayerStatusRows(fullEngine.game),
+  expect(listReportRows(engineOfAda.history)).toEqual(
+    listReportRows(fullEngine.history),
   );
-  expect(statusLineText(engineOfAda, 'a')).toBe('Pick a row to take');
+  expect(listPlayerStatusRows(roundOf(engineOfAda))).toEqual(
+    listPlayerStatusRows(roundOf(fullEngine)),
+  );
+  expect(statusLineText(roundOf(engineOfAda), engineOfAda.history, 'a')).toBe(
+    'Pick a row to take',
+  );
 });
 
 test('a viewer who sees the hand of the row picker hidden finds the row picker', () => {
@@ -181,8 +204,8 @@ test('a viewer who sees the hand of the row picker hidden finds the row picker',
       ({ action }) => action,
     ),
   );
-  expect(findRowPicker(engineOfBen.game)).toBe('a');
-  expect(statusLineText(engineOfBen, 'b')).toBe(
+  expect(findRowPicker(roundOf(engineOfBen))).toBe('a');
+  expect(statusLineText(roundOf(engineOfBen), engineOfBen.history, 'b')).toBe(
     'Waiting for Ada to pick a row',
   );
 });
@@ -195,11 +218,12 @@ test('the game display names the players who left the game', () => {
     ...rowPickActions,
     abandonGame({ playerId: 'a' }),
   );
-  expect(listLeftPlayerNames(engine)).toEqual(['Ada']);
+  expect(listLeftPlayerNames(roundOf(engine), engine.history)).toEqual(['Ada']);
   // The report of the last reveal still names the player who left.
-  expect(listReportRows(engine)).toContain('Ada took 10');
+  expect(listReportRows(engine.history)).toContain('Ada took 10');
 });
 
 test('no player has left a game that every player still plays', () => {
-  expect(listLeftPlayerNames(replay(startAction))).toEqual([]);
+  const engine = replay(startAction);
+  expect(listLeftPlayerNames(roundOf(engine), engine.history)).toEqual([]);
 });

@@ -3,18 +3,19 @@ import {
   listPlayerStatusRows,
 } from '#client/game/gameView.ts';
 import { useAppSelector } from '#client/store/hooks.ts';
+import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';
 
-export function PlayerStatus() {
-  const engine = useAppSelector((state) => state.engine);
+export function PlayerStatus({ game }: { game: RoundGameState }) {
+  const history = useAppSelector((state) => state.engine.history);
   return (
     <ul>
-      {listPlayerStatusRows(engine.game).map((playerStatusRow) => (
+      {listPlayerStatusRows(game).map((playerStatusRow) => (
         <li key={playerStatusRow.playerId}>
           {`${playerStatusRow.name} – ${playerStatusRow.penaltyScore} (${playerStatusRow.roundPenalty})`}
           {playerStatusRow.hasPicked && ' – picked'}
         </li>
       ))}
-      {listLeftPlayerNames(engine).map((leftPlayerName) => (
+      {listLeftPlayerNames(game, history).map((leftPlayerName) => (
         <li
           key={`left ${leftPlayerName}`}
         >{`${leftPlayerName} – left the game`}</li>

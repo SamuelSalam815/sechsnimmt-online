@@ -3,18 +3,19 @@ import { useRequestInFlight } from '#client/connection/useRequestInFlight.ts';
 import { CardView, EmptyCardSlot } from '#client/game/CardView.tsx';
 import { findRowPicker } from '#client/game/gameView.ts';
 import type { Session } from '#client/store/clientStore.ts';
-import { useAppDispatch, useAppSelector } from '#client/store/hooks.ts';
-import { GamePhase } from '#engine/dataTypes/game/gameState.ts';
+import { useAppDispatch } from '#client/store/hooks.ts';
+import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';
 
-export function PlayArea() {
+export function PlayArea({
+  session,
+  game,
+}: {
+  session: Session;
+  game: RoundGameState;
+}) {
   const dispatch = useAppDispatch();
-  const session = useAppSelector((state) => state.session);
-  const game = useAppSelector((state) => state.engine.game);
   const { sendRequest } = useRequestInFlight();
 
-  if (session === null || game.phase === GamePhase.PreStart) {
-    return null;
-  }
   const ownRowPick = findRowPicker(game) === session.playerId;
   const { rowCapacity } = game.gameRules;
 
@@ -26,7 +27,7 @@ export function PlayArea() {
     return slotIndexes;
   }
 
-  function sendRowPick(session: Session, rowIndex: number) {
+  function sendRowPick(rowIndex: number) {
     sendRequest(() =>
       pickRow(dispatch, session, game.version.sequence, rowIndex),
     );
@@ -41,10 +42,7 @@ export function PlayArea() {
           className="table-row"
         >
           {ownRowPick && (
-            <button
-              type="button"
-              onClick={() => sendRowPick(session, rowIndex)}
-            >
+            <button type="button" onClick={() => sendRowPick(rowIndex)}>
               Take
             </button>
           )}
