@@ -14,16 +14,19 @@ export function EmptyCardSlot() {
 export function CardView({
   card,
   highlighted = false,
+  inkRing = false,
   onClick,
 }: {
   card: Card;
   highlighted?: boolean;
+  inkRing?: boolean;
   onClick?: () => void;
 }) {
   const penalty = getPenalty(card);
   const colorClassName = highlighted
     ? 'negative-text'
     : findPenaltyClassName(penalty);
+  const ringClassName = inkRing ? 'ink-ring' : '';
   const cardFace = (
     <>
       <PenaltyTallies penalty={penalty} />
@@ -35,14 +38,16 @@ export function CardView({
   // picker clicks can be a button around its cards.
   if (onClick === undefined) {
     return (
-      <div className={`card-space card ${colorClassName}`}>{cardFace}</div>
+      <div className={`card-space card ${colorClassName} ${ringClassName}`}>
+        {cardFace}
+      </div>
     );
   }
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`card-space card ${colorClassName} red-ring-on-hover lift-on-hover`}
+      className={`card-space card ${colorClassName} ${ringClassName} red-ring-on-hover lift-on-hover`}
     >
       {cardFace}
     </button>

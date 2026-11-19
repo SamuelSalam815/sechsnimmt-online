@@ -4,6 +4,7 @@ import {
   countRounds,
   findRowPicker,
   listHandLowestFirst,
+  listLastRevealCardIds,
   listLeftPlayerNames,
   listPlayerStatusRows,
   listReportRows,
@@ -26,6 +27,7 @@ import {
   placeCard,
   revealPickedCards,
   startGame,
+  startRound,
   takeRow,
 } from '#engine/reducers/gameSlice.ts';
 import { projectHistoryForViewer } from '#engine/reducers/historyProjection.ts';
@@ -226,4 +228,84 @@ test('the game display names the players who left the game', () => {
 test('no player has left a game that every player still plays', () => {
   const engine = replay(startAction);
   expect(listLeftPlayerNames(roundOf(engine), engine.history)).toEqual([]);
+});
+
+test('the cards of the last reveal are the cards that it placed', () => {
+  const engine = replay(
+    startAction,
+    ...pickActions,
+    ...revealActions,
+    ...rowPickActions,
+  );
+  expect(listLastRevealCardIds(roundOf(engine), engine.history)).toEqual(
+    new Set([cardOf(5).id, cardOf(25).id]),
+  );
+});
+
+test('the next reveal clears the cards of the last reveal', () => {
+  const engine = replay(
+    startAction,
+    ...pickActions,
+    ...revealActions,
+    ...rowPickActions,
+    pickCard({ playerId: 'a', cardId: cardOf(100).id }),
+    pickCard({ playerId: 'b', cardId: cardOf(50).id }),
+    revealPickedCards({
+      revealedCards: [
+        { playerId: 'b', card: cardOf(50) },
+        { playerId: 'a', card: cardOf(100) },
+      ],
+    }),
+  );
+  expect(listLastRevealCardIds(roundOf(engine), engine.history)).toEqual(
+    new Set(),
+  );
+});
+
+test('a card that a take of the same reveal removed is no card of the reveal', () => {
+  const engine = replay(
+    startGame({
+      gameRules: STANDARD_GAME_RULES,
+      players: createPlayers([
+        { id: 'a', name: 'Ada' },
+        { id: 'b', name: 'Ben' },
+      ]),
+      round: createRound(
+        [rowOf(10, 11, 12, 13), rowOf(20), rowOf(30), rowOf(40)],
+        [seatOf('a', [cardOf(14)]), seatOf('b', [cardOf(15)])],
+      ),
+    }),
+    pickCard({ playerId: 'a', cardId: cardOf(14).id }),
+    pickCard({ playerId: 'b', cardId: cardOf(15).id }),
+    revealPickedCards({
+      revealedCards: [
+        { playerId: 'a', card: cardOf(14) },
+        { playerId: 'b', card: cardOf(15) },
+      ],
+    }),
+    placeCard(placementOf('a', 14, 0)),
+    takeRow(placementOf('b', 15, 0)),
+  );
+  expect(listLastRevealCardIds(roundOf(engine), engine.history)).toEqual(
+    new Set([cardOf(15).id]),
+  );
+});
+
+test('a new round clears the cards of the last reveal', () => {
+  const engine = replay(
+    startAction,
+    ...pickActions,
+    ...revealActions,
+    ...rowPickActions,
+    endRound(),
+    startRound({
+      round: createRound(
+        [rowOf(25), rowOf(35), rowOf(45), rowOf(55)],
+        [seatOf('a', [cardOf(60)]), seatOf('b', [cardOf(70)])],
+      ),
+    }),
+  );
+  expect(listLastRevealCardIds(roundOf(engine), engine.history)).toEqual(
+    new Set(),
+  );
 });

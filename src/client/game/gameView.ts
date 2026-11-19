@@ -1,5 +1,6 @@
 import {
   type Card,
+  type CardId,
   checkCardNotHidden,
   getPenaltyTotal,
 } from '#engine/dataTypes/cards/card.ts';
@@ -130,6 +131,44 @@ export function listHandLowestFirst(
   return hand
     .map((handCard) => checkCardNotHidden(handCard).force())
     .sort((a, b) => a.faceValue - b.faceValue);
+}
+
+// The last reveal events reach back past the start of a round, and the new
+// rows can hold a card that the last reveal of the round before placed.
+function isLastRevealInRound(history: readonly AppliedAction[]): boolean {
+  for (
+    let historyIndex = history.length - 1;
+    historyIndex >= 0;
+    historyIndex--
+  ) {
+    const { action } = history[historyIndex];
+    if (revealPickedCards.match(action)) {
+      return true;
+    }
+    if (startGame.match(action) || startRound.match(action)) {
+      return false;
+    }
+  }
+  return false;
+}
+
+export function listLastRevealCardIds(
+  game: RoundGameState,
+  history: readonly AppliedAction[],
+): Set<CardId> {
+  if (!isLastRevealInRound(history)) {
+    return new Set();
+  }
+  const tableCardIds = new Set(
+    game.round.rows.flatMap((row) => row.cards.map((card) => card.id)),
+  );
+  const placedCardIds = selectLastRevealEvents(history).flatMap(
+    (revealEvent) =>
+      revealPickedCards.match(revealEvent.action)
+        ? []
+        : [revealEvent.action.payload.card.id],
+  );
+  return new Set(placedCardIds.filter((cardId) => tableCardIds.has(cardId)));
 }
 
 function describeCards(cards: readonly Card[]): string {

@@ -1,9 +1,9 @@
 import { pickRow } from '#client/connection/serverApi.ts';
 import { useRequestInFlight } from '#client/connection/useRequestInFlight.ts';
 import { CardView, EmptyCardSlot } from '#client/game/CardView.tsx';
-import { findRowPicker } from '#client/game/gameView.ts';
+import { findRowPicker, listLastRevealCardIds } from '#client/game/gameView.ts';
 import type { Session } from '#client/store/clientStore.ts';
-import { useAppDispatch } from '#client/store/hooks.ts';
+import { useAppDispatch, useAppSelector } from '#client/store/hooks.ts';
 import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';
 
 export function PlayArea({
@@ -15,9 +15,11 @@ export function PlayArea({
 }) {
   const dispatch = useAppDispatch();
   const { sendRequest } = useRequestInFlight();
+  const history = useAppSelector((state) => state.engine.history);
 
   const ownRowPick = findRowPicker(game) === session.playerId;
   const { rowCapacity } = game.gameRules;
+  const lastRevealCardIds = listLastRevealCardIds(game, history);
 
   function emptySlotIndexes(rowCardCount: number): number[] {
     const slotIndexes: number[] = [];
@@ -39,7 +41,11 @@ export function PlayArea({
         const rowContent = (
           <>
             {row.cards.map((card) => (
-              <CardView key={card.id} card={card} />
+              <CardView
+                key={card.id}
+                card={card}
+                inkRing={lastRevealCardIds.has(card.id)}
+              />
             ))}
             {emptySlotIndexes(row.cards.length).map((slotIndex) => (
               <EmptyCardSlot key={`empty ${slotIndex}`} />
