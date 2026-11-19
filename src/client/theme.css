@@ -25,6 +25,7 @@ body {
 .card-space {
   --card-size: 3.5rem;
   --card-margin: 0.3rem;
+  --card-border-width: 0.0625rem;
   box-sizing: border-box;
   width: var(--card-size);
   height: var(--card-size);
@@ -47,7 +48,7 @@ body {
   flex-direction: column;
   align-items: center;
   padding: calc(var(--card-size) * 0.06);
-  border: 0.0625rem solid var(--color-ink);
+  border: var(--card-border-width) solid var(--color-ink);
   color: var(--color-ink);
   font-size: inherit;
 }
@@ -72,7 +73,8 @@ body {
 }
 
 /* Each line sits in the middle of the space between two cards, as the lines
-   of a hovered row sit between two rows. */
+   of a hovered row sit between two rows. The offsets count from inside the
+   border of the card, so they add its width. */
 .card-lines-on-hover:hover::before,
 .card-lines-on-hover:hover::after,
 .card-lines-on-hover:focus-visible::before,
@@ -84,11 +86,21 @@ body {
 }
 
 .card-lines-on-hover::before {
-  left: calc(-1 * var(--card-margin) - 0.5 * var(--score-width));
+  left: calc(
+    -1 *
+    (var(--card-border-width) + var(--card-margin)) -
+    0.5 *
+    var(--score-width)
+  );
 }
 
 .card-lines-on-hover::after {
-  right: calc(-1 * var(--card-margin) - 0.5 * var(--score-width));
+  right: calc(
+    -1 *
+    (var(--card-border-width) + var(--card-margin)) -
+    0.5 *
+    var(--score-width)
+  );
 }
 
 .penalty-tallies {
