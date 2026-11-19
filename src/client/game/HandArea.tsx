@@ -35,7 +35,7 @@ export function HandArea({
 
   return (
     <section>
-      <h3>{ownName}</h3>
+      <div className="hand-header negative-text">{ownName}</div>
       <div>
         {listHandLowestFirst(game, session.playerId).map((card) => (
           <CardView
