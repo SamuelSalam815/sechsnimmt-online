@@ -138,8 +138,8 @@ body {
 }
 
 .player-status-name {
-  justify-self: start;
-  max-width: 100%;
+  align-self: stretch;
+  line-height: 2rem;
   padding-inline: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
