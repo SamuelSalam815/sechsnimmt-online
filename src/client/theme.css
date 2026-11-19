@@ -302,7 +302,7 @@ body {
   content: "";
   position: absolute;
   inset-block: 0;
-  border-left: var(--score-width) solid var(--color-attack);
+  border-left: var(--score-width) solid var(--color-accent);
 }
 
 .awaiting-input::before {
