@@ -48,14 +48,14 @@ export function RoomDisplay() {
         ))}
       </ul>
       {ownPlayer !== undefined && !roomView.gameStarted && (
-        <label>
-          <input
-            type="checkbox"
-            checked={ownPlayer.ready}
-            onChange={() => toggleReady(session, ownPlayer.ready)}
-          />{' '}
+        <button
+          type="button"
+          aria-pressed={ownPlayer.ready}
+          onClick={() => toggleReady(session, ownPlayer.ready)}
+          className={`ready-button red-ring-on-hover ${ownPlayer.ready ? 'negative-text' : ''}`}
+        >
           Ready
-        </label>
+        </button>
       )}
       {countdownStartedAt !== null && (
         <p>{countdownText(now - countdownStartedAt)}</p>
