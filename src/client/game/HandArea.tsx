@@ -39,7 +39,7 @@ export function HandArea({
 
   return (
     <MiniWindow
-      title={`Operator: ${ownName}`}
+      title={`Unit: ${ownName}`}
       className={
         acceptsClicks && isAwaitingOwnInput(game, session.playerId)
           ? 'awaiting-input'
