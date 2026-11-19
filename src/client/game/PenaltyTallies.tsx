@@ -47,7 +47,7 @@ export function PenaltyTallies({ penalty }: { penalty: number }) {
   return (
     <svg
       viewBox={`0 0 ${width} ${TALLY_HEIGHT}`}
-      style={{ height: '0.4em', width: 'auto', overflow: 'visible' }}
+      className="penalty-tallies"
       role="img"
       aria-label={`Penalty ${penalty}`}
     >

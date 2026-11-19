@@ -40,7 +40,7 @@ export function PlayArea() {
         <div
           // biome-ignore lint/suspicious/noArrayIndexKey: the rows keep their places for the whole round
           key={rowIndex}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}
+          className="table-row"
         >
           {ownRowPick && (
             <button type="button" onClick={() => sendRowPick(rowIndex)}>
