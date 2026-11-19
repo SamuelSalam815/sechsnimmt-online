@@ -37,14 +37,14 @@ test('the countdown line stays in its bounds for a clock that is off', () => {
 test('the room awaits the ready of a player who is not ready', () => {
   expect(isAwaitingOwnReady(roomView, 'b')).toBe(true);
   expect(roomStatusText(roomView, 'b')).toBe(
-    'Awaiting standby (1 of 2 on standby)',
+    'Deploy when ready (1 of 2 deployed)',
   );
 });
 
 test('a ready player waits for the others', () => {
   expect(isAwaitingOwnReady(roomView, 'a')).toBe(false);
   expect(roomStatusText(roomView, 'a')).toBe(
-    'Awaiting personnel (1 of 2 on standby)',
+    'Awaiting others (1 of 2 deployed)',
   );
 });
 

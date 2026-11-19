@@ -38,10 +38,10 @@ export function roomStatusText(
   ownPlayerId: PlayerId,
 ): string {
   const readyCount = roomView.players.filter((player) => player.ready).length;
-  const readyCountText = `(${readyCount} of ${roomView.players.length} on standby)`;
+  const readyCountText = `(${readyCount} of ${roomView.players.length} deployed)`;
   return isAwaitingOwnReady(roomView, ownPlayerId)
-    ? `Awaiting standby ${readyCountText}`
-    : `Awaiting personnel ${readyCountText}`;
+    ? `Deploy when ready ${readyCountText}`
+    : `Awaiting others ${readyCountText}`;
 }
 
 export function countdownText(elapsedMilliseconds: number): string {

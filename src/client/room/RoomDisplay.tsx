@@ -26,7 +26,7 @@ export function RoomDisplay() {
 
   if (session === null || roomView === null) {
     return (
-      <MiniWindow title="Personnel" className="mini-window-narrow">
+      <MiniWindow title="Arsenal" className="mini-window-narrow">
         <p className="status-line">Establishing link…</p>
       </MiniWindow>
     );
@@ -49,7 +49,7 @@ export function RoomDisplay() {
 
   return (
     <>
-      <MiniWindow title="Personnel" className="mini-window-narrow">
+      <MiniWindow title="Arsenal" className="mini-window-narrow">
         <p
           className={`status-line ${waitingForOthers ? 'status-line-waiting' : ''}`}
         >
@@ -86,7 +86,7 @@ export function RoomDisplay() {
               onClick={() => toggleReady(session, ownPlayer.ready)}
               className={`solid-button ${ownPlayer.ready ? 'solid-button-pressed' : ''}`}
             >
-              {ownPlayer.ready ? 'Stand down' : 'Standby'}
+              {ownPlayer.ready ? 'Withdraw' : 'Deploy'}
             </button>
           </div>
         </MiniWindow>
