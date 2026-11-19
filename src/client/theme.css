@@ -301,6 +301,7 @@ body {
 .game-log {
   height: 11.5rem;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -363,6 +364,50 @@ body {
 
 .awaiting-input::after {
   right: calc(-1 * var(--attention-gutter));
+}
+
+/* The scroll bar takes the standard line as its thumb and two squares as
+   its buttons. Only WebKit and Blink style the buttons; Chrome ignores these
+   pseudo-elements on an element that sets scrollbar-color, so the standard
+   properties go only to the other browsers. */
+:root {
+  --scrollbar-width: 0.75rem;
+}
+
+.score-scrollbar::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  background: transparent;
+}
+
+.score-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.score-scrollbar::-webkit-scrollbar-thumb {
+  border-inline: calc((var(--scrollbar-width) - var(--score-width)) / 2) solid
+    transparent;
+  background: var(--color-header-inactive);
+  background-clip: padding-box;
+}
+
+.score-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}
+
+.score-scrollbar::-webkit-scrollbar-button:vertical:single-button:decrement,
+.score-scrollbar::-webkit-scrollbar-button:vertical:single-button:increment {
+  display: block;
+  height: var(--scrollbar-width);
+  border: 0.125rem solid transparent;
+  background: var(--color-header-inactive);
+  background-clip: padding-box;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .score-scrollbar {
+    scrollbar-color: var(--color-header-inactive) transparent;
+    scrollbar-width: thin;
+  }
 }
 
 /* The shared patterns come last, so that they win over the classes of the

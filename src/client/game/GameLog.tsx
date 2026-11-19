@@ -58,7 +58,7 @@ export function GameLog() {
 
   return (
     <MiniWindow title="Log">
-      <ol ref={gameLogRef} className="game-log">
+      <ol ref={gameLogRef} className="game-log score-scrollbar">
         {gameLogLines.map((gameLogLine, gameLogLineIndex) => (
           <GameLogLineView
             // biome-ignore lint/suspicious/noArrayIndexKey: the log only grows at the end
