@@ -302,7 +302,9 @@ body {
   height: 11.5rem;
   overflow-y: auto;
   scrollbar-gutter: stable;
-  margin: 0;
+  /* Into the padding of the window body, so that the scroll bar sits at the
+     edge of the window. */
+  margin: 0 -0.5rem 0 0;
   padding: 0;
   list-style: none;
 }
@@ -371,7 +373,7 @@ body {
    pseudo-elements on an element that sets scrollbar-color, so the standard
    properties go only to the other browsers. */
 :root {
-  --scrollbar-width: 0.75rem;
+  --scrollbar-width: 0.5rem;
 }
 
 .score-scrollbar::-webkit-scrollbar {
@@ -398,7 +400,8 @@ body {
 .score-scrollbar::-webkit-scrollbar-button:vertical:single-button:increment {
   display: block;
   height: var(--scrollbar-width);
-  border: 0.125rem solid transparent;
+  border: calc((var(--scrollbar-width) - var(--score-width)) / 2) solid
+    transparent;
   background: var(--color-header-inactive);
   background-clip: padding-box;
 }
