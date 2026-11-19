@@ -116,8 +116,14 @@ body {
   flex: 1 1 auto;
 }
 
+/* Smaller than the cards of the hand, so that the scores fit beside the
+   rows. */
+.play-area .card-space {
+  --card-size: 3.25rem;
+}
+
 .player-status {
-  flex: 0 1 10rem;
+  flex: 0 1 11.5rem;
   align-self: flex-start;
 }
 
@@ -136,7 +142,7 @@ body {
 }
 
 .player-list-scores .player-list-row {
-  grid-template-columns: 5rem 2rem 2rem;
+  grid-template-columns: 5rem 2.75rem 2.75rem;
 }
 
 .player-list-room .player-list-row {
