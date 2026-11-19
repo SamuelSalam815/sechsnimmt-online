@@ -100,7 +100,7 @@ export function statusLineText(
       ).length;
       return isWaitingForOtherPicks(game, ownPlayerId)
         ? `Awaiting operators (${pickedCount} of ${seats.length} locked)`
-        : `Select a unit (${pickedCount} of ${seats.length} locked)`;
+        : `Select a chip (${pickedCount} of ${seats.length} locked)`;
     }
     case GamePhase.RowPick: {
       const rowPicker = findRowPicker(game);

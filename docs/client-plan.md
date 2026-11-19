@@ -77,7 +77,7 @@ A new game after the game over is later work.
 
 | Situation                            | Text                                                                          |
 | ------------------------------------ | ----------------------------------------------------------------------------- |
-| Card pick, own card not picked       | `Select a unit (k of m locked)`                                               |
+| Card pick, own card not picked       | `Select a chip (k of m locked)`                                               |
 | Card pick, own card picked           | `Awaiting operators (k of m locked)`                                          |
 | Row pick, own row pick               | `Select a row to claim`                                                       |
 | Row pick, row pick of another player | `Awaiting <name>: row selection`                                              |

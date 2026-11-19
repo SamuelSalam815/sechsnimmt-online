@@ -89,7 +89,7 @@ test('the status line counts the picks in the card pick phase', () => {
     'Awaiting operators (1 of 2 locked)',
   );
   expect(statusLineText(roundOf(engine), engine.history, 'b')).toBe(
-    'Select a unit (1 of 2 locked)',
+    'Select a chip (1 of 2 locked)',
   );
 });
 
