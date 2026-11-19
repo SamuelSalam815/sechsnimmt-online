@@ -104,7 +104,7 @@ Two browser tabs play one game. Each tab is one player and sees only its own han
 
 ### Color Reference
 
-The colors come from `docs/color-palette.json`.
+The colors come from `docs/color-palette.json`. The look follows the UI of NieR:Automata, which its designer describes on the [PlatinumGames blog](https://www.platinumgames.com/official-blog/article/9624).
 
 | Color             | Hex                                                              |
 | ----------------- | ---------------------------------------------------------------- |
@@ -242,6 +242,7 @@ Project link: <https://github.com/SamuelSalam815/sechsnimmt-online>
 ## Acknowledgements
 
 - 6 nimmt! is a card game by Wolfgang Kramer, published by AMIGO. This project is not affiliated with them.
+- [The UI of NieR:Automata on the PlatinumGames blog](https://www.platinumgames.com/official-blog/article/9624), the model for the UI design and the color palette.
 - [Awesome README Template](https://github.com/Louis3797/awesome-readme-template)
 - [Shields.io](https://shields.io/)
 - [Rules summary at UltraBoardGames](https://www.ultraboardgames.com/6-nimmt/game-rules.php)
