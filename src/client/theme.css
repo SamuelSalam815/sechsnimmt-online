@@ -154,16 +154,17 @@ body {
   list-style: none;
 }
 
-/* The name column has one width in every list, as in the log, so that the
-   names and what follows them align. */
+/* The name column has one width in every row of a list, so that the names
+   and what follows them align. */
 .player-list-row {
   display: grid;
   align-items: center;
   min-height: 2rem;
 }
 
+/* The names take all the width that the score squares leave. */
 .player-list-scores .player-list-row {
-  grid-template-columns: 5rem 2.75rem 2.75rem;
+  grid-template-columns: minmax(0, 1fr) 2rem 2rem;
 }
 
 .player-list-room .player-list-row {
