@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { getReady, getUnready } from '#client/connection/serverApi.ts';
+import { useRequestInFlight } from '#client/connection/useRequestInFlight.ts';
 import {
   COUNTDOWN_STEP_MILLISECONDS,
   countdownText,
   listPlayerRows,
 } from '#client/room/roomDisplayView.ts';
+import type { Session } from '#client/store/clientStore.ts';
 import { useAppDispatch, useAppSelector } from '#client/store/hooks.ts';
 
 export function RoomDisplay() {
@@ -13,7 +15,7 @@ export function RoomDisplay() {
   const { roomView, countdownStartedAt } = useAppSelector(
     (state) => state.room,
   );
-  const [readyRequestInFlight, setReadyRequestInFlight] = useState(false);
+  const { sendRequest } = useRequestInFlight();
   const [now, setNow] = useState(Date.now);
 
   // The store does not change while the countdown runs, so a timer renders
@@ -45,17 +47,12 @@ export function RoomDisplay() {
     (player) => player.playerId === session.playerId,
   );
 
-  async function toggleReady(ownPlayerReady: boolean) {
-    if (session === null || readyRequestInFlight) {
-      return;
-    }
-    setReadyRequestInFlight(true);
-    if (ownPlayerReady) {
-      await getUnready(dispatch, session);
-    } else {
-      await getReady(dispatch, session);
-    }
-    setReadyRequestInFlight(false);
+  function toggleReady(session: Session, ownPlayerReady: boolean) {
+    sendRequest(() =>
+      ownPlayerReady
+        ? getUnready(dispatch, session)
+        : getReady(dispatch, session),
+    );
   }
 
   return (
@@ -70,7 +67,7 @@ export function RoomDisplay() {
           <input
             type="checkbox"
             checked={ownPlayer.ready}
-            onChange={() => toggleReady(ownPlayer.ready)}
+            onChange={() => toggleReady(session, ownPlayer.ready)}
           />{' '}
           Ready
         </label>

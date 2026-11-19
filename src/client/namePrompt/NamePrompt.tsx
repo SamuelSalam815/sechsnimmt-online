@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react';
 import { joinRoom } from '#client/connection/serverApi.ts';
+import { useRequestInFlight } from '#client/connection/useRequestInFlight.ts';
 import { canJoin } from '#client/namePrompt/namePromptView.ts';
 import { useAppDispatch } from '#client/store/hooks.ts';
 import { MAX_NAME_LENGTH } from '#server/roomStore/roomSlice.ts';
@@ -7,16 +8,14 @@ import { MAX_NAME_LENGTH } from '#server/roomStore/roomSlice.ts';
 export function NamePrompt() {
   const dispatch = useAppDispatch();
   const [typedName, setTypedName] = useState('');
-  const [joinInFlight, setJoinInFlight] = useState(false);
+  const { requestInFlight, sendRequest } = useRequestInFlight();
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!canJoin(typedName, joinInFlight)) {
+    if (!canJoin(typedName, requestInFlight)) {
       return;
     }
-    setJoinInFlight(true);
-    await joinRoom(dispatch, typedName.trim());
-    setJoinInFlight(false);
+    await sendRequest(() => joinRoom(dispatch, typedName.trim()));
   }
 
   return (
