@@ -183,12 +183,13 @@ body {
   grid-template-columns: minmax(0, 1fr) 2rem 2rem;
 }
 
+/* The mark column has one width, so that every name takes the same width. */
 .player-list-room .player-list-row {
-  grid-template-columns: 5rem auto;
+  grid-template-columns: minmax(0, 1fr) 3rem;
   gap: 0.25rem;
 }
 
-.player-list-row + .player-list-row {
+.player-list-scores .player-list-row + .player-list-row {
   border-top: var(--score);
 }
 
@@ -288,12 +289,19 @@ body {
   background: var(--color-header-inactive);
 }
 
-.outline-button {
+.solid-button {
   padding: 0.25rem 0.75rem;
-  border: 0.0625rem solid var(--color-ink);
-  background: none;
-  color: var(--color-ink);
+  border: none;
+  background: var(--color-header);
+  color: var(--color-panel);
   font: inherit;
+}
+
+/* The fill of the waiting status line, so that both show the locked in
+   state alike. */
+.solid-button-locked-in {
+  background: var(--color-header-inactive);
+  color: var(--color-ink);
 }
 
 .app-column {

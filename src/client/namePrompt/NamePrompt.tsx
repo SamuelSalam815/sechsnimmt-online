@@ -20,7 +20,7 @@ export function NamePrompt() {
   }
 
   return (
-    <MiniWindow title="Name" className="mini-window-narrow awaiting-input">
+    <MiniWindow title="Name" className="mini-window-narrow">
       <form onSubmit={handleSubmit} className="window-actions">
         <input
           aria-label="Name"
@@ -29,7 +29,7 @@ export function NamePrompt() {
           onChange={(event) => setTypedName(event.target.value)}
           className="text-input"
         />
-        <button type="submit" className="outline-button red-ring-on-hover">
+        <button type="submit" className="solid-button red-ring-on-hover">
           Join
         </button>
       </form>

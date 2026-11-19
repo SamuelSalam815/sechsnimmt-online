@@ -43,18 +43,12 @@ export function RoomDisplay() {
     );
   }
 
-  const awaitingOwnReady =
-    countdownStartedAt === null &&
-    isAwaitingOwnReady(roomView, session.playerId);
   const waitingForOthers =
     countdownStartedAt === null &&
     !isAwaitingOwnReady(roomView, session.playerId);
 
   return (
-    <MiniWindow
-      title="Players"
-      className={`mini-window-narrow ${awaitingOwnReady ? 'awaiting-input' : ''}`}
-    >
+    <MiniWindow title="Players" className="mini-window-narrow">
       <p
         className={`status-line ${waitingForOthers ? 'status-line-waiting' : ''}`}
       >
@@ -80,7 +74,7 @@ export function RoomDisplay() {
             type="button"
             aria-pressed={ownPlayer.ready}
             onClick={() => toggleReady(session, ownPlayer.ready)}
-            className={`outline-button red-ring-on-hover ${ownPlayer.ready ? 'negative-text' : ''}`}
+            className={`solid-button red-ring-on-hover ${ownPlayer.ready ? 'solid-button-locked-in' : ''}`}
           >
             Ready
           </button>
