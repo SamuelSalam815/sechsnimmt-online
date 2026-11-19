@@ -81,6 +81,7 @@ body {
 .table-row {
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 /* The line sits at the top edge of the row, halfway between the margins of
@@ -90,6 +91,11 @@ body {
   background:
     linear-gradient(var(--color-ink), var(--color-ink)) top / 100% 0.0625rem
     no-repeat;
+}
+
+.row-penalty-total {
+  margin-inline-start: auto;
+  padding-inline-start: 0.25rem;
 }
 
 .table-row-button {

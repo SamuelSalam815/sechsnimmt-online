@@ -4,6 +4,7 @@ import { CardView, EmptyCardSlot } from '#client/game/CardView.tsx';
 import { findRowPicker, listLastRevealCardIds } from '#client/game/gameView.ts';
 import type { Session } from '#client/store/clientStore.ts';
 import { useAppDispatch, useAppSelector } from '#client/store/hooks.ts';
+import { getPenaltyTotal } from '#engine/dataTypes/cards/card.ts';
 import type { RoundGameState } from '#engine/dataTypes/game/gameState.ts';
 
 export function PlayArea({
@@ -50,6 +51,9 @@ export function PlayArea({
             {emptySlotIndexes(row.cards.length).map((slotIndex) => (
               <EmptyCardSlot key={`empty ${slotIndex}`} />
             ))}
+            <span className="row-penalty-total">
+              {`+${getPenaltyTotal(row.cards)}`}
+            </span>
           </>
         );
         return ownRowPick ? (
