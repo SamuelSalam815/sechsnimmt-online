@@ -3,7 +3,7 @@ import { type Card, getPenalty } from '#engine/dataTypes/cards/card.ts';
 
 function findPenaltyClassName(penalty: number): string {
   if (penalty >= 7) return 'card-penalty-high';
-  if (penalty >= 5) return 'card-penalty-medium';
+  if (penalty >= 3) return 'card-penalty-medium';
   return 'card-penalty-low';
 }
 
