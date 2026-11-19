@@ -43,12 +43,18 @@ export function RoomDisplay() {
     );
   }
 
+  const awaitingOwnReady =
+    countdownStartedAt === null &&
+    isAwaitingOwnReady(roomView, session.playerId);
   const waitingForOthers =
     countdownStartedAt === null &&
     !isAwaitingOwnReady(roomView, session.playerId);
 
   return (
-    <MiniWindow title="Players" className="mini-window-narrow">
+    <MiniWindow
+      title="Players"
+      className={`mini-window-narrow ${awaitingOwnReady ? 'awaiting-input' : ''}`}
+    >
       <p className={`status-line ${waitingForOthers ? 'negative-text' : ''}`}>
         {countdownStartedAt === null
           ? roomStatusText(roomView, session.playerId)

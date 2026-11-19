@@ -37,7 +37,7 @@ export function PlayArea({
   }
 
   return (
-    <section className="play-area">
+    <section className={`play-area ${ownRowPick ? 'awaiting-input' : ''}`}>
       {game.round.rows.map((row, rowIndex) => {
         const rowContent = (
           <>

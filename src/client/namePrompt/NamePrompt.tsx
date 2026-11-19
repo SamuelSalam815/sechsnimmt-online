@@ -20,7 +20,7 @@ export function NamePrompt() {
   }
 
   return (
-    <MiniWindow title="Name" className="mini-window-narrow">
+    <MiniWindow title="Name" className="mini-window-narrow awaiting-input">
       <form onSubmit={handleSubmit} className="window-actions">
         <input
           aria-label="Name"

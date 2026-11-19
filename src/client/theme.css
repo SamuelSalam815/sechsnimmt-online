@@ -10,7 +10,8 @@
   --color-header-inactive: #b4af9a;
   --color-faded: #9b9785;
   --color-locked-slot: #67665d;
-  --score: 0.25rem solid var(--color-header-inactive);
+  --score-width: 0.25rem;
+  --score: var(--score-width) solid var(--color-header-inactive);
 }
 
 body {
@@ -183,15 +184,16 @@ body {
   content: "";
   position: absolute;
   inset-inline: 5%;
-  border-top: var(--score);
+  border-top: var(--score-width) solid var(--color-locked-slot);
 }
 
+/* Each line sits in the middle of the space between two rows. */
 .table-row-button::before {
-  top: 0;
+  top: calc(-0.5 * var(--score-width));
 }
 
 .table-row-button::after {
-  bottom: 0;
+  bottom: calc(-0.5 * var(--score-width));
 }
 
 .mini-window {
@@ -246,19 +248,9 @@ body {
 }
 
 .app-column {
-  box-sizing: border-box;
   max-width: 38rem;
-  min-height: 100vh;
   margin-inline: auto;
   padding: 0.5rem 1rem;
-  /* Transparent until the game awaits the own input, so that the column
-     keeps its width when the lines show. */
-  border-inline: var(--score);
-  border-color: transparent;
-}
-
-.app-column-awaiting-input {
-  border-color: var(--color-header-inactive);
 }
 
 .game-log {
@@ -298,6 +290,27 @@ body {
 
 .game-log-round-start {
   text-align: center;
+}
+
+/* The lines stand outside the element, so that they do not move it. */
+.awaiting-input {
+  position: relative;
+}
+
+.awaiting-input::before,
+.awaiting-input::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  border-left: var(--score-width) solid var(--color-attack);
+}
+
+.awaiting-input::before {
+  left: -0.5rem;
+}
+
+.awaiting-input::after {
+  right: -0.5rem;
 }
 
 /* The shared patterns come last, so that they win over the classes of the
